@@ -10,16 +10,18 @@
   * If you then blank out "Search Gene Symbol", the last searched gene symbol is still selected.
 * "Locus Window (Kbp):" this is only relevant when in "Locus Zoom"
   * Might be useful to have only selected set of values, say 20,50,100,200,500,1000,2000
-* When "Select Gene Symbol"
-  * Top panel initially has whole genome but then goes to its chromosome;
-chromosome needs to be named (only says "Chromosome").
+* Top main panel initially has whole genome. When you "Select Gene Symbol":
+  * "View Mode:" switches to "Locus Zoom"
+  * X axis named as "Chromosome" with no Mbp ticks.
+  * Want to be able to switch from "Locus Zoom" to "Chromosome" to the right chromosome easily.
 * "Visible Categories:" is redundant given plotly ability to click on labels.
 * "Min Peak Score:" consider selected values as for "Locus Window".
 
 ## Challenges with Interpreting
 
 * Need explanation of both panels on "Locus Zoom".
-This could be pop-up or pull-down.
+  * This could be pop-up or pull-down.
+  * Is top panel a subset of the "Chromosome" image?
 * Reactive hiding and showing of side panel would simplify presentation
 (see ideas above).
 
