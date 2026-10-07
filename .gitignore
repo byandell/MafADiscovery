@@ -1,0 +1,33 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data & Environment files
+.RData
+.RDataTmp
+.Renviron
+.Ruserdata
+
+# RStudio files
+.Rproj.user/
+
+# OAuth / secret tokens
+.httr-oauth
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Shinylive & web build artifacts (built and deployed in CI via GitHub Actions)
+/docs/
+/site/
+
+# Project and IDE temporary files
+.quarto
+*.Rproj
+

@@ -1,0 +1,63 @@
+name: Deploy Shinylive App
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'SHINY_APP/**'
+      - '.github/workflows/deploy-shinylive.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install R dependencies
+        run: |
+          install.packages(c("shiny", "shinylive", "data.table", "ggplot2", "plotly"))
+        shell: Rscript {0}
+
+      - name: Export Shinylive site
+        run: |
+          shinylive::export(appdir = "SHINY_APP", destdir = "site")
+        shell: Rscript {0}
+
+      - name: Disable Jekyll for GitHub Pages
+        run: touch site/.nojekyll
+        shell: bash
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site/'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
