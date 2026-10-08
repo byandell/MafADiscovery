@@ -289,7 +289,7 @@ observeEvent(input$reset_view, {
 
 ---
 
-### Step 9: UI Ergonomics — Repositioning Reset & Adding Developer Guide Button
+### Step 9: UI Ergonomics — Repositioning Reset & Markdown-Based Modals
 
 1. **Button Repositioning**:
    * Moved the action buttons down to sit directly below the `Min phastCons Score:` slider and horizontal divider (`hr()`).
@@ -297,12 +297,27 @@ observeEvent(input$reset_view, {
      * **↺ Reset** (`actionButton("reset_view", ...)`, blue primary style)
      * **📖 Dev Guide** (`actionButton("show_dev_guide", ...)`, dark charcoal utility style)
 
-2. **In-App Developer Guide Modal**:
-   * Added `observeEvent(input$show_dev_guide, ...)` to render an interactive in-app modal providing immediate access to the 4 architectural modules:
-     * *Legacy Prototypes (`shinyapp.md`)*
-     * *Deployment Architecture (`publishapp.md`)*
-     * *UI Redesign & Reactivity (`redesign.md`)*
-     * *F2 Glycemic QTL Integration (`qtlanalysis.md`)*
+2. **Decoupled Markdown Guide Modals (`interpretation_guide.md` & `developer_guide.md`)**:
+   * Extracted all modal documentation into standalone Markdown files in `SHINY_APP/` to allow direct editing without modifying R application code:
+     * [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md): Macro/micro panel interpretation, Manhattan axes, DEG point shapes, strain colors, coding variant impacts (`phastCons`), QTL intervals, and navigation modes.
+     * [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md): Architectural guide summary with direct links to all documentation modules and the GitHub repository.
+   * Implemented a robust dynamic path-resolution loader `render_markdown_file(filename)` in `app.R`:
+     ```r
+     render_markdown_file <- function(filename) {
+       filepath <- if (file.exists(filename)) filename else if (file.exists(file.path("SHINY_APP", filename))) file.path("SHINY_APP", filename) else NULL
+       if (!is.null(filepath)) {
+         content <- paste(readLines(filepath, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+         div(class = "modal-markdown",
+           if (exists("markdown", where = asNamespace("shiny"), mode = "function")) shiny::markdown(content)
+           else if (requireNamespace("markdown", quietly = TRUE)) HTML(markdown::markdownToHTML(text = content, fragment.only = TRUE))
+           else tags$pre(content)
+         )
+       } else {
+         tags$p(paste("Documentation file not found:", filename), style = "color: red;")
+       }
+     }
+     ```
+   * Added client-side modal event handling in `tags$head` so that all markdown links inside the modal automatically open in a new browser tab (`target="_blank"`, `rel="noopener noreferrer"`), preserving the user's active explorer session.
 
 ---
 

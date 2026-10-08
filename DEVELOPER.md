@@ -23,6 +23,8 @@ MafADiscovery/
 ├── app.R                          # Top-level launcher: shiny::runApp("SHINY_APP")
 ├── SHINY_APP/                     # Self-contained Shiny application source
 │   ├── app.R                      # Main application UI and Server logic
+│   ├── interpretation_guide.md    # In-app interpretation modal content
+│   ├── developer_guide.md         # In-app developer guide modal content with links
 │   ├── MafA_Peaks_with_SNPs_v3.csv              # MafA ChIP/CUT&RUN peaks and scores
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
@@ -32,10 +34,12 @@ MafADiscovery/
 ├── .github/
 │   └── workflows/
 │       └── deploy-shinylive.yaml  # GitHub Actions automated Shinylive export & deployment
-├── docs/                          # Shinylive static web distribution bundle (gitignored)
 ├── MafADiscovery.Rproj            # RStudio project configuration
-├── shinyapp.md                    # Shinylive deployment notes & configuration
-├── DEVELOPER.md                   # Technical reference & developer guide (this file)
+├── shinyapp.md                    # Root architectural module: legacy prototypes
+├── publishapp.md                  # Root architectural module: publishing guide
+├── redesign.md                    # Root architectural module: UI redesign
+├── qtlanalysis.md                 # Root architectural module: QTL integration
+├── DEVELOPER.md                   # Root master developer guide (this file)
 ├── AGENTS.md                      # AI assistant project guidelines
 ├── LICENSE                        # MIT License
 └── README.md                      # Project overview & quick start
@@ -71,8 +75,8 @@ All genomic coordinates in this project are standardized on the mouse **GRCm39 /
 ### Data Engine (`prepare_data()`)
 
 The data engine runs once at session initialization:
-- Loads the 4 CSV files using fast `data.table::fread()`.
-- Calculates linear Manhattan positions (`GlobalPos_Mbp`) for both peaks and coding variants using `chr_map`.
+- Loads the 5 CSV files using fast `data.table::fread()`.
+- Calculates linear Manhattan positions (`GlobalPos_Mbp`) for peaks, coding variants, and QTL confidence intervals using `chr_map`.
 - Formats SNP impacts (`HIGH` vs `MODERATE`) and ensures missing `phastCons_score` values default to `0`.
 - Eliminates heavy Bioconductor packages (`GenomicRanges`, `IRanges`, `S4Vectors`) by using `data.table` rolling joins (`roll = "nearest"`):
   ```r
@@ -87,7 +91,7 @@ State is managed via `reactiveValues` in `v`:
 - `v$active_pk`: Currently selected MafA binding peak row.
 - `v$active_snp`: Currently selected coding SNP row (if clicked).
 - `v$active_qtl`: Currently selected F2 glycemic QTL row.
-- `v$last_gene`: Cached symbol of the last searched gene (preserved even if the search input is cleared).
+- `v$last_gene`: Cached symbol of the last searched gene.
 - `v$current_chr`: Active chromosome tracking (synced when peaks, genes, or QTLs are selected to allow seamless transitions between view modes).
 - `v$user_zoom`: User-defined x-axis range captured from Plotly `relayout` events.
 - `v$reset_trigger`: Integer incremented to reset Plotly view revision state.
@@ -102,8 +106,8 @@ State is managed via `reactiveValues` in `v`:
 - **QTL Table Reference**: A dedicated modal (`input$show_qtl_table`) allows inspecting all 11 F2 glycemic QTLs with their LOD scores and additive effect estimates, and jumping directly to any QTL's confidence interval.
 - **Category Filtering**: Visible categories default to `C57_Specific`, `SJL_Specific`, and `Discordant` (with `Shared` deselected by default) to immediately highlight strain-divergent variation.
 - **Discrete Thresholds**: Min Peak Score uses discrete selections (`All (0), 100, 200, 500, 1000, 2000, 5000`) for predictable filtering.
-- **Interpretation Guide**: An in-app modal (`input$show_help`) provides biological background, macro/micro panel coordination guidance, QTL navigation tips, and interactive features.
-- **Developer Guide & Reset Repositioning**: The `Reset` and `Dev Guide` buttons are positioned below the `Min phastCons Score:` slider. `Reset` performs a complete state purge (clearing gene search, resetting categories, filters, coordinates, and view modes).
+- **Interpretation Guide Modal**: Loaded dynamically from [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md) via `render_markdown_file()`. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
+- **Developer Guide Modal & Reset Repositioning**: The `Reset` and `Dev Guide` buttons are positioned below the `Min phastCons Score:` slider. `Reset` performs a complete state purge (clearing gene search, resetting categories, filters, coordinates, and view modes). `Dev Guide` loads dynamically from [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md), featuring clickable links with `target="_blank"` to all architectural modules and repository resources.
 
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 
@@ -134,7 +138,7 @@ Rendered below the Locus Schematic on the main panel (width = 9) via `shiny::ren
 
 ## Modular Architectural Documentation
 
-The repository maintains four specialized architectural modules published via `docs/`:
+The repository maintains four specialized architectural modules at root, automatically synchronized to GitHub Pages during CI deployment:
 
 1. **[`shinyapp.md`](shinyapp.md) — Legacy Standalone Prototypes**:
    - Comprehensive technical specifications and lineage for Version 1 (`MafA_Discovery_App.R`) and Version 2 (`MafA_Discovery_App_v2.R`).
@@ -162,9 +166,10 @@ The app is deployed to GitHub Pages as a static WebAssembly bundle:
    - Copies root documentation assets (`DEVELOPER.md`, `shinyapp.md`, `publishapp.md`, `redesign.md`, `qtlanalysis.md`) into `site/` for public hosting.
    - Uploads `site/` and deploys to GitHub Pages via `actions/deploy-pages@v4`.
 2. **Local Static Verification**:
-   - To test the static build locally with WebAssembly:
+   - If testing a static export locally with WebAssembly:
      ```r
-     httpuv::runStaticServer("docs", port = 8888)
+     shinylive::export(appdir = "SHINY_APP", destdir = "site")
+     httpuv::runStaticServer("site", port = 8888)
      ```
 
 ---

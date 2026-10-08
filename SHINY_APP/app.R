@@ -6,13 +6,15 @@
 # 3. Run the following lines to install dependencies:
 #    install.packages(c("shiny", "data.table", "ggplot2", "plotly"))
 #
-# 4. REQUIRED FILES (Ensure these 6 files are in the same folder):
+# 4. REQUIRED FILES (Ensure these 8 files are in the same folder):
 #    - app.R                                           (This script)
 #    - MafA_Peaks_with_SNPs_v3.csv                     (Peak data)
 #    - Master_DEG_Strain_Comparison_v3.csv             (DEG data)
 #    - mouse_genes_mm39_v3.csv                         (Genomic backbone)
 #    - B6_SJL_prioritized_protein_coding_SNPs.csv      (SNP data)
 #    - Top_glycemic_QTL_for_sex_additive_analysis.csv  (F2 Glycemic QTL data)
+#    - interpretation_guide.md                         (Interpretation modal guide)
+#    - developer_guide.md                              (Developer architecture modal)
 #
 # 5. TO LAUNCH:
 #    Open this file in RStudio and click 'Run App', or run: shiny::runApp()
@@ -84,6 +86,14 @@ ui <- fluidPage(
     .btn-devguide { background-color: #495057; color: white; font-weight: bold; }
     .btn-devguide:hover { background-color: #343a40; color: white; }
     .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.25; }
+    .modal-markdown { line-height: 1.6; font-size: 0.96em; }
+    .modal-markdown h1 { font-size: 1.45em; font-weight: bold; margin-bottom: 14px; color: #222; }
+    .modal-markdown h2 { font-size: 1.25em; font-weight: bold; margin-top: 18px; color: #333; }
+    .modal-markdown h3 { font-size: 1.1em; font-weight: bold; margin-top: 14px; color: #444; }
+    .modal-markdown a { color: #007bff; text-decoration: underline; font-weight: bold; }
+    .modal-markdown a:hover { color: #0056b3; }
+    .modal-markdown ul, .modal-markdown ol { padding-left: 24px; margin-bottom: 12px; }
+    .modal-markdown li { margin-bottom: 6px; }
     #hover_tooltip {
       position: absolute;
       pointer-events: none;
@@ -95,6 +105,11 @@ ui <- fluidPage(
       font-size: 13px;
       z-index: 1000;
     }
+  ")),
+  tags$script(HTML("
+    $(document).on('shown.bs.modal', function () {
+      $('.modal-markdown a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
+    });
   "))),
   
   titlePanel(span("MafA Discovery: Integrated Genomic Explorer", style="font-weight:bold;")),
@@ -353,42 +368,37 @@ server <- function(input, output, session) {
     tab[, .(Trait, Marker, Chr, `Peak (Mb)`, `95% CI (Mb)`, LOD, `BB Effect`, `BS Effect`, `SS Effect`)]
   }, striped = TRUE, hover = TRUE, bordered = TRUE, spacing = "s")
 
+  # Helper to load and render markdown files inside modals
+  render_markdown_file <- function(filename) {
+    filepath <- if (file.exists(filename)) {
+      filename
+    } else if (file.exists(file.path("SHINY_APP", filename))) {
+      file.path("SHINY_APP", filename)
+    } else {
+      NULL
+    }
+    
+    if (!is.null(filepath)) {
+      content <- paste(readLines(filepath, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+      div(class = "modal-markdown",
+        if (exists("markdown", where = asNamespace("shiny"), mode = "function")) {
+          shiny::markdown(content)
+        } else if (requireNamespace("markdown", quietly = TRUE)) {
+          HTML(markdown::markdownToHTML(text = content, fragment.only = TRUE))
+        } else {
+          tags$pre(content)
+        }
+      )
+    } else {
+      tags$p(paste("Documentation file not found:", filename), style = "color: red;")
+    }
+  }
+
   # Interpretation Modal Guide
   observeEvent(input$show_help, {
     showModal(modalDialog(
       title = span(strong("MafA Discovery: How to Interpret Panels & Navigate"), style = "color: #17a2b8;"),
-      div(
-        h4(strong("1. Top Panel: Manhattan Macro View")),
-        p("Displays MafA binding peaks, prioritized coding SNPs, and F2 glycemic QTL intervals:"),
-        tags$ul(
-          tags$li(strong("Primary Y-Axis (Left): "), "MafA Peak Score reflecting ChIP/CUT&RUN binding strength."),
-          tags$li(strong("Point Shapes: "), "Differentially expressed gene (DEG) direction (▲ UP, ▼ DOWN in diabetes/perturbation)."),
-          tags$li(strong("Point Colors: "), "Strain-specificity category: ",
-                  span("Shared", style="color:#228B22; font-weight:bold;"), ", ",
-                  span("C57_Specific", style="color:#0000CC; font-weight:bold;"), ", ",
-                  span("SJL_Specific", style="color:#CC0000; font-weight:bold;"), ", or ",
-                  span("Discordant", style="color:#FF8C00; font-weight:bold;"), "."),
-          tags$li(strong("Secondary Y-Axis & Diamonds: "), "Coding SNPs between C57BL/6J and SJL/J strains, scaled by evolutionary conservation score (phastCons 0–1). Pink = HIGH impact, Gold = MODERATE impact."),
-          tags$li(strong("QTL Interval Highlight: "), "Translucent blue shading and vertical dashed line show the F2 glycemic QTL confidence interval (95% CI) and peak marker position."),
-          tags$li(strong("Interactivity: "), "Click any peak or SNP point to inspect its locus. Use 'Visible Categories' to isolate strain-divergent peaks.")
-        ),
-        hr(),
-        h4(strong("2. Bottom Panel: Locus Micro Schematic")),
-        p("Renders a high-resolution window (± Locus Window) centered on the active MafA binding peak:"),
-        tags$ul(
-          tags$li(strong("MafA Peak: "), "Marked with a gold dashed line and highlighted region."),
-          tags$li(strong("Gene Models: "), "Horizontal bars depict gene bodies. Arrows denote transcription start site (TSS) and orientation."),
-          tags$li(strong("Coding SNPs: "), "Diamonds show exact positions of coding SNPs within exons. Outlined diamonds indicate phastCons ≥ 0.7.")
-        ),
-        hr(),
-        h4(strong("3. Navigation Modes")),
-        tags$ul(
-          tags$li(strong("Genome-Wide: "), "Global linear coordinate view across all 21 mouse chromosomes."),
-          tags$li(strong("Chromosome: "), "Focused view of an individual chromosome with absolute Mbp tick marks."),
-          tags$li(strong("QTL Region: "), "Direct zoom into the 95% confidence interval boundaries (ci.low to ci.high) of an F2 glycemic QTL."),
-          tags$li(strong("Locus Zoom: "), "Fine-scale schematic centered on an active MafA binding peak.")
-        )
-      ),
+      render_markdown_file("interpretation_guide.md"),
       size = "l",
       easyClose = TRUE,
       footer = modalButton("Close")
@@ -399,18 +409,7 @@ server <- function(input, output, session) {
   observeEvent(input$show_dev_guide, {
     showModal(modalDialog(
       title = span(strong("MafA Discovery: Developer Guide & Architecture"), style = "color: #343a40;"),
-      div(
-        p("This explorer is documented across four core architectural modules maintained in the repository and published via ", code("docs/"), ":"),
-        tags$ul(style = "line-height: 1.8;",
-          tags$li(strong("1. Legacy Prototypes: "), code("shinyapp.md"), " — Technical specifications for Version 1 and Version 2 standalone prototype scripts in ", code("SHINY_APP_LEGACY/"), "."),
-          tags$li(strong("2. Publishing & Deployment: "), code("publishapp.md"), " — Shinylive (webR) export workflow, GitHub Actions CI automation, and static GitHub Pages hosting."),
-          tags$li(strong("3. App Redesign & Reactivity: "), code("redesign.md"), " — Reactive lifecycle, conditional selectors, coordinate scale auto-ticks, and panel coordination."),
-          tags$li(strong("4. F2 Glycemic QTL Integration: "), code("qtlanalysis.md"), " — Ingestion of F2 study loci, 95% confidence interval auto-zooming, and strain-divergence biological mechanisms.")
-        ),
-        hr(),
-        p(strong("Developer Documentation: "), 
-          "The complete unified developer guide is compiled in ", code("DEVELOPER.md"), " and ", code("docs/DEVELOPER.md"), ".")
-      ),
+      render_markdown_file("developer_guide.md"),
       size = "l",
       easyClose = TRUE,
       footer = modalButton("Close")
