@@ -34,6 +34,14 @@ MafADiscovery/
 ├── .github/
 │   └── workflows/
 │       └── deploy-shinylive.yaml  # GitHub Actions automated Shinylive export & deployment
+├── docs/                          # Standalone HTML documentation pages for GitHub Pages
+│   ├── DEVELOPER.html             # Rendered master Developer Guide
+│   ├── shinyapp.html              # Rendered Legacy Prototypes guide
+│   ├── publishapp.html            # Rendered Publishing & WebAssembly guide
+│   ├── redesign.html              # Rendered UI Redesign guide
+│   ├── qtlanalysis.html           # Rendered QTL Analysis guide
+│   └── .nojekyll                  # Bypasses Jekyll on GitHub Pages
+├── render_docs.R                  # Generator script rendering *.md to docs/*.html
 ├── MafADiscovery.Rproj            # RStudio project configuration
 ├── shinyapp.md                    # Root architectural module: legacy prototypes
 ├── publishapp.md                  # Root architectural module: publishing guide

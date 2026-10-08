@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legacy Standalone Prototypes — MafA Discovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1976d2;
+      --primary-hover: #115293;
+      --text: #24292f;
+      --text-muted: #57606a;
+      --bg: #ffffff;
+      --bg-alt: #f6f8fa;
+      --border: #d0d7de;
+      --code-bg: #f6f8fa;
+      --accent: #6f42c1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background-color: #fafbfc;
+      margin: 0;
+      padding: 0;
+    }
+    header.site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .header-inner {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-brand {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-brand:hover { color: var(--primary-hover); }
+    nav.doc-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    nav.doc-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    nav.doc-nav a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    nav.doc-nav a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .app-link {
+      background-color: #2da44e !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    .app-link:hover {
+      background-color: #2c974b !important;
+    }
+    main.doc-container {
+      max-width: 1060px;
+      margin: 32px auto 60px auto;
+      padding: 0 24px;
+    }
+    article.markdown-body {
+      background: #ffffff;
+      padding: 48px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 768px) {
+      article.markdown-body { padding: 24px 16px; }
+      .header-inner { padding: 12px 16px; }
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #1f2328;
+      font-weight: 600;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    h1 {
+      font-size: 2.1em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 { font-size: 1.25em; }
+    p, ul, ol { margin-top: 0; margin-bottom: 16px; }
+    ul, ol { padding-left: 28px; }
+    li { margin-bottom: 6px; }
+    a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: var(--primary-hover); }
+    code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.88em;
+      background-color: var(--code-bg);
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #e1e4e8;
+    }
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.94em;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: var(--bg-alt);
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background-color: #fcfcfd; }
+    blockquote {
+      border-left: 4px solid var(--primary);
+      margin: 16px 0;
+      padding: 8px 16px;
+      background-color: #f0f7ff;
+      color: #333;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+    footer.site-footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.88em;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <nav class="doc-nav">
+        <ul>
+          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
+          <li><a href="DEVELOPER.html">Developer Guide</a></li>
+          <li><a href="shinyapp.html" class="active">Legacy Prototypes</a></li>
+          <li><a href="publishapp.html">Publishing & WebAssembly</a></li>
+          <li><a href="redesign.html">UI Redesign</a></li>
+          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <main class="doc-container">
+    <article class="markdown-body">
+<h1>Legacy MafA Explorer Applications (v1 &amp; v2)</h1>
+<h2>Prompts</h2>
+<h3>Objective</h3>
+<p>Create, document, and preserve the standalone prototype applications in <code>SHINY_APP_LEGACY/MafA*.R</code>, providing a complete technical implementation plan and record for both <strong>Version 1</strong> (<code>MafA_Discovery_App.R</code>) and <strong>Version 2</strong> (<code>MafA_Discovery_App_v2.R</code>).</p>
+<h3>Prompt Requirements</h3>
+<ol>
+<li><strong>Version 1 (<code>MafA_Discovery_App.R</code>)</strong>:
+<ul>
+<li>Create a lightweight baseline prototype focused strictly on MafA transcription factor binding peaks and differential gene expression (DEGs).</li>
+<li>Ingest 3 core datasets: peak intervals with variant counts, strain DEG comparisons, and mouse GRCm39 gene coordinates.</li>
+<li>Utilize Bioconductor <code>GenomicRanges</code> for genomic interval proximity searches.</li>
+<li>Deliver an interactive Manhattan plot and a locus schematic illustrating gene bodies and transcription orientation.</li>
+</ul>
+</li>
+<li><strong>Version 2 (<code>MafA_Discovery_App_v2.R</code>)</strong>:
+<ul>
+<li>Extend the baseline prototype by integrating strain-divergent protein-coding SNPs between C57BL/6J and SJL/J.</li>
+<li>Ingest a 4th dataset: prioritized coding SNPs with evolutionary conservation (<code>phastCons</code>) scores.</li>
+<li>Implement dual Y-axis scaling on the Manhattan plot (left axis: MafA peak score; right secondary axis: <code>phastCons</code> score).</li>
+<li>Enable bidirectional interactive clicking: clicking a peak highlights it, while clicking a coding SNP highlights the variant diamond and automatically selects the nearest MafA peak.</li>
+<li>Render coding variants directly onto gene models in the locus schematic (hollow diamonds for $\text{pCons} &lt; 0.7$, solid diamonds for $\ge 0.7$).</li>
+<li>Expand the sidebar metadata card with coding variant consequences, amino acid changes, and impact ratings.</li>
+</ul>
+</li>
+<li><strong>Legacy Preservation &amp; Standalone Execution</strong>:
+<ul>
+<li>House these legacy scripts in <code>SHINY_APP_LEGACY/</code> as self-contained prototypes.</li>
+<li>Maintain full documentation in <a href="SHINY_APP_LEGACY/README.md"><code>SHINY_APP_LEGACY/README.md</code></a>.</li>
+<li>Provide a clear migration path to the production application in <a href="SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a>.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>Implementation Plan: Creating and Preserving <code>SHINY_APP_LEGACY/MafA*.R</code></h2>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph Data Layer
+        D1[Peaks CSV] --&gt; V1[v1: MafA_Discovery_App.R]
+        D2[DEGs CSV] --&gt; V1
+        D3[Genes mm39 CSV] --&gt; V1
+        D4[Coding SNPs CSV] --&gt; V2[v2: MafA_Discovery_App_v2.R]
+        D1 --&gt; V2
+        D2 --&gt; V2
+        D3 --&gt; V2
+    end
+    subgraph Legacy Prototypes
+        V1 --&gt;|Baseline: Peaks + DEGs| P1[Single Y-Axis Manhattan &amp; Schematic]
+        V2 --&gt;|Enhanced: + Coding SNPs| P2[Dual Y-Axis Manhattan + SNP Overlay]
+    end
+    subgraph Production Evolution
+        V1 -.-&gt;|Bioconductor Deprecation| PROD[Production: SHINY_APP/app.R]
+        V2 -.-&gt;|data.table Rolling Joins + Shinylive| PROD
+    end
+</code></pre>
+<hr />
+<h3>1. Comparative Architecture: Version 1 vs. Version 2</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Feature / Dimension</th>
+<th align="left">Version 1 (<code>MafA_Discovery_App.R</code>)</th>
+<th align="left">Version 2 (<code>MafA_Discovery_App_v2.R</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Script Path</strong></td>
+<td align="left"><a href="SHINY_APP_LEGACY/MafA_Discovery_App.R"><code>SHINY_APP_LEGACY/MafA_Discovery_App.R</code></a></td>
+<td align="left"><a href="SHINY_APP_LEGACY/MafA_Discovery_App_v2.R"><code>SHINY_APP_LEGACY/MafA_Discovery_App_v2.R</code></a></td>
+</tr>
+<tr>
+<td align="left"><strong>Data Ingestion</strong></td>
+<td align="left">3 CSVs (~6.3 MB)</td>
+<td align="left">4 CSVs (~15.4 MB, adds prioritized coding SNPs)</td>
+</tr>
+<tr>
+<td align="left"><strong>Genomic Distance Engine</strong></td>
+<td align="left">Bioconductor <code>GenomicRanges::nearest()</code> &amp; <code>findOverlaps()</code></td>
+<td align="left">Bioconductor <code>GenomicRanges::nearest()</code> &amp; <code>findOverlaps()</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Default Locus Window</strong></td>
+<td align="left">250 kb</td>
+<td align="left">500 kb</td>
+</tr>
+<tr>
+<td align="left"><strong>Coding SNP Controls</strong></td>
+<td align="left"><em>None</em></td>
+<td align="left">Checkboxes for SNP overlay, Impact filter (<code>HIGH</code>/<code>MODERATE</code>), <code>min_phastcons</code> slider</td>
+</tr>
+<tr>
+<td align="left"><strong>Manhattan Y-Axis</strong></td>
+<td align="left">Single primary Y-axis: MafA Peak Score (0–10,000)</td>
+<td align="left"><strong>Dual Y-Axis</strong>: Primary Y-axis = Peak Score; Secondary Y-axis = <code>phastCons</code> score (0–1)</td>
+</tr>
+<tr>
+<td align="left"><strong>Manhattan Plot Glyphs</strong></td>
+<td align="left">MafA peak points only (color by Category, shape by Direction)</td>
+<td align="left">MafA peaks <strong>plus</strong> coding SNPs plotted as diamonds (<code>shape = 23</code>) color-coded by impact</td>
+</tr>
+<tr>
+<td align="left"><strong>Interactivity</strong></td>
+<td align="left">Single-entity: Click peak only</td>
+<td align="left"><strong>Bidirectional</strong>: Click peak $\rightarrow$ view locus; Click SNP $\rightarrow$ highlight variant and select nearest peak</td>
+</tr>
+<tr>
+<td align="left"><strong>Locus Schematic</strong></td>
+<td align="left">Gene bodies, TSS arrows, and peak highlight interval</td>
+<td align="left">Gene models with <strong>coding SNPs plotted directly on gene tracks</strong> with differential conservation styling</td>
+</tr>
+<tr>
+<td align="left"><strong>Sidebar Metadata</strong></td>
+<td align="left">Peak coordinates, SNP count, local DEGs with $\log_2\text{FC}$</td>
+<td align="left">Local DEGs <strong>plus</strong> detailed <strong>Coding SNPs card</strong> with position, consequence (<code>csq</code>), AA change, and <code>phastCons</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>2. Version 1 Technical Specification (<code>MafA_Discovery_App.R</code>)</h3>
+<h4>2.1 Data Ingestion (<code>prepare_data()</code>)</h4>
+<ul>
+<li>Ingests 3 CSV datasets:
+<ul>
+<li><code>MafA_Peaks_with_SNPs_v3.csv</code></li>
+<li><code>Master_DEG_Strain_Comparison_v3.csv</code></li>
+<li><code>mouse_genes_mm39_v3.csv</code></li>
+</ul>
+</li>
+<li>Sets up standard GRCm39 chromosome lengths and linear Manhattan coordinates (<code>GlobalPos_Mbp</code>).</li>
+</ul>
+<h4>2.2 UI Structure</h4>
+<ul>
+<li>Sidebar (width = 3):
+<ul>
+<li>↺ Reset to Genome-Wide button.</li>
+<li>Gene Symbol autocomplete (<code>selectizeInput(&quot;search_gene&quot;, ...)</code>).</li>
+<li>View Mode dropdown (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>Locus Zoom</code>).</li>
+<li>Chromosome selector (<code>selectInput(&quot;sel_chr&quot;, ...)</code>).</li>
+<li>Category filter (<code>show_cat</code>: Shared, C57_Specific, SJL_Specific, Discordant).</li>
+<li>Locus window input (<code>numericInput(&quot;win_kb&quot;, value = 250)</code>).</li>
+<li>Min peak score slider (<code>sliderInput(&quot;min_score&quot;, 0, 10000, 0)</code>).</li>
+<li>Dynamic metadata panel (<code>uiOutput(&quot;metadata_panel&quot;)</code>).</li>
+</ul>
+</li>
+<li>Main Panel (width = 9):
+<ul>
+<li>Plotly Manhattan plot (<code>plotlyOutput(&quot;manhattan&quot;, height = &quot;500px&quot;)</code>).</li>
+<li>Locus schematic (<code>plotOutput(&quot;schematic&quot;, height = &quot;350px&quot;)</code>).</li>
+</ul>
+</li>
+</ul>
+<h4>2.3 Server Logic</h4>
+<ul>
+<li>Reactive state: <code>active_pk</code>, <code>reset_trigger</code>, <code>user_zoom</code>.</li>
+<li>Peak-to-DEG mapping: Converts peaks and DEGs to <code>GRanges</code> objects and uses <code>GenomicRanges::distanceToNearest()</code> or <code>findOverlaps()</code>.</li>
+<li>Schematic: Computes multi-track gene body layout avoiding overlaps, renders TSS orientation arrows, and highlights peak interval.</li>
+</ul>
+<hr />
+<h3>3. Version 2 Technical Specification (<code>MafA_Discovery_App_v2.R</code>)</h3>
+<h4>3.1 Extended Data Ingestion</h4>
+<ul>
+<li>Ingests all 3 v1 CSV datasets plus:
+<ul>
+<li><code>B6_SJL_prioritized_protein_coding_SNPs.csv</code></li>
+</ul>
+</li>
+<li>Formats SNP coordinates (<code>Chr</code>, <code>pos</code>), ensures numeric <code>phastCons_score</code>, and classifies impacts (<code>HIGH</code> vs <code>MODERATE</code>).</li>
+<li>Calculates linear Manhattan position for all SNPs: <code>snps[chr_map, on = &quot;Chr&quot;, GlobalPos_Mbp := (pos / 1e6) + i.Offset_Mbp]</code>.</li>
+</ul>
+<h4>3.2 Enhanced UI Controls</h4>
+<ul>
+<li>Adds coding variant controls in the sidebar:
+<ul>
+<li><code>checkboxInput(&quot;show_snps_main&quot;, &quot;Show Coding SNPs on Main Plot&quot;, value = TRUE)</code></li>
+<li><code>checkboxGroupInput(&quot;snp_impact&quot;, &quot;Coding SNP Impact:&quot;, choices = c(&quot;HIGH&quot;, &quot;MODERATE&quot;), selected = c(&quot;HIGH&quot;, &quot;MODERATE&quot;))</code></li>
+<li><code>sliderInput(&quot;min_phastcons&quot;, &quot;Min phastCons Score:&quot;, min = 0, max = 1, value = 0.7, step = 0.05)</code></li>
+</ul>
+</li>
+</ul>
+<h4>3.3 Dual-Axis Manhattan Plot &amp; Bidirectional Clicking</h4>
+<ul>
+<li>Secondary Y-axis scaling: Scales <code>phastCons_score</code> to <code>y_max</code> of peak scores using <code>ggplot2::sec_axis(~ . / y_max, name = &quot;phastCons Conservation Score (0-1)&quot;)</code>.</li>
+<li>Visual overlay: Coding SNPs rendered as diamonds (<code>shape = 23</code>), sized and colored by impact (<code>#CC00CC</code> for HIGH, <code>#DAA520</code> for MODERATE).</li>
+<li>Plotly click handler:
+<ul>
+<li>Checks if a peak was clicked $\rightarrow$ sets <code>v$active_pk</code>.</li>
+<li>Checks if a coding SNP was clicked $\rightarrow$ sets <code>v$active_snp</code> and snaps <code>v$active_pk</code> to the nearest peak on that chromosome.</li>
+</ul>
+</li>
+</ul>
+<h4>3.4 Variant-Aware Locus Schematic</h4>
+<ul>
+<li>Maps coding SNPs onto gene bodies within <code>± win_kb</code>.</li>
+<li>Differentiates conservation:
+<ul>
+<li><code>phastCons &lt; 0.7</code>: Hollow diamonds (<code>shape = 5</code>, colored by impact).</li>
+<li><code>phastCons &gt;= 0.7</code>: Solid filled diamonds (<code>shape = 23</code>, black stroke).</li>
+</ul>
+</li>
+</ul>
+<h4>3.5 Extended Metadata Card</h4>
+<ul>
+<li>Groups local coding SNPs by gene.</li>
+<li>Summarizes counts of HIGH and MODERATE impact variants.</li>
+<li>Lists exact base position, consequence (<code>csq</code>), amino acid change (<code>aa_change</code>), and <code>phastCons</code> score.</li>
+</ul>
+<hr />
+<h3>4. Step-by-Step Implementation Sequence</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[Step 1: Directory Setup] --&gt; B[Step 2: Script Implementation v1]
+    B --&gt; C[Step 3: Script Implementation v2]
+    C --&gt; D[Step 4: Data Portability &amp; Symlinks]
+    D --&gt; E[Step 5: Documentation &amp; Verification]
+</code></pre>
+<ol>
+<li><strong>Step 1: Directory Structure Setup</strong>:
+<ul>
+<li>Establish <code>SHINY_APP_LEGACY/</code> in the repository root.</li>
+</ul>
+</li>
+<li><strong>Step 2: Implement <code>MafA_Discovery_App.R</code> (v1 Baseline)</strong>:
+<ul>
+<li>Construct complete standalone script with 3-file data engine, <code>GenomicRanges</code> integration, single Y-axis Manhattan plot, and locus schematic.</li>
+</ul>
+</li>
+<li><strong>Step 3: Implement <code>MafA_Discovery_App_v2.R</code> (v2 Enhanced)</strong>:
+<ul>
+<li>Construct complete standalone script incorporating the 4th CSV (<code>B6_SJL_prioritized_protein_coding_SNPs.csv</code>), dual Y-axis scaling, bidirectional Plotly click reactivity, and coding SNP schematic tracks.</li>
+</ul>
+</li>
+<li><strong>Step 4: Data Portability &amp; Symlinks</strong>:
+<ul>
+<li>Ensure both scripts use relative local CSV file paths (<code>fread(&quot;...&quot;)</code>).</li>
+<li>Allow execution either by copying CSVs from <code>SHINY_APP/</code> or by creating relative symlinks.</li>
+</ul>
+</li>
+<li><strong>Step 5: Documentation &amp; Archival</strong>:
+<ul>
+<li>Maintain comprehensive documentation in <a href="SHINY_APP_LEGACY/README.md"><code>SHINY_APP_LEGACY/README.md</code></a>.</li>
+<li>Document differences, dependencies, and execution instructions.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3>5. Architectural Lineage: Legacy to Production</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Component</th>
+<th align="left">Legacy v1 (<code>MafA_Discovery_App.R</code>)</th>
+<th align="left">Legacy v2 (<code>MafA_Discovery_App_v2.R</code>)</th>
+<th align="left">Production (<code>SHINY_APP/app.R</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Bioconductor Dependency</strong></td>
+<td align="left">Required (<code>GenomicRanges</code>)</td>
+<td align="left">Required (<code>GenomicRanges</code>)</td>
+<td align="left"><strong>Removed</strong> (pure <code>data.table</code> rolling join)</td>
+</tr>
+<tr>
+<td align="left"><strong>WebAssembly / Shinylive</strong></td>
+<td align="left">Incompatible (heavy C binaries)</td>
+<td align="left">Incompatible (heavy C binaries)</td>
+<td align="left"><strong>100% Compatible</strong> (zero runtime compilation)</td>
+</tr>
+<tr>
+<td align="left"><strong>F2 Glycemic QTL Integration</strong></td>
+<td align="left">Absent</td>
+<td align="left">Absent</td>
+<td align="left"><strong>Integrated</strong> (<code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</td>
+</tr>
+<tr>
+<td align="left"><strong>Navigation Modes</strong></td>
+<td align="left">3 modes</td>
+<td align="left">3 modes</td>
+<td align="left"><strong>4 modes</strong> (adds <code>QTL Region</code> auto-zoom)</td>
+</tr>
+<tr>
+<td align="left"><strong>Filter Controls</strong></td>
+<td align="left">Continuous sliders</td>
+<td align="left">Continuous sliders</td>
+<td align="left"><strong>Discrete selects</strong> (clean intervals for window &amp; score)</td>
+</tr>
+<tr>
+<td align="left"><strong>Category Default</strong></td>
+<td align="left">All visible</td>
+<td align="left">All visible</td>
+<td align="left"><strong>&quot;Shared&quot; deselected by default</strong> (highlights strain differences)</td>
+</tr>
+<tr>
+<td align="left"><strong>Interpretation Guide</strong></td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left"><strong>Built-in Modal</strong> (macro/micro panel guide + QTL table)</td>
+</tr>
+</tbody>
+</table>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>MafA Discovery Integrated Genomic Explorer &bull; Vanderbilt University / University of Wisconsin-Madison</p>
+  </footer>
+</body>
+</html>

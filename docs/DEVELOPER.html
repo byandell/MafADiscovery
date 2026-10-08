@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Guide — MafA Discovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1976d2;
+      --primary-hover: #115293;
+      --text: #24292f;
+      --text-muted: #57606a;
+      --bg: #ffffff;
+      --bg-alt: #f6f8fa;
+      --border: #d0d7de;
+      --code-bg: #f6f8fa;
+      --accent: #6f42c1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background-color: #fafbfc;
+      margin: 0;
+      padding: 0;
+    }
+    header.site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .header-inner {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-brand {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-brand:hover { color: var(--primary-hover); }
+    nav.doc-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    nav.doc-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    nav.doc-nav a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    nav.doc-nav a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .app-link {
+      background-color: #2da44e !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    .app-link:hover {
+      background-color: #2c974b !important;
+    }
+    main.doc-container {
+      max-width: 1060px;
+      margin: 32px auto 60px auto;
+      padding: 0 24px;
+    }
+    article.markdown-body {
+      background: #ffffff;
+      padding: 48px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 768px) {
+      article.markdown-body { padding: 24px 16px; }
+      .header-inner { padding: 12px 16px; }
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #1f2328;
+      font-weight: 600;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    h1 {
+      font-size: 2.1em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 { font-size: 1.25em; }
+    p, ul, ol { margin-top: 0; margin-bottom: 16px; }
+    ul, ol { padding-left: 28px; }
+    li { margin-bottom: 6px; }
+    a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: var(--primary-hover); }
+    code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.88em;
+      background-color: var(--code-bg);
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #e1e4e8;
+    }
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.94em;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: var(--bg-alt);
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background-color: #fcfcfd; }
+    blockquote {
+      border-left: 4px solid var(--primary);
+      margin: 16px 0;
+      padding: 8px 16px;
+      background-color: #f0f7ff;
+      color: #333;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+    footer.site-footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.88em;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <nav class="doc-nav">
+        <ul>
+          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
+          <li><a href="DEVELOPER.html" class="active">Developer Guide</a></li>
+          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+          <li><a href="publishapp.html">Publishing & WebAssembly</a></li>
+          <li><a href="redesign.html">UI Redesign</a></li>
+          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <main class="doc-container">
+    <article class="markdown-body">
+<h1>Developer Guide — MafA Discovery</h1>
+<p>Developer guide, architectural reference, and coding standards for the <strong>MafA Discovery Integrated Genomic Explorer</strong> repository.</p>
+<ul>
+<li><a href="#repository-architecture">Repository Architecture</a></li>
+<li><a href="#data-layer--coordinate-system">Data Layer &amp; Coordinate System</a></li>
+<li><a href="#application-architecture-shiny_appappr">Application Architecture (<code>SHINY_APP/app.R</code>)</a>
+<ul>
+<li><a href="#data-engine-prepare_data">Data Engine (<code>prepare_data()</code>)</a></li>
+<li><a href="#reactive-state-management">Reactive State Management</a></li>
+<li><a href="#plotly-manhattan-plot--dual-axis-scaling">Plotly Manhattan Plot &amp; Dual-Axis Scaling</a></li>
+<li><a href="#locus-schematic-rendering">Locus Schematic Rendering</a></li>
+<li><a href="#metadata-summary-panel">Metadata Summary Panel</a></li>
+</ul>
+</li>
+<li><a href="#shinylive--serverless-deployment">Shinylive &amp; Serverless Deployment</a></li>
+<li><a href="#coding-guidelines--safety-rules">Coding Guidelines &amp; Safety Rules</a></li>
+<li><a href="#version-control-governance">Version Control Governance</a></li>
+</ul>
+<hr />
+<h2>Repository Architecture</h2>
+<pre><code>MafADiscovery/
+├── app.R                          # Top-level launcher: shiny::runApp(&quot;SHINY_APP&quot;)
+├── SHINY_APP/                     # Self-contained Shiny application source
+│   ├── app.R                      # Main application UI and Server logic
+│   ├── interpretation_guide.md    # In-app interpretation modal content
+│   ├── developer_guide.md         # In-app developer guide modal content with links
+│   ├── MafA_Peaks_with_SNPs_v3.csv              # MafA ChIP/CUT&amp;RUN peaks and scores
+│   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
+│   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
+│   ├── B6_SJL_prioritized_protein_coding_SNPs.csv # Coding SNPs with phastCons scores
+│   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
+│   └── README.md                  # Detailed collaborator documentation
+├── .github/
+│   └── workflows/
+│       └── deploy-shinylive.yaml  # GitHub Actions automated Shinylive export &amp; deployment
+├── docs/                          # Standalone HTML documentation pages for GitHub Pages
+│   ├── DEVELOPER.html             # Rendered master Developer Guide
+│   ├── shinyapp.html              # Rendered Legacy Prototypes guide
+│   ├── publishapp.html            # Rendered Publishing &amp; WebAssembly guide
+│   ├── redesign.html              # Rendered UI Redesign guide
+│   ├── qtlanalysis.html           # Rendered QTL Analysis guide
+│   └── .nojekyll                  # Bypasses Jekyll on GitHub Pages
+├── render_docs.R                  # Generator script rendering *.md to docs/*.html
+├── MafADiscovery.Rproj            # RStudio project configuration
+├── shinyapp.md                    # Root architectural module: legacy prototypes
+├── publishapp.md                  # Root architectural module: publishing guide
+├── redesign.md                    # Root architectural module: UI redesign
+├── qtlanalysis.md                 # Root architectural module: QTL integration
+├── DEVELOPER.md                   # Root master developer guide (this file)
+├── AGENTS.md                      # AI assistant project guidelines
+├── LICENSE                        # MIT License
+└── README.md                      # Project overview &amp; quick start
+</code></pre>
+<hr />
+<h2>Data Layer &amp; Coordinate System</h2>
+<p>All genomic coordinates in this project are standardized on the mouse <strong>GRCm39 / mm39</strong> genome assembly:</p>
+<ol>
+<li><strong>Chromosome Mapping (<code>chr_map</code>)</strong>:
+<ul>
+<li>Chromosomes: <code>Chr1</code> through <code>Chr19</code>, <code>ChrX</code>, and <code>ChrY</code>.</li>
+<li>Lengths are standard GRCm39 base-pair lengths.</li>
+<li>Global offsets (<code>Offset_Mbp</code> and <code>Midpoint_Mbp</code>) are computed via cumulative summation to place all 21 chromosomes along a single linear coordinate axis for the genome-wide Manhattan plot.</li>
+</ul>
+</li>
+<li><strong>MafA Binding Peaks (<code>MafA_Peaks_with_SNPs_v3.csv</code>)</strong>:
+<ul>
+<li>Contains peak intervals (<code>Start</code>, <code>End</code>, <code>Mid</code>), peak scores, and variant counts (<code>variant_count</code>).</li>
+</ul>
+</li>
+<li><strong>Differential Gene Expression (<code>Master_DEG_Strain_Comparison_v3.csv</code>)</strong>:
+<ul>
+<li>Classifies genes into 4 categories: <code>Shared</code>, <code>C57_Specific</code>, <code>SJL_Specific</code>, and <code>Discordant</code>.</li>
+<li>Includes directional regulation (<code>UP</code> or <code>DOWN</code>) and strain-specific log2 fold-changes (<code>log2FC_C57</code>, <code>log2FC_SJL</code>).</li>
+</ul>
+</li>
+<li><strong>Gene Backbone (<code>mouse_genes_mm39_v3.csv</code>)</strong>:
+<ul>
+<li>Comprehensive Ensembl GRCm39 annotation containing <code>GeneId</code>, <code>Symbol</code>, coordinates, and <code>Strand</code> (<code>1</code> for positive, <code>-1</code> for negative).</li>
+</ul>
+</li>
+<li><strong>Prioritized Coding SNPs (<code>B6_SJL_prioritized_protein_coding_SNPs.csv</code>)</strong>:
+<ul>
+<li>High- and moderate-impact coding variants between C57BL/6J and SJL/J.</li>
+<li>Contains evolutionary conservation scores (<code>phastCons_score</code>), variant consequences (<code>csq</code>), and amino acid alterations (<code>aa_change</code>).</li>
+</ul>
+</li>
+<li><strong>F2 Glycemic QTL Loci (<code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</strong>:
+<ul>
+<li>Top glycemic QTLs from the B6 x SJL F2 study across traits, markers, chromosomes, peak positions (<code>pos</code>), 95% confidence intervals (<code>ci.low</code> to <code>ci.high</code>), and additive effects (<code>BB</code>, <code>BS</code>, <code>SS</code>).</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>Application Architecture (<code>SHINY_APP/app.R</code>)</h2>
+<h3>Data Engine (<code>prepare_data()</code>)</h3>
+<p>The data engine runs once at session initialization:</p>
+<ul>
+<li>Loads the 5 CSV files using fast <code>data.table::fread()</code>.</li>
+<li>Calculates linear Manhattan positions (<code>GlobalPos_Mbp</code>) for peaks, coding variants, and QTL confidence intervals using <code>chr_map</code>.</li>
+<li>Formats SNP impacts (<code>HIGH</code> vs <code>MODERATE</code>) and ensures missing <code>phastCons_score</code> values default to <code>0</code>.</li>
+<li>Eliminates heavy Bioconductor packages (<code>GenomicRanges</code>, <code>IRanges</code>, <code>S4Vectors</code>) by using <code>data.table</code> rolling joins (<code>roll = &quot;nearest&quot;</code>):
+<pre><code class="language-r">res &lt;- deg_cols[pks_q, on = .(Chr, deg_start = query_pos), roll = &quot;nearest&quot;]
+res &lt;- res[abs(Mid - actual_deg_start) &lt;= (input$win_kb * 1000) &amp; !is.na(Category)]
+</code></pre>
+This reduces WebAssembly bundle sizes and dramatically speeds up browser startup.</li>
+</ul>
+<h3>Reactive State Management</h3>
+<p>State is managed via <code>reactiveValues</code> in <code>v</code>:</p>
+<ul>
+<li><code>v$active_pk</code>: Currently selected MafA binding peak row.</li>
+<li><code>v$active_snp</code>: Currently selected coding SNP row (if clicked).</li>
+<li><code>v$active_qtl</code>: Currently selected F2 glycemic QTL row.</li>
+<li><code>v$last_gene</code>: Cached symbol of the last searched gene.</li>
+<li><code>v$current_chr</code>: Active chromosome tracking (synced when peaks, genes, or QTLs are selected to allow seamless transitions between view modes).</li>
+<li><code>v$user_zoom</code>: User-defined x-axis range captured from Plotly <code>relayout</code> events.</li>
+<li><code>v$reset_trigger</code>: Integer incremented to reset Plotly view revision state.</li>
+</ul>
+<h3>UI &amp; Navigation Lifecycle</h3>
+<ul>
+<li><strong>Dynamic View Modes</strong>: Initial view modes include <em>Genome-Wide</em>, <em>Chromosome</em>, and <em>QTL Region</em>. <em>Locus Zoom</em> is offered dynamically once a gene is searched or a peak/SNP is clicked. If a searched gene is deselected/cleared, the app automatically reverts to <em>Genome-Wide</em> view and removes <em>Locus Zoom</em>.</li>
+<li><strong>Conditional Controls</strong>:
+<ul>
+<li>Chromosome selector (<code>sel_chr</code>) is conditionally displayed only when in <em>Chromosome</em> view mode.</li>
+<li>QTL selector (<code>sel_qtl</code>) is conditionally displayed only when in <em>QTL Region</em> view mode.</li>
+<li>Discrete locus window selector (<code>win_kb</code>: 20, 50, 100, 200, 500, 1000, 2000 kb) is conditionally displayed only in <em>Locus Zoom</em> mode.</li>
+</ul>
+</li>
+<li><strong>QTL Table Reference</strong>: A dedicated modal (<code>input$show_qtl_table</code>) allows inspecting all 11 F2 glycemic QTLs with their LOD scores and additive effect estimates, and jumping directly to any QTL's confidence interval.</li>
+<li><strong>Category Filtering</strong>: Visible categories default to <code>C57_Specific</code>, <code>SJL_Specific</code>, and <code>Discordant</code> (with <code>Shared</code> deselected by default) to immediately highlight strain-divergent variation.</li>
+<li><strong>Discrete Thresholds</strong>: Min Peak Score uses discrete selections (<code>All (0), 100, 200, 500, 1000, 2000, 5000</code>) for predictable filtering.</li>
+<li><strong>Interpretation Guide Modal</strong>: Loaded dynamically from <a href="SHINY_APP/interpretation_guide.md"><code>SHINY_APP/interpretation_guide.md</code></a> via <code>render_markdown_file()</code>. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.</li>
+<li><strong>Developer Guide Modal &amp; Reset Repositioning</strong>: The <code>Reset</code> and <code>Dev Guide</code> buttons are positioned below the <code>Min phastCons Score:</code> slider. <code>Reset</code> performs a complete state purge (clearing gene search, resetting categories, filters, coordinates, and view modes). <code>Dev Guide</code> loads dynamically from <a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>, featuring clickable links with <code>target=&quot;_blank&quot;</code> to all architectural modules and repository resources.</li>
+</ul>
+<h3>Plotly Manhattan Plot &amp; Dual-Axis Scaling</h3>
+<ul>
+<li>Renders genome-wide, chromosome-level, QTL-level, or locus-level peak points using <code>ggplot2</code> and converts via <code>plotly::ggplotly()</code>.</li>
+<li>Automatically highlights the active F2 QTL confidence interval (<code>ci.low</code> to <code>ci.high</code>) with a shaded rectangular region and vertical dashed line at the QTL peak position.</li>
+<li>Dynamically scales local Mbp tick marks (<code>scale_x_continuous</code>) in <em>QTL Region</em> and <em>Locus Zoom</em> modes based on the active interval.</li>
+<li>Supports secondary y-axis scaling for coding SNPs:
+<ul>
+<li>Peak score plotted on primary y-axis.</li>
+<li>Coding SNPs scaled dynamically to <code>phastCons_score * y_max</code> with <code>sec_axis(~ . / y_max, name = &quot;phastCons Conservation Score (0-1)&quot;)</code>.</li>
+</ul>
+</li>
+<li>Clicking either a peak or a coding variant triggers <code>plotly_click</code> handling, selecting the entity, highlighting it with a gold diamond, and opening <em>Locus Zoom</em>.</li>
+</ul>
+<h3>Locus Schematic Rendering</h3>
+<p>When an active peak is selected (<code>v$active_pk</code>):</p>
+<ul>
+<li>Gene models within <code>± win_kb</code> are extracted and assigned vertical row offsets (<code>y_rows</code>) to avoid visual collisions.</li>
+<li>Transcription start sites (TSS) are computed based on strand orientation (<code>Strand == 1</code> vs <code>Strand == -1</code>).</li>
+<li>Directional arrow segments (<code>geom_segment(..., arrow = ...)</code>) indicate gene transcription direction.</li>
+<li>Coding variants are mapped to their respective gene models and rendered with distinct symbols and impact colors (<code>#CC00CC</code> for HIGH, <code>#DAA520</code> for MODERATE).</li>
+</ul>
+<h3>Detailed Peak Information Card</h3>
+<p>Rendered below the Locus Schematic on the main panel (width = 9) via <code>shiny::renderUI()</code>, utilizing a wide two-column layout:</p>
+<ul>
+<li><strong>Header</strong>: Active peak ID, Mbp coordinate on chromosome, variant count, and F2 QTL association badge.</li>
+<li><strong>Left Column</strong>: Local DEGs with individual strain log2 fold-changes and direction.</li>
+<li><strong>Right Column</strong>: Local coding variants grouped by gene, summarizing HIGH/MODERATE counts, consequence annotations, and <code>phastCons</code> scores.</li>
+</ul>
+<hr />
+<h2>Modular Architectural Documentation</h2>
+<p>The repository maintains four specialized architectural modules at root, automatically synchronized to GitHub Pages during CI deployment:</p>
+<ol>
+<li><strong><a href="shinyapp.html"><code>shinyapp.md</code></a> — Legacy Standalone Prototypes</strong>:
+<ul>
+<li>Comprehensive technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>).</li>
+<li>Documents the original Bioconductor <code>GenomicRanges</code> implementation and data requirements.</li>
+</ul>
+</li>
+<li><strong><a href="publishapp.html"><code>publishapp.md</code></a> — Publishing &amp; Deployment</strong>:
+<ul>
+<li>Architecture for static WebAssembly distribution via Shinylive (webR).</li>
+<li>Automated GitHub Actions deployment (<code>deploy-shinylive.yaml</code>) and GitHub Pages hosting configuration.</li>
+</ul>
+</li>
+<li><strong><a href="redesign.html"><code>redesign.md</code></a> — UI Redesign &amp; Reactive Lifecycle</strong>:
+<ul>
+<li>Dynamic view mode transitions (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>).</li>
+<li>Conditional control rendering, coordinate auto-scaling, and state persistence rules.</li>
+</ul>
+</li>
+<li><strong><a href="qtlanalysis.html"><code>qtlanalysis.md</code></a> — F2 Glycemic QTL Integration</strong>:
+<ul>
+<li>Ingestion of F2 study glycemic loci (<code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>).</li>
+<li>Confidence interval auto-bounding, visual interval banners, and interactive QTL reference table.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>Shinylive &amp; Serverless Deployment</h2>
+<p>The app is deployed to GitHub Pages as a static WebAssembly bundle:</p>
+<ol>
+<li><strong>Workflow (<code>.github/workflows/deploy-shinylive.yaml</code>)</strong>:
+<ul>
+<li>Triggers on push to <code>main</code> / <code>master</code> when files in <code>SHINY_APP/**</code>, root markdown guides (<code>*.md</code>), or the workflow itself change.</li>
+<li>Sets up R on Ubuntu, installs <code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, and <code>plotly</code>.</li>
+<li>Executes <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code>.</li>
+<li>Copies root documentation assets (<code>DEVELOPER.md</code>, <code>shinyapp.md</code>, <code>publishapp.md</code>, <code>redesign.md</code>, <code>qtlanalysis.md</code>) into <code>site/</code> for public hosting.</li>
+<li>Uploads <code>site/</code> and deploys to GitHub Pages via <code>actions/deploy-pages@v4</code>.</li>
+</ul>
+</li>
+<li><strong>Local Static Verification</strong>:
+<ul>
+<li>If testing a static export locally with WebAssembly:
+<pre><code class="language-r">shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)
+httpuv::runStaticServer(&quot;site&quot;, port = 8888)
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>Coding Guidelines &amp; Safety Rules</h2>
+<ul>
+<li><strong>Vector Subsetting Safety</strong>: Always use <code>grepl(&quot;^\\s*#'&quot;, lines)</code> with <code>!grepl(...)</code> or <code>grep(..., invert = TRUE)</code>. Never use <code>!grep(...)</code> in R.</li>
+<li><strong>Explicit Package Namespacing</strong>: Use explicit namespaces (<code>data.table::fread</code>, <code>shiny::renderPlot</code>, <code>plotly::ggplotly</code>) where appropriate.</li>
+<li><strong>Portability</strong>: All data file paths inside <code>app.R</code> must remain relative so that the app executes identically in local R sessions, Shinylive WebAssembly, and Docker/cloud deployments.</li>
+</ul>
+<hr />
+<h2>Version Control Governance</h2>
+<ul>
+<li><strong>No Automatic Git Commit/Push</strong>: Prepare file edits and run local checks, but leave staging, committing, and pushing for manual user execution.</li>
+<li><strong>Preserve Data Files</strong>: Never overwrite or delete raw CSV datasets destructively.</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>MafA Discovery Integrated Genomic Explorer &bull; Vanderbilt University / University of Wisconsin-Madison</p>
+  </footer>
+</body>
+</html>

@@ -6,6 +6,7 @@ on:
     paths:
       - 'SHINY_APP/**'
       - '*.md'
+      - 'render_docs.R'
       - '.github/workflows/deploy-shinylive.yaml'
   workflow_dispatch:
 
@@ -32,7 +33,7 @@ jobs:
 
       - name: Install R dependencies
         run: |
-          install.packages(c("shiny", "shinylive", "data.table", "ggplot2", "plotly"))
+          install.packages(c("shiny", "shinylive", "data.table", "ggplot2", "plotly", "commonmark"))
         shell: Rscript {0}
 
       - name: Export Shinylive site
@@ -40,9 +41,13 @@ jobs:
           shinylive::export(appdir = "SHINY_APP", destdir = "site")
         shell: Rscript {0}
 
-      - name: Copy documentation into site
+      - name: Render HTML documentation & copy to site
         run: |
-          cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/ 2>/dev/null || cp *.md site/ || true
+          Rscript render_docs.R
+          mkdir -p site/docs
+          cp docs/*.html site/docs/
+          cp docs/*.html site/
+          cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/ 2>/dev/null || true
         shell: bash
 
       - name: Disable Jekyll for GitHub Pages

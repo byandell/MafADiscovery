@@ -225,20 +225,26 @@ flowchart TD
 
 This section documents the technical realization of the items outlined in [Further Improvements](#further-improvements).
 
-### Step 7: Modular Developer Guide Architecture & Publication via `docs/`
+### Step 7: Modular Developer Guide Architecture & HTML Publication via `docs/`
 
-To provide clear, discoverable documentation for collaborators and developers, the project's documentation was organized into four modular architecture documents linked through a master `DEVELOPER.md` guide:
+To provide clear, discoverable documentation for collaborators and developers, the project's documentation was organized into five modular architecture documents rendered as styled HTML pages in `docs/` and linked through a master `DEVELOPER.md` guide:
 
 1. **Modular Guide Structure**:
-   * [`DEVELOPER.md`](DEVELOPER.md) / [`docs/DEVELOPER.md`](docs/DEVELOPER.md): Master developer guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.
-   * [`shinyapp.md`](shinyapp.md) / [`docs/shinyapp.md`](docs/shinyapp.md): Specifications and lineage for legacy prototypes (Version 1 and Version 2).
-   * [`publishapp.md`](publishapp.md) / [`docs/publishapp.md`](docs/publishapp.md): Shinylive (webR) static WebAssembly deployment architecture and GitHub Actions configuration.
-   * [`redesign.md`](redesign.md) / [`docs/redesign.md`](docs/redesign.md): UI modernization, reactive lifecycle, discrete filters, and panel coordination (this document).
-   * [`qtlanalysis.md`](qtlanalysis.md) / [`docs/qtlanalysis.md`](docs/qtlanalysis.md): F2 glycemic QTL integration, automated confidence interval bounding, and interactive QTL reference table.
+   * [`DEVELOPER.md`](DEVELOPER.md) $\to$ [`docs/DEVELOPER.html`](docs/DEVELOPER.html): Master technical guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.
+   * [`shinyapp.md`](shinyapp.md) $\to$ [`docs/shinyapp.html`](docs/shinyapp.html): Specifications and lineage for legacy prototypes (Version 1 and Version 2).
+   * [`publishapp.md`](publishapp.md) $\to$ [`docs/publishapp.html`](docs/publishapp.html): Shinylive (webR) static WebAssembly deployment architecture and GitHub Actions configuration.
+   * [`redesign.md`](redesign.md) $\to$ [`docs/redesign.html`](docs/redesign.html): UI modernization, reactive lifecycle, discrete filters, and panel coordination (this document).
+   * [`qtlanalysis.md`](qtlanalysis.md) $\to$ [`docs/qtlanalysis.html`](docs/qtlanalysis.html): F2 glycemic QTL integration, automated confidence interval bounding, and interactive QTL reference table.
 
-2. **Web Distribution via `site/` and CI Sync**:
-   * Root documentation modules are automatically copied into the exported Shinylive distribution bundle (`site/`) during CI deployment.
-   * Updated [`.github/workflows/deploy-shinylive.yaml`](.github/workflows/deploy-shinylive.yaml) to trigger on changes to root markdown guides (`*.md`) and copy all documentation assets (`cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/`) into the published bundle for GitHub Pages hosting.
+2. **Automated HTML Generation (`render_docs.R`)**:
+   * Implemented [`render_docs.R`](render_docs.R) to compile all Markdown developer guides into standalone, responsive HTML pages with Inter/JetBrains typography, sticky navigation headers with a "🚀 Open App" shortcut, and GitHub-flavored table and code formatting.
+   * Internal markdown document links (e.g. `(DEVELOPER.md)`) are automatically rewritten to corresponding HTML links (e.g. `(DEVELOPER.html)`).
+   * Generates `docs/.nojekyll` to bypass Jekyll processing on GitHub Pages.
+
+3. **Web Distribution via `site/` and GitHub Pages**:
+   * Updated [`.github/workflows/deploy-shinylive.yaml`](.github/workflows/deploy-shinylive.yaml) to trigger on changes to root markdown guides (`*.md`) or `render_docs.R`.
+   * CI installs `commonmark`, executes `Rscript render_docs.R`, and copies rendered HTML pages into `site/docs/` and `site/` alongside the exported Shinylive WebAssembly bundle.
+   * Updated [`.gitignore`](.gitignore) to track `docs/*.html` and `docs/.nojekyll` while continuing to ignore heavy local Shinylive WASM binaries.
 
 ---
 
@@ -300,7 +306,7 @@ observeEvent(input$reset_view, {
 2. **Decoupled Markdown Guide Modals (`interpretation_guide.md` & `developer_guide.md`)**:
    * Extracted all modal documentation into standalone Markdown files in `SHINY_APP/` to allow direct editing without modifying R application code:
      * [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md): Macro/micro panel interpretation, Manhattan axes, DEG point shapes, strain colors, coding variant impacts (`phastCons`), QTL intervals, and navigation modes.
-     * [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md): Architectural guide summary with direct links to all documentation modules and the GitHub repository.
+     * [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md): Architectural guide modal featuring direct links to the rendered GitHub Pages HTML documentation (`https://byandell.github.io/MafADiscovery/docs/*.html`) and GitHub source markdown files.
    * Implemented a robust dynamic path-resolution loader `render_markdown_file(filename)` in `app.R`:
      ```r
      render_markdown_file <- function(filename) {
@@ -317,6 +323,7 @@ observeEvent(input$reset_view, {
        }
      }
      ```
+   * Registered a local static resource path (`shiny::addResourcePath("docs", ...)`) in `app.R` so local Shiny sessions serve documentation seamlessly.
    * Added client-side modal event handling in `tags$head` so that all markdown links inside the modal automatically open in a new browser tab (`target="_blank"`, `rel="noopener noreferrer"`), preserving the user's active explorer session.
 
 ---

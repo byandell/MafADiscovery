@@ -24,8 +24,11 @@ ehthumbs.db
 Thumbs.db
 
 # Shinylive & web build artifacts (built and deployed in CI via GitHub Actions)
-/docs/
 /site/
+/docs/shinylive/
+/docs/edit/
+/docs/app.json
+/docs/shinylive-sw.js
 
 # Project and IDE temporary files
 .quarto

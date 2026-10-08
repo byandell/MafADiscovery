@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Redesign & Reactivity — MafA Discovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1976d2;
+      --primary-hover: #115293;
+      --text: #24292f;
+      --text-muted: #57606a;
+      --bg: #ffffff;
+      --bg-alt: #f6f8fa;
+      --border: #d0d7de;
+      --code-bg: #f6f8fa;
+      --accent: #6f42c1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background-color: #fafbfc;
+      margin: 0;
+      padding: 0;
+    }
+    header.site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .header-inner {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-brand {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-brand:hover { color: var(--primary-hover); }
+    nav.doc-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    nav.doc-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    nav.doc-nav a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    nav.doc-nav a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .app-link {
+      background-color: #2da44e !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    .app-link:hover {
+      background-color: #2c974b !important;
+    }
+    main.doc-container {
+      max-width: 1060px;
+      margin: 32px auto 60px auto;
+      padding: 0 24px;
+    }
+    article.markdown-body {
+      background: #ffffff;
+      padding: 48px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 768px) {
+      article.markdown-body { padding: 24px 16px; }
+      .header-inner { padding: 12px 16px; }
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #1f2328;
+      font-weight: 600;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    h1 {
+      font-size: 2.1em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 { font-size: 1.25em; }
+    p, ul, ol { margin-top: 0; margin-bottom: 16px; }
+    ul, ol { padding-left: 28px; }
+    li { margin-bottom: 6px; }
+    a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: var(--primary-hover); }
+    code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.88em;
+      background-color: var(--code-bg);
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #e1e4e8;
+    }
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.94em;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: var(--bg-alt);
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background-color: #fcfcfd; }
+    blockquote {
+      border-left: 4px solid var(--primary);
+      margin: 16px 0;
+      padding: 8px 16px;
+      background-color: #f0f7ff;
+      color: #333;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+    footer.site-footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.88em;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <nav class="doc-nav">
+        <ul>
+          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
+          <li><a href="DEVELOPER.html">Developer Guide</a></li>
+          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+          <li><a href="publishapp.html">Publishing & WebAssembly</a></li>
+          <li><a href="redesign.html" class="active">UI Redesign</a></li>
+          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <main class="doc-container">
+    <article class="markdown-body">
+<h1>Redesign of App</h1>
+<h2>Prompts</h2>
+<h3>Ideas to improve reactivity and navigation</h3>
+<ul>
+<li>Hide &quot;Select Chromosome:&quot; when in &quot;View Mode: Genome-Wide&quot;</li>
+<li>&quot;View Mode: Locus Zoom&quot;
+<ul>
+<li>If &quot;Search Gene Symbol:&quot; is empty, main panel is blank.</li>
+<li>Don't show &quot;Locus Zoom&quot; option until Gene Symbol is non-empty.</li>
+<li>Once a &quot;Gene Symbol&quot; is selected, it appears.</li>
+<li>If you then deselect &quot;Search Gene Symbol&quot;, revert to whole genome and remove &quot;Locus Zoom&quot; from &quot;View Mode&quot;.</li>
+</ul>
+</li>
+<li>&quot;Locus Window (Kbp):&quot; this is only relevant when in &quot;Locus Zoom&quot;
+<ul>
+<li>Might be useful to have only selected set of values, say 20,50,100,200,500,1000,2000</li>
+</ul>
+</li>
+<li>Top main panel initially has whole genome. When you &quot;Select Gene Symbol&quot;:
+<ul>
+<li>&quot;View Mode:&quot; switches to &quot;Locus Zoom&quot;</li>
+<li>X axis named as &quot;Chromosome&quot; with no Mbp ticks.</li>
+<li>Want to be able to switch from &quot;Locus Zoom&quot; to &quot;Chromosome&quot; to the right chromosome easily.</li>
+</ul>
+</li>
+<li>&quot;Visible Categories:&quot; is redundant given plotly ability to click on labels.</li>
+<li>&quot;Min Peak Score:&quot; consider selected values as for &quot;Locus Window&quot;.</li>
+</ul>
+<h3>Challenges with Interpreting</h3>
+<ul>
+<li>Need explanation of both panels on &quot;Locus Zoom&quot;.
+<ul>
+<li>This could be pop-up or pull-down.</li>
+<li>Is top panel a subset of the &quot;Chromosome&quot; image?</li>
+</ul>
+</li>
+<li>Reactive hiding and showing of side panel would simplify presentation
+(see ideas above).</li>
+</ul>
+<h3>Further Improvements</h3>
+<ul>
+<li>Organize <code>{shinyapp,publishapp,redesign,qtlanalysis}.md</code> as a <code>Developer Guide</code> to be published via <code>docs/</code>.</li>
+<li>Fix <code>Reset</code> on app to reset everything, including selected gene.</li>
+<li>Move <code>Reset</code> and <code>Developer Guide</code> (new)buttons to below &quot;Min phastCons Score:&quot; slider.</li>
+<li>Detailed &quot;Peak&quot; information now on sidebar should go below last figure on main panel.</li>
+</ul>
+<hr />
+<h2>Implementation Plan: MafA Discovery Shiny App Redesign</h2>
+<p>This plan addresses all items outlined in <code>Prompts</code> section of
+<a href="redesign.md#prompts"><code>redesign.md</code></a>
+to streamline UI reactivity, simplify navigation, eliminate redundant controls, and clarify multi-panel interpretation.</p>
+<h3>1. Architectural Summary &amp; Objectives</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Objective</th>
+<th align="left">Current Behavior</th>
+<th align="left">Proposed Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Chromosome Selector Visibility</strong></td>
+<td align="left">Always rendered in sidebar even in <em>Genome-Wide</em> mode.</td>
+<td align="left">Conditionally display <code>sel_chr</code> only when in <em>Chromosome</em> view mode.</td>
+</tr>
+<tr>
+<td align="left"><strong>&quot;Locus Zoom&quot; Mode Availability</strong></td>
+<td align="left">Always available in dropdown, leading to empty/confusing plots if no gene/peak is selected.</td>
+<td align="left">Dynamically offer <code>&quot;Locus Zoom&quot;</code> only after a gene is searched or peak is clicked.</td>
+</tr>
+<tr>
+<td align="left"><strong>Search Gene Symbol Deselection</strong></td>
+<td align="left">Clearing the search box left &quot;Locus Zoom&quot; active and could retain stale selection.</td>
+<td align="left">Automatically revert to whole genome (<code>Genome-Wide</code>), clear active peak/SNPs, and remove <code>&quot;Locus Zoom&quot;</code> from <code>View Mode</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Locus Window (kb) Control</strong></td>
+<td align="left">Free-form <code>numericInput</code> always visible in sidebar.</td>
+<td align="left">Show only during <em>Locus Zoom</em>; convert to discrete selection (<code>20, 50, 100, 200, 500, 1000, 2000</code> kb).</td>
+</tr>
+<tr>
+<td align="left"><strong>Locus Zoom $\leftrightarrow$ Chromosome Transition</strong></td>
+<td align="left">Selecting a gene sets peak but does not update <code>sel_chr</code>, causing switching to <em>Chromosome</em> to reset to Chr1.</td>
+<td align="left">Sync <code>sel_chr</code> to match <code>v$active_pk$Chr</code> whenever a gene is selected or a peak is clicked.</td>
+</tr>
+<tr>
+<td align="left"><strong>Top Panel in Locus Zoom</strong></td>
+<td align="left">1 Mbp window with global axis label &quot;Chromosome&quot; and no tick marks.</td>
+<td align="left">Clarify coordinate scale with local Mbp ticks (<code>Chr X (Mbp)</code>), or show Chromosome context with active peak highlighted.</td>
+</tr>
+<tr>
+<td align="left"><strong>Redundant &quot;Visible Categories&quot;</strong></td>
+<td align="left">Bulky <code>checkboxGroupInput</code> duplicates Plotly's native interactive legend filtering.</td>
+<td align="left">Remove <code>show_cat</code> from sidebar; rely on Plotly's interactive legend filtering and render all categories in schematic.</td>
+</tr>
+<tr>
+<td align="left"><strong>Min Peak Score</strong></td>
+<td align="left">Continuous slider (<code>0</code>–<code>10,000</code>).</td>
+<td align="left">Convert to discrete selections (<code>0, 100, 200, 500, 1000, 2000, 5000</code>) for cleaner filtering.</td>
+</tr>
+<tr>
+<td align="left"><strong>Interpretation &amp; Visual Guidance</strong></td>
+<td align="left">No in-app explanation of the relationship between top and bottom panels.</td>
+<td align="left">Add an interactive &quot;How to Interpret&quot; popover/modal explaining the macro-micro relationship between panels.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>2. Detailed Technical Specifications</h3>
+<h4>2.1 Conditional Chromosome Selector</h4>
+<ul>
+<li>
+<p>Wrap the chromosome selector in a conditional UI or render conditionally:</p>
+<pre><code class="language-r">output$chr_selector_ui &lt;- renderUI({
+  req(input$zoom_mode == &quot;Chromosome&quot;)
+  selectInput(&quot;sel_chr&quot;, &quot;Select Chromosome:&quot;, choices = d$chr_map$Chr, selected = v$current_chr)
+})
+</code></pre>
+</li>
+<li>
+<p>Result: Chromosome selector is automatically hidden in <em>Genome-Wide</em> and <em>Locus Zoom</em> modes.</p>
+</li>
+</ul>
+<h4>2.2 Dynamic &quot;View Mode&quot; Lifecycle</h4>
+<ul>
+<li>
+<p>Initial state:</p>
+<pre><code class="language-r">zoom_choices &lt;- c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;)
+</code></pre>
+</li>
+<li>
+<p>When a gene symbol is selected (<code>input$search_gene != &quot;&quot;</code>):</p>
+<ul>
+<li>Identify target gene and closest MafA binding peak.</li>
+<li>Set <code>v$active_pk</code> and <code>v$last_gene &lt;- input$search_gene</code>.</li>
+<li>Update <code>v$current_chr &lt;- gene_row$Chr[1]</code>.</li>
+<li>Expand choices: <code>updateSelectInput(session, &quot;zoom_mode&quot;, choices = c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;, &quot;Locus Zoom&quot;), selected = &quot;Locus Zoom&quot;)</code>.</li>
+</ul>
+</li>
+<li>
+<p>When <code>input$search_gene</code> is blanked out / deselected:</p>
+<ul>
+<li>Revert to whole genome view (<code>selected = &quot;Genome-Wide&quot;</code>).</li>
+<li>Remove <code>&quot;Locus Zoom&quot;</code> from <code>zoom_mode</code> choices (<code>choices = c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;)</code>).</li>
+<li>Reset <code>v$active_pk &lt;- NULL</code>, <code>v$active_snp &lt;- NULL</code>, <code>v$last_gene &lt;- NULL</code>, <code>v$user_zoom &lt;- NULL</code>.</li>
+<li>Trigger Plotly layout revision to refresh genome-wide coordinates.</li>
+</ul>
+</li>
+<li>
+<p>When <strong>↺ Reset to Genome-Wide</strong> is clicked:</p>
+<ul>
+<li>Reset <code>v$active_pk &lt;- NULL</code>, <code>v$active_snp &lt;- NULL</code>, <code>v$last_gene &lt;- NULL</code>.</li>
+<li>Reset <code>search_gene</code> to <code>&quot;&quot;</code>.</li>
+<li>Reset <code>zoom_mode</code> choices back to <code>c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;)</code> with <code>selected = &quot;Genome-Wide&quot;</code>.</li>
+</ul>
+</li>
+</ul>
+<h4>2.3 Seamless Chromosome $\leftrightarrow$ Locus Zoom Linking</h4>
+<ul>
+<li>When a gene or peak is selected on chromosome $K$:
+<ul>
+<li>Automatically update the chromosome tracking value (<code>v$current_chr &lt;- pk$Chr</code>).</li>
+<li>If the user changes <code>View Mode</code> to <code>&quot;Chromosome&quot;</code>, it automatically centers on chromosome $K$ rather than defaulting to <code>Chr1</code>.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3>3. Discrete Filter Controls</h3>
+<h4>3.1 Discrete Locus Window (<code>win_kb</code>)</h4>
+<ul>
+<li>
+<p>Conditionally render only when <code>input$zoom_mode == &quot;Locus Zoom&quot;</code>:</p>
+<pre><code class="language-r">output$locus_window_ui &lt;- renderUI({
+  req(input$zoom_mode == &quot;Locus Zoom&quot;)
+  selectInput(&quot;win_kb&quot;, &quot;Locus Window:&quot;, 
+              choices = c(&quot;20 kb&quot; = 20, &quot;50 kb&quot; = 50, &quot;100 kb&quot; = 100, 
+                          &quot;200 kb&quot; = 200, &quot;500 kb&quot; = 500, &quot;1,000 kb (1 Mb)&quot; = 1000, 
+                          &quot;2,000 kb (2 Mb)&quot; = 2000), 
+              selected = 500)
+})
+</code></pre>
+</li>
+</ul>
+<h4>3.2 Discrete Min Peak Score (<code>min_score</code>)</h4>
+<ul>
+<li>
+<p>Replace the continuous 0–10,000 slider with discrete thresholds:</p>
+<pre><code class="language-r">selectInput(&quot;min_score&quot;, &quot;Min Peak Score:&quot;,
+            choices = c(&quot;All (0)&quot; = 0, &quot;100&quot; = 100, &quot;200&quot; = 200, 
+                        &quot;500&quot; = 500, &quot;1,000&quot; = 1000, &quot;2,000&quot; = 2000, 
+                        &quot;5,000&quot; = 5000),
+            selected = 0)
+</code></pre>
+</li>
+</ul>
+<h4>3.3 Elimination of Redundant &quot;Visible Categories&quot;</h4>
+<ul>
+<li>
+<p>Remove <code>checkboxGroupInput(&quot;show_cat&quot;, ...)</code> from the sidebar.</p>
+</li>
+<li>
+<p>Users can click any category in the Plotly legend to hide/show that trace, or double-click to isolate it.</p>
+</li>
+<li>
+<p>In <code>schematic</code> rendering, include all local DEGs color-coded by category.</p>
+</li>
+</ul>
+<hr />
+<h3>4. Panel Coordination &amp; Interpretability in Locus Zoom</h3>
+<h4>4.1 Top Panel Coordinate Ticks in Locus Zoom</h4>
+<ul>
+<li>
+<p>Currently, the top panel in Locus Zoom uses whole-genome midpoint breaks, resulting in no tick marks within the 1 Mb window.</p>
+</li>
+<li>
+<p>Fix:</p>
+<pre><code class="language-r"># In Locus Zoom mode: compute local Mbp ticks
+center_mbp &lt;- v$active_pk$GlobalPos_Mbp
+local_breaks &lt;- seq(floor(x_range[1] * 2) / 2, ceiling(x_range[2] * 2) / 2, by = 0.2)
+# Convert global Mbp back to local chromosome coordinates for clear labeling:
+chr_offset &lt;- d$chr_map[Chr == v$active_pk$Chr, Offset_Mbp]
+local_labels &lt;- sprintf(&quot;%.2f&quot;, local_breaks - chr_offset)
+
+p &lt;- p + 
+  scale_x_continuous(limits = x_range, breaks = local_breaks, labels = local_labels) +
+  labs(x = paste(v$active_pk$Chr, &quot;(Mbp)&quot;))
+</code></pre>
+</li>
+<li>
+<p><em>Alternative Consideration</em>: Option to keep the top panel showing the <strong>entire chromosome</strong> with the active peak highlighted by a gold diamond, while the bottom panel shows the zoomed locus schematic. (We can discuss this preference with the user).</p>
+</li>
+</ul>
+<h4>4.2 In-App Interpretation Guide</h4>
+<ul>
+<li>
+<p>Add an info button / modal: <code>actionLink(&quot;show_help&quot;, &quot;ℹ️ How to interpret panels&quot;)</code> in the header or sidebar.</p>
+</li>
+<li>
+<p>Modal content clarifies:</p>
+<ol>
+<li><strong>Top Panel (Manhattan Plot)</strong>: Macro view showing MafA peak scores (ChIP/CUT&amp;RUN intensity) on left Y-axis and coding SNP conservation (<code>phastCons</code>) on right Y-axis.</li>
+<li><strong>Bottom Panel (Locus Schematic)</strong>: Micro view (<code>± win_kb</code>) showing gene bodies, transcription direction arrows (TSS), and exact positions of coding SNPs relative to the MafA binding peak.</li>
+<li><strong>Strain Divergence</strong>: Peaks with high SNP counts (<code>variant_count</code>) may alter MafA binding affinity and drive strain-specific DEG patterns.</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h3>5. Step-by-Step Implementation Sequence</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[Step 1: UI Streamlining] --&gt; B[Step 2: Server State &amp; Reactivity]
+    B --&gt; C[Step 3: Plotly &amp; Schematic Refinements]
+    C --&gt; D[Step 4: Help &amp; Interpretation Modal]
+    D --&gt; E[Step 5: Verification &amp; User Review]
+</code></pre>
+<ol>
+<li>
+<p><strong>Step 1: Update UI Components in <code>SHINY_APP/app.R</code></strong> (Completed):</p>
+<ul>
+<li>Converted <code>win_kb</code> and <code>min_score</code> to clean discrete <code>selectInput</code> controls.</li>
+<li>Removed redundant <code>checkboxGroupInput(&quot;show_cat&quot;, ...)</code>.</li>
+<li>Wrapped <code>sel_chr</code> and <code>win_kb</code> in dynamic <code>uiOutput</code> containers.</li>
+<li>Added help action button (<code>show_help</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 2: Refine Server Observers &amp; Reactive State</strong> (Completed):</p>
+<ul>
+<li>Tracked <code>v$current_chr</code> and <code>v$last_gene</code>.</li>
+<li>Implemented dynamic <code>zoom_mode</code> choice expansion (<code>Genome-Wide</code>, <code>Chromosome</code>, and <code>Locus Zoom</code>).</li>
+<li>Synced chromosome selection whenever a gene is searched or peak is clicked.</li>
+<li>Revert to whole genome (<code>Genome-Wide</code>) and remove <code>Locus Zoom</code> when <code>search_gene</code> is deselected.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 3: Refine Plots</strong> (Completed):</p>
+<ul>
+<li>Fixed X-axis breaks and labels in the top Manhattan plot when in Locus Zoom mode (dynamic Mbp tick marks and chromosome labels).</li>
+<li>Updated schematic to render without needing <code>input$show_cat</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 4: Add Interpretation Modal</strong> (Completed):</p>
+<ul>
+<li>Implemented <code>observeEvent(input$show_help, ...)</code> with concise, illustrated explanations of macro/micro panels and strain divergence.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 5: Verification</strong>:</p>
+<ul>
+<li>Ready for user verification.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3>6. Key Design Decisions for Confirmation</h3>
+<ol>
+<li><strong>Top Panel Behavior in Locus Zoom</strong>:
+<ul>
+<li><em>Option A (Default)</em>: Keep top panel zoomed into the local ~1 Mb window, but with proper local Mbp tick marks and chromosome label.</li>
+<li><em>Option B (Dual Scale)</em>: Keep top panel showing the entire chromosome (so users see the whole chromosome context), with the active peak highlighted, while the bottom panel shows the zoomed locus.</li>
+</ul>
+</li>
+<li><strong>Discrete Values</strong>:
+<ul>
+<li>Confirm preferred steps for <code>Locus Window</code> (<code>20, 50, 100, 200, 500, 1000, 2000</code> kb) and <code>Min Peak Score</code> (<code>0, 100, 200, 500, 1000, 2000, 5000</code>).</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>7. Implementation of Further Improvements</h2>
+<p>This section documents the technical realization of the items outlined in <a href="#further-improvements">Further Improvements</a>.</p>
+<h3>Step 7: Modular Developer Guide Architecture &amp; HTML Publication via <code>docs/</code></h3>
+<p>To provide clear, discoverable documentation for collaborators and developers, the project's documentation was organized into five modular architecture documents rendered as styled HTML pages in <code>docs/</code> and linked through a master <code>DEVELOPER.md</code> guide:</p>
+<ol>
+<li>
+<p><strong>Modular Guide Structure</strong>:</p>
+<ul>
+<li><a href="DEVELOPER.html"><code>DEVELOPER.md</code></a> $\to$ <a href="docs/DEVELOPER.html"><code>docs/DEVELOPER.html</code></a>: Master technical guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.</li>
+<li><a href="shinyapp.html"><code>shinyapp.md</code></a> $\to$ <a href="docs/shinyapp.html"><code>docs/shinyapp.html</code></a>: Specifications and lineage for legacy prototypes (Version 1 and Version 2).</li>
+<li><a href="publishapp.html"><code>publishapp.md</code></a> $\to$ <a href="docs/publishapp.html"><code>docs/publishapp.html</code></a>: Shinylive (webR) static WebAssembly deployment architecture and GitHub Actions configuration.</li>
+<li><a href="redesign.html"><code>redesign.md</code></a> $\to$ <a href="docs/redesign.html"><code>docs/redesign.html</code></a>: UI modernization, reactive lifecycle, discrete filters, and panel coordination (this document).</li>
+<li><a href="qtlanalysis.html"><code>qtlanalysis.md</code></a> $\to$ <a href="docs/qtlanalysis.html"><code>docs/qtlanalysis.html</code></a>: F2 glycemic QTL integration, automated confidence interval bounding, and interactive QTL reference table.</li>
+</ul>
+</li>
+<li>
+<p><strong>Automated HTML Generation (<code>render_docs.R</code>)</strong>:</p>
+<ul>
+<li>Implemented <a href="render_docs.R"><code>render_docs.R</code></a> to compile all Markdown developer guides into standalone, responsive HTML pages with Inter/JetBrains typography, sticky navigation headers with a &quot;🚀 Open App&quot; shortcut, and GitHub-flavored table and code formatting.</li>
+<li>Internal markdown document links (e.g. <code>(DEVELOPER.md)</code>) are automatically rewritten to corresponding HTML links (e.g. <code>(DEVELOPER.html)</code>).</li>
+<li>Generates <code>docs/.nojekyll</code> to bypass Jekyll processing on GitHub Pages.</li>
+</ul>
+</li>
+<li>
+<p><strong>Web Distribution via <code>site/</code> and GitHub Pages</strong>:</p>
+<ul>
+<li>Updated <a href=".github/workflows/deploy-shinylive.yaml"><code>.github/workflows/deploy-shinylive.yaml</code></a> to trigger on changes to root markdown guides (<code>*.md</code>) or <code>render_docs.R</code>.</li>
+<li>CI installs <code>commonmark</code>, executes <code>Rscript render_docs.R</code>, and copies rendered HTML pages into <code>site/docs/</code> and <code>site/</code> alongside the exported Shinylive WebAssembly bundle.</li>
+<li>Updated <a href=".gitignore"><code>.gitignore</code></a> to track <code>docs/*.html</code> and <code>docs/.nojekyll</code> while continuing to ignore heavy local Shinylive WASM binaries.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3>Step 8: Comprehensive View &amp; State Reset Overhaul</h3>
+<p>Previously, the reset button did not completely clear the selected gene symbol in <code>search_gene</code>, which could cause state desynchronization between the selectize input and the Manhattan view.</p>
+<p><strong>Implementation in <a href="SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a></strong>:</p>
+<p>The <code>observeEvent(input$reset_view, ...)</code> observer was refactored into a complete state purge:</p>
+<pre><code class="language-r">observeEvent(input$reset_view, { 
+  v$active_pk   &lt;- NULL
+  v$active_snp  &lt;- NULL
+  v$last_gene   &lt;- NULL
+  v$current_chr &lt;- &quot;Chr1&quot;
+  v$active_qtl  &lt;- d$qtls[1]
+  v$user_zoom   &lt;- NULL
+  v$reset_trigger &lt;- v$reset_trigger + 1 
+  
+  # Completely clear gene search selectize (client and server side)
+  updateSelectizeInput(session, &quot;search_gene&quot;, 
+                       choices = c(&quot;&quot;, sort(unique(d$genes$Symbol))), 
+                       selected = &quot;&quot;, 
+                       server = TRUE)
+  
+  # Reset View Mode to Genome-Wide
+  updateSelectInput(session, &quot;zoom_mode&quot;, 
+                    choices = c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;, &quot;QTL Region&quot;), 
+                    selected = &quot;Genome-Wide&quot;)
+  
+  # Reset Category Checkboxes (Shared deselected by default)
+  updateCheckboxGroupInput(session, &quot;show_cat&quot;, 
+                           selected = c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;))
+  
+  # Reset Min Peak Score
+  updateSelectInput(session, &quot;min_score&quot;, selected = &quot;0&quot;)
+  
+  # Reset Coding SNP controls
+  updateCheckboxInput(session, &quot;show_snps_main&quot;, value = TRUE)
+  updateCheckboxGroupInput(session, &quot;snp_impact&quot;, selected = c(&quot;HIGH&quot;, &quot;MODERATE&quot;))
+  updateSliderInput(session, &quot;min_phastcons&quot;, value = 0.7)
+})
+</code></pre>
+<ul>
+<li><strong>Outcome</strong>: A single click on <strong>↺ Reset</strong> returns the entire app to its pristine initial state, guaranteeing that no stale gene search, zoom level, or category filter lingers.</li>
+</ul>
+<hr />
+<h3>Step 9: UI Ergonomics — Repositioning Reset &amp; Markdown-Based Modals</h3>
+<ol>
+<li>
+<p><strong>Button Repositioning</strong>:</p>
+<ul>
+<li>Moved the action buttons down to sit directly below the <code>Min phastCons Score:</code> slider and horizontal divider (<code>hr()</code>).</li>
+<li>Formatted side-by-side using flexbox (<code>display: flex; gap: 8px;</code>):
+<ul>
+<li><strong>↺ Reset</strong> (<code>actionButton(&quot;reset_view&quot;, ...)</code>, blue primary style)</li>
+<li><strong>📖 Dev Guide</strong> (<code>actionButton(&quot;show_dev_guide&quot;, ...)</code>, dark charcoal utility style)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Decoupled Markdown Guide Modals (<code>interpretation_guide.md</code> &amp; <code>developer_guide.md</code>)</strong>:</p>
+<ul>
+<li>Extracted all modal documentation into standalone Markdown files in <code>SHINY_APP/</code> to allow direct editing without modifying R application code:
+<ul>
+<li><a href="SHINY_APP/interpretation_guide.md"><code>SHINY_APP/interpretation_guide.md</code></a>: Macro/micro panel interpretation, Manhattan axes, DEG point shapes, strain colors, coding variant impacts (<code>phastCons</code>), QTL intervals, and navigation modes.</li>
+<li><a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>: Architectural guide modal featuring direct links to the rendered GitHub Pages HTML documentation (<code>https://byandell.github.io/MafADiscovery/docs/*.html</code>) and GitHub source markdown files.</li>
+</ul>
+</li>
+<li>Implemented a robust dynamic path-resolution loader <code>render_markdown_file(filename)</code> in <code>app.R</code>:
+<pre><code class="language-r">render_markdown_file &lt;- function(filename) {
+  filepath &lt;- if (file.exists(filename)) filename else if (file.exists(file.path(&quot;SHINY_APP&quot;, filename))) file.path(&quot;SHINY_APP&quot;, filename) else NULL
+  if (!is.null(filepath)) {
+    content &lt;- paste(readLines(filepath, encoding = &quot;UTF-8&quot;, warn = FALSE), collapse = &quot;\n&quot;)
+    div(class = &quot;modal-markdown&quot;,
+      if (exists(&quot;markdown&quot;, where = asNamespace(&quot;shiny&quot;), mode = &quot;function&quot;)) shiny::markdown(content)
+      else if (requireNamespace(&quot;markdown&quot;, quietly = TRUE)) HTML(markdown::markdownToHTML(text = content, fragment.only = TRUE))
+      else tags$pre(content)
+    )
+  } else {
+    tags$p(paste(&quot;Documentation file not found:&quot;, filename), style = &quot;color: red;&quot;)
+  }
+}
+</code></pre>
+</li>
+<li>Registered a local static resource path (<code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>) in <code>app.R</code> so local Shiny sessions serve documentation seamlessly.</li>
+<li>Added client-side modal event handling in <code>tags$head</code> so that all markdown links inside the modal automatically open in a new browser tab (<code>target=&quot;_blank&quot;</code>, <code>rel=&quot;noopener noreferrer&quot;</code>), preserving the user's active explorer session.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3>Step 10: Relocation &amp; Responsive Redesign of the Detailed Peak Information Card</h3>
+<ol>
+<li>
+<p><strong>Motivation</strong>:</p>
+<ul>
+<li>The detailed peak information panel was previously squeezed into the 3-column sidebar (<code>width = 3</code>).</li>
+<li>When displaying multiple local DEGs with log2 fold-changes and multi-variant coding SNP tables with <code>phastCons</code> scores, the sidebar required excessive vertical scrolling and crowded out navigation controls.</li>
+</ul>
+</li>
+<li>
+<p><strong>Relocation to Main Panel</strong>:</p>
+<ul>
+<li>Moved <code>uiOutput(&quot;metadata_panel&quot;)</code> from <code>sidebarPanel()</code> to the bottom of <code>mainPanel()</code> (width = 9), placed immediately below the Locus Schematic (<code>plotOutput(&quot;schematic&quot;)</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Two-Column Responsive Card Architecture</strong>:</p>
+<ul>
+<li>Replaced the narrow single-column well with a wide, structured flexbox card:
+<ul>
+<li><strong>Header Bar</strong>: Displays the peak identifier (e.g. <code>peak_1234</code>), chromosome midpoint (<code>Mbp</code>), strain-divergent variant count, and an eye-catching purple badge if the peak falls within the active F2 glycemic QTL confidence interval.</li>
+<li><strong>Left Column (Local DEGs)</strong>: Lists all differentially expressed genes within the locus window, color-coded by strain category (<code>C57_Specific</code>, <code>SJL_Specific</code>, <code>Discordant</code>, <code>Shared</code>), along with strain-specific log2 fold changes.</li>
+<li><strong>Right Column (Coding SNPs)</strong>: Groups high- and moderate-impact coding variants by gene symbol, highlighting HIGH impact counts in purple, MODERATE impact in gold, maximum <code>phastCons</code> score, and detailed amino acid substitution annotations.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>MafA Discovery Integrated Genomic Explorer &bull; Vanderbilt University / University of Wisconsin-Madison</p>
+  </footer>
+</body>
+</html>

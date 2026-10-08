@@ -24,6 +24,12 @@ library(data.table)
 library(ggplot2)
 library(plotly)
 
+# Serve docs directory for local documentation links if available
+docs_path <- if (dir.exists("docs")) "docs" else if (dir.exists("../docs")) "../docs" else NULL
+if (!is.null(docs_path)) {
+  shiny::addResourcePath("docs", normalizePath(docs_path))
+}
+
 # ── 1. DATA ENGINE ────────────────────────────────────────────────────────
 prepare_data <- function() {
   # Use local paths for portability
