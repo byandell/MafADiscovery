@@ -1,9 +1,9 @@
-# Mark Notes
+# QTL Analysis Updates to App
 
 **Prompt:**
-Develop implementation plan for features and modifications to the app described below.
+Develop implementation plan for QTL features and modifications to the app described below.
 
-## New Features and Modifications
+## New QTL Features and Modifications
 
 New feature: integrate loci identified in the F2 study, as listed in
 [Top_glycemic_QTL_for_sex_additive_analysis.csv](SHINY_APP/Top_glycemic_QTL_for_sex_additive_analysis.csv).
@@ -54,17 +54,22 @@ flowchart TD
 In `SHINY_APP/app.R`:
 
 1. **Load CSV**:
+
    ```r
    qtls <- fread("Top_glycemic_QTL_for_sex_additive_analysis.csv")
    ```
+
 2. **Standardize Coordinates & Identifiers**:
    - Standardize chromosome naming: `qtls[, Chr := paste0("Chr", Chr)]`.
    - Ensure numeric conversions: `pos`, `ci.low`, `ci.high`, `lod`, `BB_effect`, `BS_effect`, `SS_effect`.
    - Create display label for selector:
+
      ```r
      qtls[, qtl_id := paste0(trait, " @ ", Chr, ":", round(pos, 1), " Mb (LOD ", round(lod, 1), ")")]
      ```
+
    - Calculate global Manhattan positions using `chr_map`:
+
      ```r
      qtls[chr_map, on = "Chr", `:=`(
        GlobalPos_Mbp   = pos + i.Offset_Mbp,
@@ -72,6 +77,7 @@ In `SHINY_APP/app.R`:
        GlobalCI_High_Mbp = ci.high + i.Offset_Mbp
      )]
      ```
+
 3. Return `qtls` in the data bundle list alongside `degs`, `mafa`, `genes`, `chr_map`, `snps`.
 
 ---
@@ -79,27 +85,35 @@ In `SHINY_APP/app.R`:
 ### 3. UI Modifications
 
 #### 3.1 Dynamic Sidebar Controls
+
 - **View Mode Selector**:
+
   ```r
   selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region"))
   ```
+
 - **Conditional QTL Selector (`output$qtl_selector_ui`)**:
   Renders when `input$zoom_mode == "QTL Region"`:
+
   ```r
   selectInput("sel_qtl", "Select F2 Glycemic QTL:", 
               choices = d$qtls$qtl_id, 
               selected = v$active_qtl$qtl_id)
   ```
+
 - **Visible Categories Control**:
   Re-introduce `checkboxGroupInput("show_cat", "Visible Categories:", ...)` with `"Shared"` deselected by default:
+
   ```r
   checkboxGroupInput("show_cat", "Visible Categories:", 
                      choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
                      selected = c("C57_Specific", "SJL_Specific", "Discordant"))
   ```
+
   *(Users can re-enable "Shared" anytime with a single click).*
 
 #### 3.2 Interactive QTL Explorer Table
+
 - Add a collapsible card or modal button:
   - Button in header: `actionButton("show_qtl_table", "📊 View F2 QTL Table", class = "btn btn-outline-primary")`
   - Modal or bottom panel rendering `tableOutput("qtl_table")` or a formatted interactive table with columns:
@@ -116,6 +130,7 @@ In `SHINY_APP/app.R`:
    - `v$active_pk`: Holds selected MafA peak. If in `"QTL Region"` mode and no peak is selected, auto-select the highest peak within the QTL interval for seamless schematic preview.
 
 2. **QTL Selection Observer (`input$sel_qtl`)**:
+
    ```r
    observeEvent(input$sel_qtl, {
      req(input$sel_qtl)
@@ -136,6 +151,7 @@ In `SHINY_APP/app.R`:
 
 3. **Coordinate Window Calculation in `output$manhattan`**:
    When `input$zoom_mode == "QTL Region"`:
+
    ```r
    req(v$active_qtl)
    q <- v$active_qtl
@@ -177,5 +193,3 @@ In `SHINY_APP/app.R`:
    - Added quick-reference table modal (`input$show_qtl_table`) displaying all 11 QTL loci with quick-zoom action.
 6. **Step 6: Update Documentation & Verification** (Completed):
    - Updated `DEVELOPER.md` architecture and reactive lifecycle.
-
-
