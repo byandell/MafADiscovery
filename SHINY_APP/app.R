@@ -60,7 +60,10 @@ ui <- fluidPage(
   tags$head(tags$style(HTML("
     .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 12px; margin-top: 15px; }
     .meta-title { font-weight: bold; font-size: 1.1em; border-bottom: 1px solid #ddd; margin-bottom: 8px; color: #856404; }
-    .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; width: 100%; margin-bottom: 10px; }
+    .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; }
+    .btn-rezoom:hover { background-color: #0056b3; color: white; }
+    .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
+    .btn-help:hover { background-color: #117a8b; color: white; }
     .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.2; }
     #hover_tooltip {
       position: absolute;
@@ -80,16 +83,19 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      actionButton("reset_view", "↺ Reset to Genome-Wide", class = "btn-rezoom"),
+      div(style = "display: flex; gap: 8px; margin-bottom: 12px;",
+        actionButton("reset_view", "↺ Reset", class = "btn-rezoom", style = "flex: 1;"),
+        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "width: 38%;")
+      ),
       selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL),
-      selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "Locus Zoom")),
+      selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome")),
       uiOutput("chr_selector_ui"),
-      hr(),
-      checkboxGroupInput("show_cat", "Visible Categories:", 
-                         choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
-                         selected = c("Shared", "C57_Specific", "SJL_Specific", "Discordant")),
-      numericInput("win_kb", "Locus Window (Kbp):", value = 500),
-      sliderInput("min_score", "Min Peak Score:", 0, 10000, 0),
+      uiOutput("locus_window_ui"),
+      selectInput("min_score", "Min Peak Score:", 
+                  choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
+                              "500" = 500, "1,000" = 1000, "2,000" = 2000, 
+                              "5,000" = 5000), 
+                  selected = 0),
       hr(),
       checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE),
       checkboxGroupInput("snp_impact", "Coding SNP Impact:", 
@@ -110,43 +116,138 @@ ui <- fluidPage(
 # ── 3. SERVER ──────────────────────────────────────────────────────────────
 server <- function(input, output, session) {
   d <- prepare_data()
-  v <- reactiveValues(active_pk = NULL, active_snp = NULL, reset_trigger = 0, user_zoom = NULL)
+  v <- reactiveValues(
+    active_pk   = NULL, 
+    active_snp  = NULL, 
+    last_gene   = NULL, 
+    current_chr = "Chr1", 
+    reset_trigger = 0, 
+    user_zoom   = NULL
+  )
   cat_colors <- c("Shared"="#228B22", "C57_Specific"="#0000CC", "SJL_Specific"="#CC0000", "Discordant"="#FF8C00", "Non-DE"="#D3D3D3")
   
   updateSelectizeInput(session, "search_gene", choices = sort(unique(d$genes$Symbol)), server = TRUE)
-  output$chr_selector_ui <- renderUI({ selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr) })
   
-  observeEvent(input$reset_view, { 
-    v$active_pk <- NULL
-    v$active_snp <- NULL
-    v$user_zoom <- NULL
-    v$reset_trigger <- v$reset_trigger + 1 
-    updateSelectInput(session, "zoom_mode", selected = "Genome-Wide") 
+  # Discrete input accessors with fallbacks
+  get_win_kb <- reactive({
+    if (is.null(input$win_kb)) 500 else as.numeric(input$win_kb)
   })
+  
+  get_min_score <- reactive({
+    if (is.null(input$min_score)) 0 else as.numeric(input$min_score)
+  })
+  
+  # Conditionally render chromosome selector only when in "Chromosome" view mode
+  output$chr_selector_ui <- renderUI({
+    req(input$zoom_mode == "Chromosome")
+    selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr)
+  })
+  
+  # Conditionally render discrete locus window selector only when in "Locus Zoom" view mode
+  output$locus_window_ui <- renderUI({
+    req(input$zoom_mode == "Locus Zoom")
+    cur_val <- if (!is.null(input$win_kb)) input$win_kb else 500
+    selectInput("win_kb", "Locus Window:", 
+                choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
+                            "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
+                            "2,000 kb (2 Mb)" = 2000), 
+                selected = cur_val)
+  })
+  
+  # Reset to Genome-Wide
+  observeEvent(input$reset_view, { 
+    v$active_pk   <- NULL
+    v$active_snp  <- NULL
+    v$last_gene   <- NULL
+    v$current_chr <- "Chr1"
+    v$user_zoom   <- NULL
+    v$reset_trigger <- v$reset_trigger + 1 
+    updateSelectizeInput(session, "search_gene", selected = "")
+    updateSelectInput(session, "zoom_mode", choices = c("Genome-Wide", "Chromosome"), selected = "Genome-Wide") 
+  })
+  
   observeEvent(input$zoom_mode, { v$user_zoom <- NULL })
-  observeEvent(input$sel_chr, { v$user_zoom <- NULL })
-
-  # Search Implementation: Find nearest peak to searched gene
-  observeEvent(input$search_gene, {
-    req(input$search_gene != "")
-    gene_row <- d$genes[Symbol == input$search_gene]
-    if(nrow(gene_row) > 0) {
-      gene_pos <- ifelse(gene_row$Strand[1] == 1, gene_row$Start[1], gene_row$End[1])
-      # Find peaks on same Chr
-      pks_chrom <- d$mafa[Chr == gene_row$Chr[1]]
-      if(nrow(pks_chrom) > 0) {
-        idx <- which.min(abs(pks_chrom$Mid - gene_pos))
-        v$active_pk <- pks_chrom[idx]
-        v$active_snp <- NULL
-        updateSelectInput(session, "zoom_mode", selected = "Locus Zoom")
-      }
+  
+  observeEvent(input$sel_chr, { 
+    v$user_zoom <- NULL
+    if (!is.null(input$sel_chr) && nzchar(input$sel_chr)) {
+      v$current_chr <- input$sel_chr
     }
   })
 
+  # Search Implementation: Find nearest peak to searched gene, or revert when deselected
+  observeEvent(input$search_gene, {
+    if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
+      gene_row <- d$genes[Symbol == input$search_gene]
+      if(nrow(gene_row) > 0) {
+        gene_pos <- ifelse(gene_row$Strand[1] == 1, gene_row$Start[1], gene_row$End[1])
+        # Find peaks on same Chr
+        pks_chrom <- d$mafa[Chr == gene_row$Chr[1]]
+        if(nrow(pks_chrom) > 0) {
+          idx <- which.min(abs(pks_chrom$Mid - gene_pos))
+          v$active_pk   <- pks_chrom[idx]
+          v$active_snp  <- NULL
+          v$last_gene   <- input$search_gene
+          v$current_chr <- gene_row$Chr[1]
+          updateSelectInput(session, "zoom_mode", 
+                            choices = c("Genome-Wide", "Chromosome", "Locus Zoom"), 
+                            selected = "Locus Zoom")
+        }
+      }
+    } else {
+      # Deselected / cleared: revert to whole genome and remove Locus Zoom
+      if (!is.null(v$active_pk) || !is.null(v$last_gene)) {
+        v$active_pk     <- NULL
+        v$active_snp    <- NULL
+        v$last_gene     <- NULL
+        v$user_zoom     <- NULL
+        v$reset_trigger <- v$reset_trigger + 1
+        updateSelectInput(session, "zoom_mode", 
+                          choices = c("Genome-Wide", "Chromosome"), 
+                          selected = "Genome-Wide")
+      }
+    }
+  }, ignoreInit = TRUE)
+
+  # Interpretation Modal Guide
+  observeEvent(input$show_help, {
+    showModal(modalDialog(
+      title = span(strong("MafA Discovery: How to Interpret Panels & Navigate"), style = "color: #17a2b8;"),
+      div(
+        h4(strong("1. Top Panel: Manhattan Macro View")),
+        p("Displays MafA binding peaks and prioritized coding SNPs along the mouse genome:"),
+        tags$ul(
+          tags$li(strong("Primary Y-Axis (Left): "), "MafA Peak Score reflecting ChIP/CUT&RUN binding strength."),
+          tags$li(strong("Point Shapes: "), "Differentially expressed gene (DEG) direction (▲ UP, ▼ DOWN in diabetes/perturbation)."),
+          tags$li(strong("Point Colors: "), "Strain-specificity category: ",
+                  span("Shared", style="color:#228B22; font-weight:bold;"), ", ",
+                  span("C57_Specific", style="color:#0000CC; font-weight:bold;"), ", ",
+                  span("SJL_Specific", style="color:#CC0000; font-weight:bold;"), ", or ",
+                  span("Discordant", style="color:#FF8C00; font-weight:bold;"), "."),
+          tags$li(strong("Secondary Y-Axis & Diamonds: "), "Coding SNPs between C57BL/6J and SJL/J strains, scaled by evolutionary conservation score (phastCons 0–1). Pink = HIGH impact, Gold = MODERATE impact."),
+          tags$li(strong("Interactivity: "), "Click any peak or SNP point to inspect its locus. Click categories in the legend to toggle visibility.")
+        ),
+        hr(),
+        h4(strong("2. Bottom Panel: Locus Micro Schematic")),
+        p("Renders a high-resolution window (± Locus Window) centered on the active MafA binding peak:"),
+        tags$ul(
+          tags$li(strong("MafA Peak: "), "Marked with a gold dashed line and highlighted region."),
+          tags$li(strong("Gene Models: "), "Horizontal bars depict gene bodies. Arrows denote transcription start site (TSS) and orientation."),
+          tags$li(strong("Coding SNPs: "), "Diamonds show exact positions of coding SNPs within exons. Outlined diamonds indicate phastCons ≥ 0.7.")
+        ),
+        hr(),
+        h4(strong("3. Strain Divergence & Biological Hypothesis")),
+        p("MafA peaks harboring high strain-divergent SNP counts (", code("variant_count"), ") may disrupt transcription factor binding affinity or chromatin accessibility, potentially driving strain-specific gene expression differences between B6 and SJL.")
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = modalButton("Close")
+    ))
+  })
+
   filtered_peaks <- reactive({
-    req(input$show_cat)
     # 1. Filter by score
-    pks <- d$mafa[`Peak Score` >= input$min_score]
+    pks <- d$mafa[`Peak Score` >= get_min_score()]
     if(nrow(pks) == 0) return(NULL)
     
     # 2. Map to DEGs (Genomic Search via data.table nearest rolling join)
@@ -157,12 +258,10 @@ server <- function(input, output, session) {
     pks_q <- copy(pks)
     pks_q[, query_pos := as.numeric(Mid)]
     res <- deg_cols[pks_q, on = .(Chr, deg_start = query_pos), roll = "nearest"]
-    res <- res[abs(Mid - actual_deg_start) <= (input$win_kb * 1000) & !is.na(Category)]
+    res <- res[abs(Mid - actual_deg_start) <= (get_win_kb() * 1000) & !is.na(Category)]
     
     if(nrow(res) == 0) return(NULL)
-    
-    # Final filter by selected categories
-    res[Category %in% input$show_cat]
+    res
   })
   
   filtered_snps <- reactive({
@@ -202,21 +301,29 @@ server <- function(input, output, session) {
       }
       
       if (!is.null(hit_pk)) {
-        v$active_pk <- hit_pk
-        v$active_snp <- NULL
+        v$active_pk   <- hit_pk
+        v$active_snp  <- NULL
+        v$current_chr <- hit_pk$Chr
+        updateSelectInput(session, "zoom_mode", 
+                          choices = c("Genome-Wide", "Chromosome", "Locus Zoom"),
+                          selected = input$zoom_mode)
       } else if (!is.null(snps_df) && nrow(snps_df) > 0) {
         # Check SNP hits
         snp_cand <- snps_df[abs(GlobalPos_Mbp - event$x) < 0.15]
         if (nrow(snp_cand) > 0) {
           idx <- which.min(abs(snp_cand$GlobalPos_Mbp - event$x))
           clicked_snp <- snp_cand[idx]
-          v$active_snp <- clicked_snp
+          v$active_snp  <- clicked_snp
+          v$current_chr <- clicked_snp$Chr
           # Select nearest peak on the same chromosome
           pks_chr <- d$mafa[Chr == clicked_snp$Chr]
           if (nrow(pks_chr) > 0) {
             nearest_idx <- which.min(abs(pks_chr$Mid - clicked_snp$pos))
             v$active_pk <- pks_chr[nearest_idx]
           }
+          updateSelectInput(session, "zoom_mode", 
+                            choices = c("Genome-Wide", "Chromosome", "Locus Zoom"),
+                            selected = input$zoom_mode)
         }
       }
     }
@@ -229,18 +336,26 @@ server <- function(input, output, session) {
     
     snps_df <- filtered_snps()
     
+    cur_chr <- if(!is.null(input$sel_chr) && nzchar(input$sel_chr)) input$sel_chr else v$current_chr
+    
     # Auto-X Scale
     x_range <- if(input$zoom_mode == "Genome-Wide") {
       c(0, max(d$chr_map$Offset_Mbp + d$chr_map$Length/1e6))
     } else if(input$zoom_mode == "Chromosome") {
-      req(input$sel_chr)
       if (!is.null(v$user_zoom)) {
         v$user_zoom
       } else {
-        r <- d$chr_map[d$chr_map$Chr == input$sel_chr, ]; c(r$Offset_Mbp, r$Offset_Mbp + r$Length/1e6)
+        r <- d$chr_map[d$chr_map$Chr == cur_chr, ]
+        c(r$Offset_Mbp, r$Offset_Mbp + r$Length/1e6)
       }
     } else {
-      req(v$active_pk); c(v$active_pk$GlobalPos_Mbp - 0.5, v$active_pk$GlobalPos_Mbp + 0.5)
+      req(v$active_pk)
+      win_mbp <- get_win_kb() / 1000
+      if (!is.null(v$user_zoom)) {
+        v$user_zoom
+      } else {
+        c(v$active_pk$GlobalPos_Mbp - win_mbp, v$active_pk$GlobalPos_Mbp + win_mbp)
+      }
     }
     
     # Auto-Zoom Y-Axis
@@ -299,7 +414,7 @@ server <- function(input, output, session) {
         scale_x_continuous(breaks=d$chr_map$Midpoint_Mbp, labels=gsub("Chr","",d$chr_map$Chr), expand=c(0,0)) +
         do.call(scale_y_continuous, y_scale_args)
     } else if (input$zoom_mode == "Chromosome") {
-      chr_info <- d$chr_map[Chr == input$sel_chr]
+      chr_info <- d$chr_map[Chr == cur_chr]
       chr_len_mbp <- chr_info$Length / 1e6
       tick_interval <- if(chr_len_mbp > 120) 10 else 5
       all_breaks <- seq(0, floor(chr_len_mbp), by = tick_interval / 2)
@@ -308,11 +423,22 @@ server <- function(input, output, session) {
       p <- p + 
         scale_x_continuous(limits=x_range, breaks=global_breaks, labels=tick_labels, expand=c(0,0)) +
         do.call(scale_y_continuous, y_scale_args) +
-        labs(x = paste0(input$sel_chr, " (Mbp)"))
+        labs(x = paste0(cur_chr, " (Mbp)"))
     } else {
+      req(v$active_pk)
+      chr_offset <- d$chr_map[Chr == v$active_pk$Chr, Offset_Mbp]
+      local_min <- max(0, x_range[1] - chr_offset)
+      local_max <- min(d$chr_map[Chr == v$active_pk$Chr, Length / 1e6], x_range[2] - chr_offset)
+      local_breaks <- pretty(c(local_min, local_max), n = 6)
+      local_breaks <- local_breaks[local_breaks >= local_min & local_breaks <= local_max]
+      global_breaks <- local_breaks + chr_offset
+      diff_mbp <- local_max - local_min
+      dec <- if (diff_mbp <= 0.05) 3 else if (diff_mbp <= 0.5) 2 else 1
+      local_labels <- sprintf(paste0("%.", dec, "f"), local_breaks)
       p <- p + 
-        scale_x_continuous(limits=x_range, breaks=d$chr_map$Midpoint_Mbp, labels=gsub("Chr","",d$chr_map$Chr), expand=c(0,0)) +
-        do.call(scale_y_continuous, y_scale_args)
+        scale_x_continuous(limits=x_range, breaks=global_breaks, labels=local_labels, expand=c(0,0)) +
+        do.call(scale_y_continuous, y_scale_args) +
+        labs(x = paste0(v$active_pk$Chr, " (Mbp)"))
     }
     
     if(!is.null(v$active_pk)) {
@@ -334,14 +460,15 @@ server <- function(input, output, session) {
   })
 
   output$schematic <- renderPlot({
-    req(v$active_pk); pk <- v$active_pk; win <- input$win_kb * 1000
+    req(v$active_pk)
+    pk <- v$active_pk
+    win <- get_win_kb() * 1000
     
     window_genes <- d$genes[Chr == pk$Chr & End >= (pk$Mid - win) & Start <= (pk$Mid + win)]
     if(nrow(window_genes) == 0) return(NULL)
     
     plot_df <- merge(window_genes, d$degs[, .(GeneId, Category)], by="GeneId", all.x=TRUE)
     plot_df[is.na(Category), Category := "Non-DE"]
-    plot_df[!Category %in% c(input$show_cat, "Non-DE"), Category := "Non-DE"]
     plot_df <- plot_df[Category != "Non-DE" | Type == "protein_coding"]
     if(nrow(plot_df) == 0) return(NULL)
     
@@ -410,11 +537,11 @@ server <- function(input, output, session) {
     all_color_colors <- c(cat_colors, "HIGH" = "#CC00CC", "MODERATE" = "#DAA520")
 
     p_schem +
-      geom_text(aes(x=pk$Mid, y=1.55, label=paste("MafA peak", sub(".*peak_", "", pk$PeakID))), 
-                color="gold4", fontface="bold", size=6, inherit.aes=FALSE) +
+      annotate("text", x = pk$Mid, y = 1.55, label = paste("MafA peak", sub(".*peak_", "", pk$PeakID)), 
+               color = "gold4", fontface = "bold", size = 6) +
       geom_text(aes(x = (Start + End)/2, y = y_lev + rect_h + 0.08, label = Symbol, color = Category), fontface = "bold", size = 6) +
       scale_fill_manual(values=all_fill_colors) + scale_color_manual(values=all_color_colors) +
-      scale_x_continuous(labels = function(x) format(x/1e6, digits=5)) +
+      scale_x_continuous(limits = c(pk$Mid - win, pk$Mid + win), labels = function(x) format(x/1e6, digits=5), expand = c(0, 0)) +
       labs(x=paste(pk$Chr, "(Mbp)"), y="") +
       theme_minimal() + 
       theme(
@@ -427,8 +554,9 @@ server <- function(input, output, session) {
   })
   
   output$metadata_panel <- renderUI({
-    req(v$active_pk); pk <- v$active_pk
-    win_size <- input$win_kb * 1000
+    req(v$active_pk)
+    pk <- v$active_pk
+    win_size <- get_win_kb() * 1000
     local_degs <- d$degs[Chr == pk$Chr & abs(Start - pk$Mid) <= win_size]
     
     selected_impacts <- if (is.null(input$snp_impact)) c("HIGH", "MODERATE") else input$snp_impact

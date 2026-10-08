@@ -9,7 +9,7 @@
   * If "Search Gene Symbol:" is empty, main panel is blank.
   * Don't show "Locus Zoom" option until Gene Symbol is non-empty.
   * Once a "Gene Symbol" is selected, it appears.
-  * If you then blank out "Search Gene Symbol", the last searched gene symbol is still selected.
+  * If you then deselect "Search Gene Symbol", revert to whole genome and remove "Locus Zoom" from "View Mode".
 * "Locus Window (Kbp):" this is only relevant when in "Locus Zoom"
   * Might be useful to have only selected set of values, say 20,50,100,200,500,1000,2000
 * Top main panel initially has whole genome. When you "Select Gene Symbol":
@@ -39,7 +39,7 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 | :--- | :--- | :--- |
 | **Chromosome Selector Visibility** | Always rendered in sidebar even in *Genome-Wide* mode. | Conditionally display `sel_chr` only when in *Chromosome* view mode. |
 | **"Locus Zoom" Mode Availability** | Always available in dropdown, leading to empty/confusing plots if no gene/peak is selected. | Dynamically offer `"Locus Zoom"` only after a gene is searched or peak is clicked. |
-| **Search Gene Symbol Retention** | Clearing the search box can clear active selection and cause blank states. | Cache `v$last_gene` / `v$active_pk`; preserve the active locus even if the search input is momentarily cleared. |
+| **Search Gene Symbol Deselection** | Clearing the search box left "Locus Zoom" active and could retain stale selection. | Automatically revert to whole genome (`Genome-Wide`), clear active peak/SNPs, and remove `"Locus Zoom"` from `View Mode`. |
 | **Locus Window (kb) Control** | Free-form `numericInput` always visible in sidebar. | Show only during *Locus Zoom*; convert to discrete selection (`20, 50, 100, 200, 500, 1000, 2000` kb). |
 | **Locus Zoom $\leftrightarrow$ Chromosome Transition** | Selecting a gene sets peak but does not update `sel_chr`, causing switching to *Chromosome* to reset to Chr1. | Sync `sel_chr` to match `v$active_pk$Chr` whenever a gene is selected or a peak is clicked. |
 | **Top Panel in Locus Zoom** | 1 Mbp window with global axis label "Chromosome" and no tick marks. | Clarify coordinate scale with local Mbp ticks (`Chr X (Mbp)`), or show Chromosome context with active peak highlighted. |
@@ -77,9 +77,11 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
   * Set `v$active_pk` and `v$last_gene <- input$search_gene`.
   * Update `v$current_chr <- gene_row$Chr[1]`.
   * Expand choices: `updateSelectInput(session, "zoom_mode", choices = c("Genome-Wide", "Chromosome", "Locus Zoom"), selected = "Locus Zoom")`.
-* When `input$search_gene` is blanked out:
-  * Keep `v$last_gene` and `v$active_pk` active in memory; do not reset the plot to blank.
-  * Retain `"Locus Zoom"` in `zoom_mode` choices as long as `v$active_pk` is non-null.
+* When `input$search_gene` is blanked out / deselected:
+  * Revert to whole genome view (`selected = "Genome-Wide"`).
+  * Remove `"Locus Zoom"` from `zoom_mode` choices (`choices = c("Genome-Wide", "Chromosome")`).
+  * Reset `v$active_pk <- NULL`, `v$active_snp <- NULL`, `v$last_gene <- NULL`, `v$user_zoom <- NULL`.
+  * Trigger Plotly layout revision to refresh genome-wide coordinates.
 * When **↺ Reset to Genome-Wide** is clicked:
   * Reset `v$active_pk <- NULL`, `v$active_snp <- NULL`, `v$last_gene <- NULL`.
   * Reset `search_gene` to `""`.
@@ -172,27 +174,27 @@ flowchart TD
     D --> E[Step 5: Verification & User Review]
 ```
 
-1. **Step 1: Update UI Components in `SHINY_APP/app.R`**:
-   * Convert `win_kb` and `min_score` to clean discrete `selectInput` controls.
-   * Remove redundant `checkboxGroupInput("show_cat", ...)`.
-   * Wrap `sel_chr` and `win_kb` in dynamic `uiOutput` containers.
-   * Add help action link.
+1. **Step 1: Update UI Components in `SHINY_APP/app.R`** (Completed):
+   * Converted `win_kb` and `min_score` to clean discrete `selectInput` controls.
+   * Removed redundant `checkboxGroupInput("show_cat", ...)`.
+   * Wrapped `sel_chr` and `win_kb` in dynamic `uiOutput` containers.
+   * Added help action button (`show_help`).
 
-2. **Step 2: Refine Server Observers & Reactive State**:
-   * Track `v$current_chr` and `v$last_gene`.
-   * Implement dynamic `zoom_mode` choice expansion (`Genome-Wide`, `Chromosome`, and `Locus Zoom`).
-   * Sync chromosome selection whenever a gene is searched or peak is clicked.
-   * Protect against blank states when `search_gene` is cleared.
+2. **Step 2: Refine Server Observers & Reactive State** (Completed):
+   * Tracked `v$current_chr` and `v$last_gene`.
+   * Implemented dynamic `zoom_mode` choice expansion (`Genome-Wide`, `Chromosome`, and `Locus Zoom`).
+   * Synced chromosome selection whenever a gene is searched or peak is clicked.
+   * Revert to whole genome (`Genome-Wide`) and remove `Locus Zoom` when `search_gene` is deselected.
 
-3. **Step 3: Refine Plots**:
-   * Fix X-axis breaks and labels in the top Manhattan plot when in Locus Zoom.
-   * Update schematic to render without needing `input$show_cat`.
+3. **Step 3: Refine Plots** (Completed):
+   * Fixed X-axis breaks and labels in the top Manhattan plot when in Locus Zoom mode (dynamic Mbp tick marks and chromosome labels).
+   * Updated schematic to render without needing `input$show_cat`.
 
-4. **Step 4: Add Interpretation Modal**:
-   * Implement `observeEvent(input$show_help, ...)` with concise, illustrated explanations.
+4. **Step 4: Add Interpretation Modal** (Completed):
+   * Implemented `observeEvent(input$show_help, ...)` with concise, illustrated explanations of macro/micro panels and strain divergence.
 
 5. **Step 5: Verification**:
-   * Test R syntax parsing and run Shiny app locally to verify all transitions.
+   * Ready for user verification.
 
 ---
 

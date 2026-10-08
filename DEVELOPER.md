@@ -83,16 +83,29 @@ The data engine runs once at session initialization:
 State is managed via `reactiveValues` in `v`:
 - `v$active_pk`: Currently selected MafA binding peak row.
 - `v$active_snp`: Currently selected coding SNP row (if clicked).
+- `v$last_gene`: Cached symbol of the last searched gene (preserved even if the search input is cleared).
+- `v$current_chr`: Active chromosome tracking (synced when peaks or genes are selected to allow seamless transitions to *Chromosome* view mode).
 - `v$user_zoom`: User-defined x-axis range captured from Plotly `relayout` events.
 - `v$reset_trigger`: Integer incremented to reset Plotly view revision state.
 
+### UI & Navigation Lifecycle
+
+- **Dynamic View Modes**: Initial view modes are *Genome-Wide* and *Chromosome*. *Locus Zoom* is offered dynamically once a gene is searched or a peak/SNP is clicked. If a searched gene is deselected/cleared, the app automatically reverts to *Genome-Wide* view and removes *Locus Zoom*.
+- **Conditional Controls**: 
+  - Chromosome selector (`sel_chr`) is conditionally displayed only when in *Chromosome* view mode.
+  - Discrete locus window selector (`win_kb`: 20, 50, 100, 200, 500, 1000, 2000 kb) is conditionally displayed only in *Locus Zoom* mode.
+- **Legend-Driven Filtering**: Redundant sidebar category checkboxes are replaced with Plotly's interactive legend filtering.
+- **Discrete Thresholds**: Min Peak Score uses discrete selections (`All (0), 100, 200, 500, 1000, 2000, 5000`) for predictable filtering.
+- **Interpretation Guide**: An in-app modal (`input$show_help`) provides biological background, macro/micro panel coordination guidance, and interactive tips.
+
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 
-- Renders genome-wide or chromosome-level peak points using `ggplot2` and converts via `plotly::ggplotly()`.
+- Renders genome-wide, chromosome-level, or locus-level peak points using `ggplot2` and converts via `plotly::ggplotly()`.
+- Dynamically scales local Mbp tick marks (`scale_x_continuous`) in *Locus Zoom* mode based on the selected locus window.
 - Supports secondary y-axis scaling for coding SNPs:
   - Peak score plotted on primary y-axis.
   - Coding SNPs scaled dynamically to `phastCons_score * y_max` with `sec_axis(~ . / y_max, name = "phastCons Conservation Score (0-1)")`.
-- Clicking either a peak or a coding variant triggers `plotly_click` handling, selecting the entity and highlighting it with a gold diamond.
+- Clicking either a peak or a coding variant triggers `plotly_click` handling, selecting the entity, highlighting it with a gold diamond, and opening *Locus Zoom*.
 
 ### Locus Schematic Rendering
 
