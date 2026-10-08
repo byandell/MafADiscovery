@@ -6,12 +6,13 @@
 # 3. Run the following lines to install dependencies:
 #    install.packages(c("shiny", "data.table", "ggplot2", "plotly"))
 #
-# 4. REQUIRED FILES (Ensure these 5 files are in the same folder):
-#    - app.R                             (This script)
-#    - MafA_Peaks_with_SNPs_v3.csv       (Peak data)
-#    - Master_DEG_Strain_Comparison_v3.csv (DEG data)
-#    - mouse_genes_mm39_v3.csv           (Genomic backbone)
-#    - B6_SJL_prioritized_protein_coding_SNPs.csv (SNP data)
+# 4. REQUIRED FILES (Ensure these 6 files are in the same folder):
+#    - app.R                                           (This script)
+#    - MafA_Peaks_with_SNPs_v3.csv                     (Peak data)
+#    - Master_DEG_Strain_Comparison_v3.csv             (DEG data)
+#    - mouse_genes_mm39_v3.csv                         (Genomic backbone)
+#    - B6_SJL_prioritized_protein_coding_SNPs.csv      (SNP data)
+#    - Top_glycemic_QTL_for_sex_additive_analysis.csv  (F2 Glycemic QTL data)
 #
 # 5. TO LAUNCH:
 #    Open this file in RStudio and click 'Run App', or run: shiny::runApp()
@@ -40,6 +41,7 @@ prepare_data <- function() {
   mafa      <- fread("MafA_Peaks_with_SNPs_v3.csv")
   all_genes <- fread("mouse_genes_mm39_v3.csv")
   snps      <- fread("B6_SJL_prioritized_protein_coding_SNPs.csv")
+  qtls      <- fread("Top_glycemic_QTL_for_sex_additive_analysis.csv")
   
   # Format SNP data
   snps[, Chr := paste0("Chr", chr)]
@@ -48,11 +50,24 @@ prepare_data <- function() {
   snps[is.na(phastCons_score), phastCons_score := 0]
   snps[, impact_simple := ifelse(any_high == TRUE | impact %like% "HIGH", "HIGH", "MODERATE")]
   
+  # Format QTL data
+  qtls[, Chr := paste0("Chr", Chr)]
+  qtls[, pos := as.numeric(pos)]
+  qtls[, ci.low := as.numeric(ci.low)]
+  qtls[, ci.high := as.numeric(ci.high)]
+  qtls[, lod := as.numeric(lod)]
+  qtls[, qtl_id := paste0(trait, " @ ", Chr, ":", round(pos, 1), " Mb (LOD ", round(lod, 1), ")")]
+  
   # Add Global Position for Manhattan
   mafa[chr_map, on = "Chr", GlobalPos_Mbp := (Mid / 1e6) + i.Offset_Mbp]
   snps[chr_map, on = "Chr", GlobalPos_Mbp := (pos / 1e6) + i.Offset_Mbp]
+  qtls[chr_map, on = "Chr", `:=`(
+    GlobalPos_Mbp     = pos + i.Offset_Mbp,
+    GlobalCI_Low_Mbp  = ci.low + i.Offset_Mbp,
+    GlobalCI_High_Mbp = ci.high + i.Offset_Mbp
+  )]
   
-  return(list(degs = master, mafa = mafa, genes = all_genes, chr_map = chr_map, snps = snps))
+  return(list(degs = master, mafa = mafa, genes = all_genes, chr_map = chr_map, snps = snps, qtls = qtls))
 }
 
 # ── 2. UI ──────────────────────────────────────────────────────────────────
@@ -64,6 +79,8 @@ ui <- fluidPage(
     .btn-rezoom:hover { background-color: #0056b3; color: white; }
     .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
     .btn-help:hover { background-color: #117a8b; color: white; }
+    .btn-qtl { background-color: #6f42c1; color: white; font-weight: bold; }
+    .btn-qtl:hover { background-color: #59359a; color: white; }
     .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.2; }
     #hover_tooltip {
       position: absolute;
@@ -83,14 +100,19 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      div(style = "display: flex; gap: 8px; margin-bottom: 12px;",
+      div(style = "display: flex; gap: 6px; margin-bottom: 12px;",
         actionButton("reset_view", "↺ Reset", class = "btn-rezoom", style = "flex: 1;"),
-        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "width: 38%;")
+        actionButton("show_qtl_table", "📊 QTLs", class = "btn-qtl", style = "font-weight: bold;"),
+        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "font-weight: bold;")
       ),
       selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL),
-      selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome")),
+      selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region")),
       uiOutput("chr_selector_ui"),
+      uiOutput("qtl_selector_ui"),
       uiOutput("locus_window_ui"),
+      checkboxGroupInput("show_cat", "Visible Categories:", 
+                         choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
+                         selected = c("C57_Specific", "SJL_Specific", "Discordant")),
       selectInput("min_score", "Min Peak Score:", 
                   choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
                               "500" = 500, "1,000" = 1000, "2,000" = 2000, 
@@ -119,6 +141,7 @@ server <- function(input, output, session) {
   v <- reactiveValues(
     active_pk   = NULL, 
     active_snp  = NULL, 
+    active_qtl  = d$qtls[1], 
     last_gene   = NULL, 
     current_chr = "Chr1", 
     reset_trigger = 0, 
@@ -143,6 +166,15 @@ server <- function(input, output, session) {
     selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr)
   })
   
+  # Conditionally render QTL selector only when in "QTL Region" view mode
+  output$qtl_selector_ui <- renderUI({
+    req(input$zoom_mode == "QTL Region")
+    sel_val <- if (!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1]
+    selectInput("sel_qtl", "Select F2 Glycemic QTL:", 
+                choices = d$qtls$qtl_id, 
+                selected = sel_val)
+  })
+  
   # Conditionally render discrete locus window selector only when in "Locus Zoom" view mode
   output$locus_window_ui <- renderUI({
     req(input$zoom_mode == "Locus Zoom")
@@ -163,15 +195,43 @@ server <- function(input, output, session) {
     v$user_zoom   <- NULL
     v$reset_trigger <- v$reset_trigger + 1 
     updateSelectizeInput(session, "search_gene", selected = "")
-    updateSelectInput(session, "zoom_mode", choices = c("Genome-Wide", "Chromosome"), selected = "Genome-Wide") 
+    updateSelectInput(session, "zoom_mode", 
+                      choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
+                      selected = "Genome-Wide") 
   })
   
-  observeEvent(input$zoom_mode, { v$user_zoom <- NULL })
+  observeEvent(input$zoom_mode, { 
+    v$user_zoom <- NULL 
+    if (input$zoom_mode == "QTL Region" && !is.null(v$active_qtl)) {
+      v$current_chr <- v$active_qtl$Chr
+      if (is.null(v$active_pk)) {
+        local_pks <- d$mafa[Chr == v$active_qtl$Chr & Mid >= v$active_qtl$ci.low * 1e6 & Mid <= v$active_qtl$ci.high * 1e6]
+        if (nrow(local_pks) > 0) {
+          v$active_pk <- local_pks[which.max(`Peak Score`)]
+        }
+      }
+    }
+  })
   
   observeEvent(input$sel_chr, { 
     v$user_zoom <- NULL
     if (!is.null(input$sel_chr) && nzchar(input$sel_chr)) {
       v$current_chr <- input$sel_chr
+    }
+  })
+
+  # QTL Selection observer
+  observeEvent(input$sel_qtl, {
+    req(input$sel_qtl)
+    q_row <- d$qtls[qtl_id == input$sel_qtl]
+    if (nrow(q_row) > 0) {
+      v$active_qtl   <- q_row[1]
+      v$current_chr  <- q_row$Chr[1]
+      v$user_zoom    <- NULL
+      local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
+      if (nrow(local_pks) > 0) {
+        v$active_pk <- local_pks[which.max(`Peak Score`)]
+      }
     }
   })
 
@@ -190,7 +250,7 @@ server <- function(input, output, session) {
           v$last_gene   <- input$search_gene
           v$current_chr <- gene_row$Chr[1]
           updateSelectInput(session, "zoom_mode", 
-                            choices = c("Genome-Wide", "Chromosome", "Locus Zoom"), 
+                            choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"), 
                             selected = "Locus Zoom")
         }
       }
@@ -203,11 +263,71 @@ server <- function(input, output, session) {
         v$user_zoom     <- NULL
         v$reset_trigger <- v$reset_trigger + 1
         updateSelectInput(session, "zoom_mode", 
-                          choices = c("Genome-Wide", "Chromosome"), 
+                          choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
                           selected = "Genome-Wide")
       }
     }
   }, ignoreInit = TRUE)
+
+  # Interactive QTL Reference Table Modal
+  observeEvent(input$show_qtl_table, {
+    showModal(modalDialog(
+      title = span(strong("Top Glycemic QTLs (F2 Study - Sex Additive Analysis)"), style = "color: #6f42c1;"),
+      div(
+        p("Select a QTL below to jump directly to its confidence interval boundaries on the Manhattan plot:"),
+        div(style = "display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;",
+          div(style = "flex: 1;",
+            selectInput("modal_qtl_select", "Select QTL:", choices = d$qtls$qtl_id, 
+                        selected = if(!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1],
+                        width = "100%")
+          ),
+          actionButton("jump_qtl_btn", "Zoom to QTL", class = "btn-qtl", 
+                       style = "margin-bottom: 15px; height: 38px;")
+        ),
+        hr(),
+        div(style = "max-height: 400px; overflow-y: auto;",
+          tableOutput("qtl_summary_table")
+        )
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = modalButton("Close")
+    ))
+  })
+
+  observeEvent(input$jump_qtl_btn, {
+    req(input$modal_qtl_select)
+    q_row <- d$qtls[qtl_id == input$modal_qtl_select]
+    if (nrow(q_row) > 0) {
+      v$active_qtl   <- q_row[1]
+      v$current_chr  <- q_row$Chr[1]
+      v$user_zoom    <- NULL
+      local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
+      if (nrow(local_pks) > 0) {
+        v$active_pk <- local_pks[which.max(`Peak Score`)]
+      }
+      updateSelectInput(session, "zoom_mode", 
+                        choices = c("Genome-Wide", "Chromosome", "QTL Region", if (!is.null(v$active_pk)) "Locus Zoom"), 
+                        selected = "QTL Region")
+      removeModal()
+    }
+  })
+
+  output$qtl_summary_table <- renderTable({
+    tab <- copy(d$qtls)
+    tab[, `:=`(
+      Trait = trait,
+      Marker = marker,
+      Chr = Chr,
+      `Peak (Mb)` = sprintf("%.2f", pos),
+      `95% CI (Mb)` = paste0(sprintf("%.2f", ci.low), " – ", sprintf("%.2f", ci.high)),
+      LOD = sprintf("%.2f", lod),
+      `BB Effect` = sprintf("%.3f", BB_effect),
+      `BS Effect` = sprintf("%.3f", BS_effect),
+      `SS Effect` = sprintf("%.3f", SS_effect)
+    )]
+    tab[, .(Trait, Marker, Chr, `Peak (Mb)`, `95% CI (Mb)`, LOD, `BB Effect`, `BS Effect`, `SS Effect`)]
+  }, striped = TRUE, hover = TRUE, bordered = TRUE, spacing = "s")
 
   # Interpretation Modal Guide
   observeEvent(input$show_help, {
@@ -215,7 +335,7 @@ server <- function(input, output, session) {
       title = span(strong("MafA Discovery: How to Interpret Panels & Navigate"), style = "color: #17a2b8;"),
       div(
         h4(strong("1. Top Panel: Manhattan Macro View")),
-        p("Displays MafA binding peaks and prioritized coding SNPs along the mouse genome:"),
+        p("Displays MafA binding peaks, prioritized coding SNPs, and F2 glycemic QTL intervals:"),
         tags$ul(
           tags$li(strong("Primary Y-Axis (Left): "), "MafA Peak Score reflecting ChIP/CUT&RUN binding strength."),
           tags$li(strong("Point Shapes: "), "Differentially expressed gene (DEG) direction (▲ UP, ▼ DOWN in diabetes/perturbation)."),
@@ -225,7 +345,8 @@ server <- function(input, output, session) {
                   span("SJL_Specific", style="color:#CC0000; font-weight:bold;"), ", or ",
                   span("Discordant", style="color:#FF8C00; font-weight:bold;"), "."),
           tags$li(strong("Secondary Y-Axis & Diamonds: "), "Coding SNPs between C57BL/6J and SJL/J strains, scaled by evolutionary conservation score (phastCons 0–1). Pink = HIGH impact, Gold = MODERATE impact."),
-          tags$li(strong("Interactivity: "), "Click any peak or SNP point to inspect its locus. Click categories in the legend to toggle visibility.")
+          tags$li(strong("QTL Interval Highlight: "), "Translucent blue shading and vertical dashed line show the F2 glycemic QTL confidence interval (95% CI) and peak marker position."),
+          tags$li(strong("Interactivity: "), "Click any peak or SNP point to inspect its locus. Use 'Visible Categories' to isolate strain-divergent peaks.")
         ),
         hr(),
         h4(strong("2. Bottom Panel: Locus Micro Schematic")),
@@ -236,8 +357,13 @@ server <- function(input, output, session) {
           tags$li(strong("Coding SNPs: "), "Diamonds show exact positions of coding SNPs within exons. Outlined diamonds indicate phastCons ≥ 0.7.")
         ),
         hr(),
-        h4(strong("3. Strain Divergence & Biological Hypothesis")),
-        p("MafA peaks harboring high strain-divergent SNP counts (", code("variant_count"), ") may disrupt transcription factor binding affinity or chromatin accessibility, potentially driving strain-specific gene expression differences between B6 and SJL.")
+        h4(strong("3. Navigation Modes")),
+        tags$ul(
+          tags$li(strong("Genome-Wide: "), "Global linear coordinate view across all 21 mouse chromosomes."),
+          tags$li(strong("Chromosome: "), "Focused view of an individual chromosome with absolute Mbp tick marks."),
+          tags$li(strong("QTL Region: "), "Direct zoom into the 95% confidence interval boundaries (ci.low to ci.high) of an F2 glycemic QTL."),
+          tags$li(strong("Locus Zoom: "), "Fine-scale schematic centered on an active MafA binding peak.")
+        )
       ),
       size = "l",
       easyClose = TRUE,
@@ -246,6 +372,7 @@ server <- function(input, output, session) {
   })
 
   filtered_peaks <- reactive({
+    req(input$show_cat)
     # 1. Filter by score
     pks <- d$mafa[`Peak Score` >= get_min_score()]
     if(nrow(pks) == 0) return(NULL)
@@ -261,7 +388,7 @@ server <- function(input, output, session) {
     res <- res[abs(Mid - actual_deg_start) <= (get_win_kb() * 1000) & !is.na(Category)]
     
     if(nrow(res) == 0) return(NULL)
-    res
+    res[Category %in% input$show_cat]
   })
   
   filtered_snps <- reactive({
@@ -305,7 +432,7 @@ server <- function(input, output, session) {
         v$active_snp  <- NULL
         v$current_chr <- hit_pk$Chr
         updateSelectInput(session, "zoom_mode", 
-                          choices = c("Genome-Wide", "Chromosome", "Locus Zoom"),
+                          choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"),
                           selected = input$zoom_mode)
       } else if (!is.null(snps_df) && nrow(snps_df) > 0) {
         # Check SNP hits
@@ -322,7 +449,7 @@ server <- function(input, output, session) {
             v$active_pk <- pks_chr[nearest_idx]
           }
           updateSelectInput(session, "zoom_mode", 
-                            choices = c("Genome-Wide", "Chromosome", "Locus Zoom"),
+                            choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"),
                             selected = input$zoom_mode)
         }
       }
@@ -348,6 +475,17 @@ server <- function(input, output, session) {
         r <- d$chr_map[d$chr_map$Chr == cur_chr, ]
         c(r$Offset_Mbp, r$Offset_Mbp + r$Length/1e6)
       }
+    } else if(input$zoom_mode == "QTL Region") {
+      req(v$active_qtl)
+      q <- v$active_qtl
+      chr_offset <- d$chr_map[Chr == q$Chr, Offset_Mbp]
+      ci_span <- q$ci.high - q$ci.low
+      pad <- max(0.5, ci_span * 0.03)
+      if (!is.null(v$user_zoom)) {
+        v$user_zoom
+      } else {
+        c(chr_offset + q$ci.low - pad, chr_offset + q$ci.high + pad)
+      }
     } else {
       req(v$active_pk)
       win_mbp <- get_win_kb() / 1000
@@ -370,9 +508,21 @@ server <- function(input, output, session) {
     
     p <- ggplot() +
       geom_rect(data = d$chr_map, aes(xmin=Offset_Mbp, xmax=Offset_Mbp+Length/1e6, ymin=-Inf, ymax=Inf), 
-                fill=rep(c("white", "#f9f9f9"), length.out=21), inherit.aes=FALSE) +
-      geom_point(data=df, aes(x=GlobalPos_Mbp, y=`Peak Score`, fill=Category, shape=Direction, size=variant_count, text=text_label), 
-                 color="black", stroke=0.3, alpha=0.6)
+                fill=rep(c("white", "#f9f9f9"), length.out=21), inherit.aes=FALSE)
+    
+    # Highlight active QTL interval if in QTL Region or matching Chromosome
+    if (!is.null(v$active_qtl)) {
+      q <- v$active_qtl
+      if (input$zoom_mode == "QTL Region" || (input$zoom_mode == "Chromosome" && cur_chr == q$Chr)) {
+        p <- p + 
+          annotate("rect", xmin = q$GlobalCI_Low_Mbp, xmax = q$GlobalCI_High_Mbp, ymin = -Inf, ymax = Inf,
+                   fill = "#007bff", alpha = 0.08) +
+          geom_vline(xintercept = q$GlobalPos_Mbp, color = "#007bff", linetype = "dashed", linewidth = 0.6)
+      }
+    }
+    
+    p <- p + geom_point(data=df, aes(x=GlobalPos_Mbp, y=`Peak Score`, fill=Category, shape=Direction, size=variant_count, text=text_label), 
+                        color="black", stroke=0.3, alpha=0.6)
     
     show_snps <- isTRUE(input$show_snps_main)
     
@@ -424,6 +574,22 @@ server <- function(input, output, session) {
         scale_x_continuous(limits=x_range, breaks=global_breaks, labels=tick_labels, expand=c(0,0)) +
         do.call(scale_y_continuous, y_scale_args) +
         labs(x = paste0(cur_chr, " (Mbp)"))
+    } else if (input$zoom_mode == "QTL Region") {
+      req(v$active_qtl)
+      q <- v$active_qtl
+      chr_offset <- d$chr_map[Chr == q$Chr, Offset_Mbp]
+      local_min <- max(0, x_range[1] - chr_offset)
+      local_max <- min(d$chr_map[Chr == q$Chr, Length / 1e6], x_range[2] - chr_offset)
+      local_breaks <- pretty(c(local_min, local_max), n = 7)
+      local_breaks <- local_breaks[local_breaks >= local_min & local_breaks <= local_max]
+      global_breaks <- local_breaks + chr_offset
+      diff_mbp <- local_max - local_min
+      dec <- if (diff_mbp <= 1) 2 else 1
+      local_labels <- sprintf(paste0("%.", dec, "f"), local_breaks)
+      p <- p + 
+        scale_x_continuous(limits=x_range, breaks=global_breaks, labels=local_labels, expand=c(0,0)) +
+        do.call(scale_y_continuous, y_scale_args) +
+        labs(x = paste0(q$Chr, " (Mbp) — ", q$trait, " QTL [95% CI: ", round(q$ci.low, 1), "–", round(q$ci.high, 1), " Mb]"))
     } else {
       req(v$active_pk)
       chr_offset <- d$chr_map[Chr == v$active_pk$Chr, Offset_Mbp]
@@ -469,6 +635,9 @@ server <- function(input, output, session) {
     
     plot_df <- merge(window_genes, d$degs[, .(GeneId, Category)], by="GeneId", all.x=TRUE)
     plot_df[is.na(Category), Category := "Non-DE"]
+    if (!is.null(input$show_cat)) {
+      plot_df[!Category %in% c(input$show_cat, "Non-DE"), Category := "Non-DE"]
+    }
     plot_df <- plot_df[Category != "Non-DE" | Type == "protein_coding"]
     if(nrow(plot_df) == 0) return(NULL)
     
@@ -554,10 +723,12 @@ server <- function(input, output, session) {
   })
   
   output$metadata_panel <- renderUI({
-    req(v$active_pk)
-    pk <- v$active_pk
+    req(v$active_pk); pk <- v$active_pk
     win_size <- get_win_kb() * 1000
     local_degs <- d$degs[Chr == pk$Chr & abs(Start - pk$Mid) <= win_size]
+    if (!is.null(input$show_cat)) {
+      local_degs <- local_degs[Category %in% input$show_cat]
+    }
     
     selected_impacts <- if (is.null(input$snp_impact)) c("HIGH", "MODERATE") else input$snp_impact
     min_pc <- if (is.null(input$min_phastcons)) 0 else input$min_phastcons
@@ -567,6 +738,13 @@ server <- function(input, output, session) {
     
     wellPanel(class = "well-meta",
               div(class = "meta-title", paste("Peak", sub(".*peak_", "", pk$PeakID))),
+              if (!is.null(v$active_qtl) && v$active_qtl$Chr == pk$Chr && 
+                  pk$Mid >= v$active_qtl$ci.low * 1e6 && pk$Mid <= v$active_qtl$ci.high * 1e6) {
+                div(style = "background: #e8f4fd; border: 1px solid #b8daff; border-radius: 4px; padding: 6px 8px; margin-bottom: 8px; font-size: 0.86em; color: #004085;",
+                    strong("Within F2 QTL: "), br(),
+                    paste0(v$active_qtl$trait, " (LOD ", round(v$active_qtl$lod, 1), ")")
+                )
+              },
               p(strong("Location: "), round(pk$Mid/1e6, 3), " Mbp"),
               p(strong("SNPs: "), pk$variant_count),
               hr(),
