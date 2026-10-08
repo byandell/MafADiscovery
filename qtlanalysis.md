@@ -193,3 +193,37 @@ In `SHINY_APP/app.R`:
    - Added quick-reference table modal (`input$show_qtl_table`) displaying all 11 QTL loci with quick-zoom action.
 6. **Step 6: Update Documentation & Verification** (Completed):
    - Updated `DEVELOPER.md` architecture and reactive lifecycle.
+
+---
+
+## 6. Results of Implementation
+
+All features requested in Mark's notes have been implemented in [`SHINY_APP/app.R`](file:///Users/brianyandell/Documents/GitHub/MafADiscovery/SHINY_APP/app.R) and documented in [`DEVELOPER.md`](file:///Users/brianyandell/Documents/GitHub/MafADiscovery/DEVELOPER.md).
+
+### 6.1 Implemented Features Summary
+
+| Feature | Implementation Details | User Impact |
+| :--- | :--- | :--- |
+| **F2 QTL Data Ingestion** | In `prepare_data()`, loads [`Top_glycemic_QTL_for_sex_additive_analysis.csv`](file:///Users/brianyandell/Documents/GitHub/MafADiscovery/SHINY_APP/Top_glycemic_QTL_for_sex_additive_analysis.csv). Pre-calculates `GlobalPos_Mbp`, `GlobalCI_Low_Mbp`, `GlobalCI_High_Mbp` using Ensembl GRCm39 `chr_map`. | All 11 glycemic QTL loci across chromosomes 2, 3, 7, 11, 13, 16 are available at session start with zero Bioconductor runtime dependencies. |
+| **"QTL Region" View Mode** | Added `"QTL Region"` to `selectInput("zoom_mode", ...)` alongside `Genome-Wide`, `Chromosome`, and dynamic `Locus Zoom`. | Provides dedicated, one-click access to QTL intervals without requiring manual box-zooming. |
+| **Automated CI Bounding** | Automatically sets Manhattan x-axis boundaries to `[ci.low, ci.high]` (in Mbp) + 3% margin. Local coordinate ticks and labels dynamically compute round Mbp breaks. | Eliminates manual navigation: selecting a Chr16 QTL immediately frames 50.87–96.88 Mb; selecting a Chr13 QTL frames 3.61–47.86 Mb. |
+| **Visual Interval Cues** | Translucent blue rectangular banner (`geom_rect`) across `[ci.low, ci.high]` and blue dashed line (`geom_vline`) at the QTL peak position. | Active QTL interval is instantly recognizable on both *QTL Region* and *Chromosome* views. |
+| **Interactive QTL Reference Table** | Added **📊 QTLs** action button in sidebar header. Opens a modal displaying all 11 QTLs with markers, LOD scores, CIs, and additive effect estimates (`BB`, `BS`, `SS`). | Includes a **Zoom to QTL** shortcut button that immediately switches to that QTL and updates the plots. |
+| **Default Category Filter ("Shared" Deselected)** | Re-introduced `checkboxGroupInput("show_cat", "Visible Categories:", ...)` with default `selected = c("C57_Specific", "SJL_Specific", "Discordant")`. | Strain-divergent peaks and variants stand out immediately on launch without being drowned out by thousands of shared non-divergent points. "Shared" can be re-enabled with one click. |
+| **Peak-to-QTL Metadata Badge** | When a MafA peak resides within the active QTL confidence interval, the metadata panel renders a prominent highlight card (`Within F2 QTL: [trait] (LOD [lod])`). | Directly connects molecular binding peaks to organismal glycemic traits. |
+
+---
+
+### 6.2 Target Workflow Walkthroughs
+
+#### Walkthrough A: Exploring the Chr16 Glycemic QTL
+1. Select **View Mode: QTL Region** $\rightarrow$ choose `AUC_of_AUCs @ Chr16:85.4 Mb (LOD 5.0)` (or click **📊 QTLs** $\rightarrow$ select Chr16 and click **Zoom to QTL**).
+2. The Manhattan plot immediately frames **~50 to 97 Mbp** on Chromosome 16.
+3. Because "Shared" is deselected by default, strain-divergent peaks and high-impact coding SNPs stand out clearly.
+4. Clicking any peak within the interval automatically renders the high-resolution locus schematic (± Locus Window) and highlights proximal DEGs upregulated in SJL backcrossed mice.
+
+#### Walkthrough B: Jumping Directly to the Chr13 QTL
+1. From the Chr16 view, open the QTL selector and choose `Slope_AUCs @ Chr13:3.6 Mb (LOD 3.9)` or `AUC_8wk_minus_AUC_4wk @ Chr13:3.6 Mb (LOD 4.4)`.
+2. The view instantly jumps from Chr16 to Chromosome 13, framing **3.61 to 47.86 Mbp**.
+3. Coding variants (orange diamonds for MODERATE, purple for HIGH) and MafA peaks within this interval are immediately accessible for clicking and schematic exploration, requiring zero manual coordinate typing or slider dragging.
+
