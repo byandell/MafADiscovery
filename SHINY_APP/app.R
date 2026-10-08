@@ -73,15 +73,17 @@ prepare_data <- function() {
 # ── 2. UI ──────────────────────────────────────────────────────────────────
 ui <- fluidPage(
   tags$head(tags$style(HTML("
-    .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 12px; margin-top: 15px; }
-    .meta-title { font-weight: bold; font-size: 1.1em; border-bottom: 1px solid #ddd; margin-bottom: 8px; color: #856404; }
+    .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 14px; margin-top: 15px; border-radius: 6px; }
+    .meta-title { font-weight: bold; font-size: 1.15em; color: #856404; }
     .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; }
     .btn-rezoom:hover { background-color: #0056b3; color: white; }
     .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
     .btn-help:hover { background-color: #117a8b; color: white; }
     .btn-qtl { background-color: #6f42c1; color: white; font-weight: bold; }
     .btn-qtl:hover { background-color: #59359a; color: white; }
-    .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.2; }
+    .btn-devguide { background-color: #495057; color: white; font-weight: bold; }
+    .btn-devguide:hover { background-color: #343a40; color: white; }
+    .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.25; }
     #hover_tooltip {
       position: absolute;
       pointer-events: none;
@@ -100,10 +102,9 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      div(style = "display: flex; gap: 6px; margin-bottom: 12px;",
-        actionButton("reset_view", "↺ Reset", class = "btn-rezoom", style = "flex: 1;"),
-        actionButton("show_qtl_table", "📊 QTLs", class = "btn-qtl", style = "font-weight: bold;"),
-        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "font-weight: bold;")
+      div(style = "display: flex; gap: 8px; margin-bottom: 12px;",
+        actionButton("show_qtl_table", "📊 QTLs", class = "btn-qtl", style = "flex: 1; font-weight: bold;"),
+        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "flex: 1; font-weight: bold;")
       ),
       selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL),
       selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region")),
@@ -124,13 +125,19 @@ ui <- fluidPage(
                          choices = c("HIGH", "MODERATE"),
                          selected = c("HIGH", "MODERATE")),
       sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05),
-      uiOutput("metadata_panel")
+      hr(),
+      div(style = "display: flex; gap: 8px; margin-top: 10px;",
+        actionButton("reset_view", "↺ Reset", class = "btn-rezoom", style = "flex: 1;"),
+        actionButton("show_dev_guide", "📖 Dev Guide", class = "btn-devguide", style = "flex: 1;")
+      )
     ),
     mainPanel(
       width = 9,
       plotlyOutput("manhattan", height = "500px"),
       hr(),
-      plotOutput("schematic", height = "350px")
+      plotOutput("schematic", height = "350px"),
+      hr(),
+      uiOutput("metadata_panel")
     )
   )
 )
@@ -149,7 +156,7 @@ server <- function(input, output, session) {
   )
   cat_colors <- c("Shared"="#228B22", "C57_Specific"="#0000CC", "SJL_Specific"="#CC0000", "Discordant"="#FF8C00", "Non-DE"="#D3D3D3")
   
-  updateSelectizeInput(session, "search_gene", choices = sort(unique(d$genes$Symbol)), server = TRUE)
+  updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), server = TRUE)
   
   # Discrete input accessors with fallbacks
   get_win_kb <- reactive({
@@ -186,18 +193,35 @@ server <- function(input, output, session) {
                 selected = cur_val)
   })
   
-  # Reset to Genome-Wide
+  # Reset everything to default initial state
   observeEvent(input$reset_view, { 
     v$active_pk   <- NULL
     v$active_snp  <- NULL
     v$last_gene   <- NULL
     v$current_chr <- "Chr1"
+    v$active_qtl  <- d$qtls[1]
     v$user_zoom   <- NULL
     v$reset_trigger <- v$reset_trigger + 1 
-    updateSelectizeInput(session, "search_gene", selected = "")
+    
+    # Completely clear gene search selectize
+    updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
+    
+    # Reset View Mode to Genome-Wide
     updateSelectInput(session, "zoom_mode", 
                       choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
-                      selected = "Genome-Wide") 
+                      selected = "Genome-Wide")
+    
+    # Reset Category Checkboxes (Shared deselected)
+    updateCheckboxGroupInput(session, "show_cat", 
+                             selected = c("C57_Specific", "SJL_Specific", "Discordant"))
+    
+    # Reset Min Peak Score
+    updateSelectInput(session, "min_score", selected = "0")
+    
+    # Reset Coding SNP controls
+    updateCheckboxInput(session, "show_snps_main", value = TRUE)
+    updateCheckboxGroupInput(session, "snp_impact", selected = c("HIGH", "MODERATE"))
+    updateSliderInput(session, "min_phastcons", value = 0.7)
   })
   
   observeEvent(input$zoom_mode, { 
@@ -364,6 +388,28 @@ server <- function(input, output, session) {
           tags$li(strong("QTL Region: "), "Direct zoom into the 95% confidence interval boundaries (ci.low to ci.high) of an F2 glycemic QTL."),
           tags$li(strong("Locus Zoom: "), "Fine-scale schematic centered on an active MafA binding peak.")
         )
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = modalButton("Close")
+    ))
+  })
+
+  # Developer Guide Modal
+  observeEvent(input$show_dev_guide, {
+    showModal(modalDialog(
+      title = span(strong("MafA Discovery: Developer Guide & Architecture"), style = "color: #343a40;"),
+      div(
+        p("This explorer is documented across four core architectural modules maintained in the repository and published via ", code("docs/"), ":"),
+        tags$ul(style = "line-height: 1.8;",
+          tags$li(strong("1. Legacy Prototypes: "), code("shinyapp.md"), " — Technical specifications for Version 1 and Version 2 standalone prototype scripts in ", code("SHINY_APP_LEGACY/"), "."),
+          tags$li(strong("2. Publishing & Deployment: "), code("publishapp.md"), " — Shinylive (webR) export workflow, GitHub Actions CI automation, and static GitHub Pages hosting."),
+          tags$li(strong("3. App Redesign & Reactivity: "), code("redesign.md"), " — Reactive lifecycle, conditional selectors, coordinate scale auto-ticks, and panel coordination."),
+          tags$li(strong("4. F2 Glycemic QTL Integration: "), code("qtlanalysis.md"), " — Ingestion of F2 study loci, 95% confidence interval auto-zooming, and strain-divergence biological mechanisms.")
+        ),
+        hr(),
+        p(strong("Developer Documentation: "), 
+          "The complete unified developer guide is compiled in ", code("DEVELOPER.md"), " and ", code("docs/DEVELOPER.md"), ".")
       ),
       size = "l",
       easyClose = TRUE,
@@ -737,67 +783,73 @@ server <- function(input, output, session) {
                            impact_simple %in% selected_impacts & phastCons_score >= min_pc]
     
     wellPanel(class = "well-meta",
-              div(class = "meta-title", paste("Peak", sub(".*peak_", "", pk$PeakID))),
-              if (!is.null(v$active_qtl) && v$active_qtl$Chr == pk$Chr && 
-                  pk$Mid >= v$active_qtl$ci.low * 1e6 && pk$Mid <= v$active_qtl$ci.high * 1e6) {
-                div(style = "background: #e8f4fd; border: 1px solid #b8daff; border-radius: 4px; padding: 6px 8px; margin-bottom: 8px; font-size: 0.86em; color: #004085;",
-                    strong("Within F2 QTL: "), br(),
-                    paste0(v$active_qtl$trait, " (LOD ", round(v$active_qtl$lod, 1), ")")
-                )
-              },
-              p(strong("Location: "), round(pk$Mid/1e6, 3), " Mbp"),
-              p(strong("SNPs: "), pk$variant_count),
-              hr(),
-              p(strong("Locus DEGs & log2FC:")),
-              if(nrow(local_degs) > 0) {
-                tagList(lapply(1:nrow(local_degs), function(i) {
-                  row <- local_degs[i]
-                  fc_text <- if(row$Category %in% c("Shared", "Discordant")) {
-                    paste0(" (C57:", round(row$log2FC_C57, 2), ", SJL:", round(row$log2FC_SJL, 2), ")")
-                  } else if(row$Category == "C57_Specific") {
-                    paste0(" (C57:", round(row$log2FC_C57, 2), ")")
-                  } else {
-                    paste0(" (SJL:", round(row$log2FC_SJL, 2), ")")
-                  }
-                  fc_text <- gsub("NA", "−", fc_text)
-                  div(class="deg-item", style=paste0("color:", cat_colors[row$Category]), paste0("• ", row$Symbol, fc_text))
-                }))
-              } else { p("No DEGs in window.", style="font-style:italic") },
-              hr(),
-              p(strong("Coding SNPs in Locus:")),
-              if (nrow(local_snps) > 0) {
-                genes_with_snps <- unique(local_snps$gene_symbol_1[local_snps$gene_symbol_1 != ""])
-                tagList(lapply(genes_with_snps, function(g_sym) {
-                  g_snps <- local_snps[gene_symbol_1 == g_sym]
-                  n_high <- sum(g_snps$impact_simple == "HIGH")
-                  n_mod  <- sum(g_snps$impact_simple == "MODERATE")
-                  max_pc <- max(g_snps$phastCons_score, na.rm = TRUE)
-                  
-                  counts_str <- c()
-                  if (n_high > 0) counts_str <- c(counts_str, paste0(n_high, " HIGH"))
-                  if (n_mod > 0)  counts_str <- c(counts_str, paste0(n_mod, " MODERATE"))
-                  
-                  gene_color <- if (n_high > 0) "#CC00CC" else "#DAA520"
-                  
-                  hi_snps <- g_snps[phastCons_score >= 0.7]
-                  
-                  div(style = "margin-bottom: 6px;",
-                    div(class = "deg-item", style = paste0("color:", gene_color),
-                        paste0("• ", g_sym, " (", paste(counts_str, collapse = ", "), " | max pCons: ", sprintf("%.2f", max_pc), ")")
-                    ),
-                    if (nrow(hi_snps) > 0) {
-                      tagList(lapply(1:nrow(hi_snps), function(j) {
-                        s <- hi_snps[j]
-                        csq_clean <- sub(";.*", "", s$csq)
-                        aa_clean  <- sub(";.*", "", s$aa_change)
-                        div(style = "font-size: 0.82em; font-family: monospace; color: #444; margin-left: 10px;",
-                            paste0("★ pos:", s$pos, " | ", csq_clean, " | aa:", aa_clean, " | pCons:", sprintf("%.2f", s$phastCons_score))
-                        )
-                      }))
-                    }
-                  )
-                }))
-              } else { p("No coding SNPs in window.", style="font-style:italic") }
+      div(style = "display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #e0c868; padding-bottom: 10px; margin-bottom: 14px;",
+        div(class = "meta-title", style = "margin-bottom: 0;",
+            paste("Detailed Peak Information:", sub(".*peak_", "", pk$PeakID))),
+        div(style = "display: flex; gap: 18px; align-items: center;",
+          span(strong("Location: "), sprintf("%.3f Mbp (%s)", pk$Mid/1e6, pk$Chr)),
+          span(strong("Strain Divergent SNPs: "), pk$variant_count),
+          if (!is.null(v$active_qtl) && v$active_qtl$Chr == pk$Chr && 
+              pk$Mid >= v$active_qtl$ci.low * 1e6 && pk$Mid <= v$active_qtl$ci.high * 1e6) {
+            span(style = "background-color: #6f42c1; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.88em;",
+                 paste("Within F2 QTL:", v$active_qtl$trait, paste0("(LOD ", round(v$active_qtl$lod, 1), ")")))
+          }
+        )
+      ),
+      div(style = "display: flex; gap: 25px;",
+        div(style = "flex: 1; border-right: 1px solid #eee; padding-right: 20px;",
+          p(strong("Locus Differentially Expressed Genes (DEGs & log2FC):"), style = "margin-bottom: 8px; color: #333;"),
+          if(nrow(local_degs) > 0) {
+            tagList(lapply(1:nrow(local_degs), function(i) {
+              row <- local_degs[i]
+              fc_text <- if(row$Category %in% c("Shared", "Discordant")) {
+                paste0(" (C57:", round(row$log2FC_C57, 2), ", SJL:", round(row$log2FC_SJL, 2), ")")
+              } else if(row$Category == "C57_Specific") {
+                paste0(" (C57:", round(row$log2FC_C57, 2), ")")
+              } else {
+                paste0(" (SJL:", round(row$log2FC_SJL, 2), ")")
+              }
+              fc_text <- gsub("NA", "−", fc_text)
+              div(class="deg-item", style=paste0("color:", cat_colors[row$Category]), paste0("• ", row$Symbol, fc_text))
+            }))
+          } else { p("No DEGs in window.", style="font-style:italic; color: #777;") }
+        ),
+        div(style = "flex: 1;",
+          p(strong("Coding SNPs in Locus:"), style = "margin-bottom: 8px; color: #333;"),
+          if (nrow(local_snps) > 0) {
+            genes_with_snps <- unique(local_snps$gene_symbol_1[local_snps$gene_symbol_1 != ""])
+            tagList(lapply(genes_with_snps, function(g_sym) {
+              g_snps <- local_snps[gene_symbol_1 == g_sym]
+              n_high <- sum(g_snps$impact_simple == "HIGH")
+              n_mod  <- sum(g_snps$impact_simple == "MODERATE")
+              max_pc <- max(g_snps$phastCons_score, na.rm = TRUE)
+              
+              counts_str <- c()
+              if (n_high > 0) counts_str <- c(counts_str, paste0(n_high, " HIGH"))
+              if (n_mod > 0)  counts_str <- c(counts_str, paste0(n_mod, " MODERATE"))
+              
+              gene_color <- if (n_high > 0) "#CC00CC" else "#DAA520"
+              hi_snps <- g_snps[phastCons_score >= 0.7]
+              
+              div(style = "margin-bottom: 6px;",
+                div(class = "deg-item", style = paste0("color:", gene_color),
+                    paste0("• ", g_sym, " (", paste(counts_str, collapse = ", "), " | max pCons: ", sprintf("%.2f", max_pc), ")")
+                ),
+                if (nrow(hi_snps) > 0) {
+                  tagList(lapply(1:nrow(hi_snps), function(j) {
+                    s <- hi_snps[j]
+                    csq_clean <- sub(";.*", "", s$csq)
+                    aa_clean  <- sub(";.*", "", s$aa_change)
+                    div(style = "font-size: 0.82em; font-family: monospace; color: #444; margin-left: 10px;",
+                        paste0("★ pos:", s$pos, " | ", csq_clean, " | aa:", aa_clean, " | pCons:", sprintf("%.2f", s$phastCons_score))
+                    )
+                  }))
+                }
+              )
+            }))
+          } else { p("No coding SNPs in window.", style="font-style:italic; color: #777;") }
+        )
+      )
     )
   })
 }

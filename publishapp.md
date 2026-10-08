@@ -88,9 +88,10 @@ The app (`MafA_Discovery_App.R`) relies on 5 libraries:
 Rather than committing and uploading heavy precompiled Shinylive/webR assets (`docs/shinylive/` ~60MB) directly into Git history, the build and deployment is handled on the GitHub Pages end via GitHub Actions:
 
 1. **Workflow Automation (`.github/workflows/deploy-shinylive.yaml`)**:
-   - Triggers on push to `main` (when `SHINY_APP/**` or the workflow changes) or manual `workflow_dispatch`.
+   - Triggers on push to `main` (when `SHINY_APP/**`, `*.md`, or the workflow changes) or manual `workflow_dispatch`.
    - Sets up Ubuntu runner with R, installs standard CRAN dependencies (`shiny`, `shinylive`, `data.table`, `ggplot2`, `plotly`).
    - Runs `shinylive::export(appdir = "SHINY_APP", destdir = "site")` in CI.
+   - Copies root developer guides (`DEVELOPER.md`, `shinyapp.md`, `publishapp.md`, `redesign.md`, `qtlanalysis.md`) into `site/` for public hosting alongside the app.
    - Deploys the static bundle as a Pages artifact via `actions/deploy-pages@v4`.
 2. **Repository Cleanliness**:
    - `/docs/` and `/site/` are added to `.gitignore`.

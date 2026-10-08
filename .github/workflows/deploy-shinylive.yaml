@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
     paths:
       - 'SHINY_APP/**'
+      - '*.md'
       - '.github/workflows/deploy-shinylive.yaml'
   workflow_dispatch:
 
@@ -38,6 +39,11 @@ jobs:
         run: |
           shinylive::export(appdir = "SHINY_APP", destdir = "site")
         shell: Rscript {0}
+
+      - name: Copy documentation into site
+        run: |
+          cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/ 2>/dev/null || cp *.md site/ || true
+        shell: bash
 
       - name: Disable Jekyll for GitHub Pages
         run: touch site/.nojekyll

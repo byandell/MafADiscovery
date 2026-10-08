@@ -103,6 +103,7 @@ State is managed via `reactiveValues` in `v`:
 - **Category Filtering**: Visible categories default to `C57_Specific`, `SJL_Specific`, and `Discordant` (with `Shared` deselected by default) to immediately highlight strain-divergent variation.
 - **Discrete Thresholds**: Min Peak Score uses discrete selections (`All (0), 100, 200, 500, 1000, 2000, 5000`) for predictable filtering.
 - **Interpretation Guide**: An in-app modal (`input$show_help`) provides biological background, macro/micro panel coordination guidance, QTL navigation tips, and interactive features.
+- **Developer Guide & Reset Repositioning**: The `Reset` and `Dev Guide` buttons are positioned below the `Min phastCons Score:` slider. `Reset` performs a complete state purge (clearing gene search, resetting categories, filters, coordinates, and view modes).
 
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 
@@ -122,12 +123,31 @@ When an active peak is selected (`v$active_pk`):
 - Directional arrow segments (`geom_segment(..., arrow = ...)`) indicate gene transcription direction.
 - Coding variants are mapped to their respective gene models and rendered with distinct symbols and impact colors (`#CC00CC` for HIGH, `#DAA520` for MODERATE).
 
-### Metadata Summary Panel
+### Detailed Peak Information Card
 
-Renders HTML cards via `shiny::renderUI()` summarizing:
-- Active peak coordinates, length, and variant count.
-- Local DEGs with individual strain log2 fold-changes.
-- Local coding variants with gene symbols, consequence annotations, and `phastCons` conservation scores.
+Rendered below the Locus Schematic on the main panel (width = 9) via `shiny::renderUI()`, utilizing a wide two-column layout:
+- **Header**: Active peak ID, Mbp coordinate on chromosome, variant count, and F2 QTL association badge.
+- **Left Column**: Local DEGs with individual strain log2 fold-changes and direction.
+- **Right Column**: Local coding variants grouped by gene, summarizing HIGH/MODERATE counts, consequence annotations, and `phastCons` scores.
+
+---
+
+## Modular Architectural Documentation
+
+The repository maintains four specialized architectural modules published via `docs/`:
+
+1. **[`shinyapp.md`](shinyapp.md) — Legacy Standalone Prototypes**:
+   - Comprehensive technical specifications and lineage for Version 1 (`MafA_Discovery_App.R`) and Version 2 (`MafA_Discovery_App_v2.R`).
+   - Documents the original Bioconductor `GenomicRanges` implementation and data requirements.
+2. **[`publishapp.md`](publishapp.md) — Publishing & Deployment**:
+   - Architecture for static WebAssembly distribution via Shinylive (webR).
+   - Automated GitHub Actions deployment (`deploy-shinylive.yaml`) and GitHub Pages hosting configuration.
+3. **[`redesign.md`](redesign.md) — UI Redesign & Reactive Lifecycle**:
+   - Dynamic view mode transitions (`Genome-Wide`, `Chromosome`, `QTL Region`, `Locus Zoom`).
+   - Conditional control rendering, coordinate auto-scaling, and state persistence rules.
+4. **[`qtlanalysis.md`](qtlanalysis.md) — F2 Glycemic QTL Integration**:
+   - Ingestion of F2 study glycemic loci (`Top_glycemic_QTL_for_sex_additive_analysis.csv`).
+   - Confidence interval auto-bounding, visual interval banners, and interactive QTL reference table.
 
 ---
 
@@ -136,9 +156,10 @@ Renders HTML cards via `shiny::renderUI()` summarizing:
 The app is deployed to GitHub Pages as a static WebAssembly bundle:
 
 1. **Workflow (`.github/workflows/deploy-shinylive.yaml`)**:
-   - Triggers on push to `main` / `master` when files in `SHINY_APP/**` or the workflow itself change.
+   - Triggers on push to `main` / `master` when files in `SHINY_APP/**`, root markdown guides (`*.md`), or the workflow itself change.
    - Sets up R on Ubuntu, installs `shiny`, `shinylive`, `data.table`, `ggplot2`, and `plotly`.
    - Executes `shinylive::export(appdir = "SHINY_APP", destdir = "site")`.
+   - Copies root documentation assets (`DEVELOPER.md`, `shinyapp.md`, `publishapp.md`, `redesign.md`, `qtlanalysis.md`) into `site/` for public hosting.
    - Uploads `site/` and deploys to GitHub Pages via `actions/deploy-pages@v4`.
 2. **Local Static Verification**:
    - To test the static build locally with WebAssembly:

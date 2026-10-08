@@ -27,11 +27,20 @@
 * Reactive hiding and showing of side panel would simplify presentation
 (see ideas above).
 
+### Further Improvements
+
+* Organize `{shinyapp,publishapp,redesign,qtlanalysis}.md` as a `Developer Guide` to be published via `docs/`.
+* Fix `Reset` on app to reset everything, including selected gene.
+* Move `Reset` and `Developer Guide` (new)buttons to below "Min phastCons Score:" slider.
+* Detailed "Peak" information now on sidebar should go below last figure on main panel.
+
 ---
 
 ## Implementation Plan: MafA Discovery Shiny App Redesign
 
-This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyandell/Documents/GitHub/MafADiscovery/redesign.md) to streamline UI reactivity, simplify navigation, eliminate redundant controls, and clarify multi-panel interpretation.
+This plan addresses all items outlined in `Prompts` section of
+[`redesign.md`](redesign.md#prompts)
+to streamline UI reactivity, simplify navigation, eliminate redundant controls, and clarify multi-panel interpretation.
 
 ### 1. Architectural Summary & Objectives
 
@@ -53,7 +62,7 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 2.1 Conditional Chromosome Selector
 
-- Wrap the chromosome selector in a conditional UI or render conditionally:
+* Wrap the chromosome selector in a conditional UI or render conditionally:
 
   ```r
   output$chr_selector_ui <- renderUI({
@@ -62,21 +71,22 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
   })
   ```
 
-- Result: Chromosome selector is automatically hidden in *Genome-Wide* and *Locus Zoom* modes.
+* Result: Chromosome selector is automatically hidden in *Genome-Wide* and *Locus Zoom* modes.
 
 #### 2.2 Dynamic "View Mode" Lifecycle
 
-- Initial state:
+* Initial state:
 
   ```r
   zoom_choices <- c("Genome-Wide", "Chromosome")
   ```
 
-- When a gene symbol is selected (`input$search_gene != ""`):
+* When a gene symbol is selected (`input$search_gene != ""`):
   * Identify target gene and closest MafA binding peak.
   * Set `v$active_pk` and `v$last_gene <- input$search_gene`.
   * Update `v$current_chr <- gene_row$Chr[1]`.
   * Expand choices: `updateSelectInput(session, "zoom_mode", choices = c("Genome-Wide", "Chromosome", "Locus Zoom"), selected = "Locus Zoom")`.
+
 * When `input$search_gene` is blanked out / deselected:
   * Revert to whole genome view (`selected = "Genome-Wide"`).
   * Remove `"Locus Zoom"` from `zoom_mode` choices (`choices = c("Genome-Wide", "Chromosome")`).
@@ -89,7 +99,7 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 2.3 Seamless Chromosome $\leftrightarrow$ Locus Zoom Linking
 
-- When a gene or peak is selected on chromosome $K$:
+* When a gene or peak is selected on chromosome $K$:
   * Automatically update the chromosome tracking value (`v$current_chr <- pk$Chr`).
   * If the user changes `View Mode` to `"Chromosome"`, it automatically centers on chromosome $K$ rather than defaulting to `Chr1`.
 
@@ -99,7 +109,7 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 3.1 Discrete Locus Window (`win_kb`)
 
-- Conditionally render only when `input$zoom_mode == "Locus Zoom"`:
+* Conditionally render only when `input$zoom_mode == "Locus Zoom"`:
 
   ```r
   output$locus_window_ui <- renderUI({
@@ -114,7 +124,7 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 3.2 Discrete Min Peak Score (`min_score`)
 
-- Replace the continuous 0–10,000 slider with discrete thresholds:
+* Replace the continuous 0–10,000 slider with discrete thresholds:
 
   ```r
   selectInput("min_score", "Min Peak Score:",
@@ -126,7 +136,8 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 3.3 Elimination of Redundant "Visible Categories"
 
-- Remove `checkboxGroupInput("show_cat", ...)` from the sidebar.
+* Remove `checkboxGroupInput("show_cat", ...)` from the sidebar.
+
 * Users can click any category in the Plotly legend to hide/show that trace, or double-click to isolate it.
 * In `schematic` rendering, include all local DEGs color-coded by category.
 
@@ -136,7 +147,8 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
 
 #### 4.1 Top Panel Coordinate Ticks in Locus Zoom
 
-- Currently, the top panel in Locus Zoom uses whole-genome midpoint breaks, resulting in no tick marks within the 1 Mb window.
+* Currently, the top panel in Locus Zoom uses whole-genome midpoint breaks, resulting in no tick marks within the 1 Mb window.
+
 * Fix:
 
   ```r
@@ -152,11 +164,12 @@ This plan addresses all items outlined in [`redesign.md`](file:///Users/brianyan
     labs(x = paste(v$active_pk$Chr, "(Mbp)"))
   ```
 
-- *Alternative Consideration*: Option to keep the top panel showing the **entire chromosome** with the active peak highlighted by a gold diamond, while the bottom panel shows the zoomed locus schematic. (We can discuss this preference with the user).
+* *Alternative Consideration*: Option to keep the top panel showing the **entire chromosome** with the active peak highlighted by a gold diamond, while the bottom panel shows the zoomed locus schematic. (We can discuss this preference with the user).
 
 #### 4.2 In-App Interpretation Guide
 
-- Add an info button / modal: `actionLink("show_help", "ℹ️ How to interpret panels")` in the header or sidebar.
+* Add an info button / modal: `actionLink("show_help", "ℹ️ How to interpret panels")` in the header or sidebar.
+
 * Modal content clarifies:
   1. **Top Panel (Manhattan Plot)**: Macro view showing MafA peak scores (ChIP/CUT&RUN intensity) on left Y-axis and coding SNP conservation (`phastCons`) on right Y-axis.
   2. **Bottom Panel (Locus Schematic)**: Micro view (`± win_kb`) showing gene bodies, transcription direction arrows (TSS), and exact positions of coding SNPs relative to the MafA binding peak.
@@ -205,3 +218,106 @@ flowchart TD
    * *Option B (Dual Scale)*: Keep top panel showing the entire chromosome (so users see the whole chromosome context), with the active peak highlighted, while the bottom panel shows the zoomed locus.
 2. **Discrete Values**:
    * Confirm preferred steps for `Locus Window` (`20, 50, 100, 200, 500, 1000, 2000` kb) and `Min Peak Score` (`0, 100, 200, 500, 1000, 2000, 5000`).
+
+---
+
+## 7. Implementation of Further Improvements
+
+This section documents the technical realization of the items outlined in [Further Improvements](#further-improvements).
+
+### Step 7: Modular Developer Guide Architecture & Publication via `docs/`
+
+To provide clear, discoverable documentation for collaborators and developers, the project's documentation was organized into four modular architecture documents linked through a master `DEVELOPER.md` guide:
+
+1. **Modular Guide Structure**:
+   * [`DEVELOPER.md`](DEVELOPER.md) / [`docs/DEVELOPER.md`](docs/DEVELOPER.md): Master developer guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.
+   * [`shinyapp.md`](shinyapp.md) / [`docs/shinyapp.md`](docs/shinyapp.md): Specifications and lineage for legacy prototypes (Version 1 and Version 2).
+   * [`publishapp.md`](publishapp.md) / [`docs/publishapp.md`](docs/publishapp.md): Shinylive (webR) static WebAssembly deployment architecture and GitHub Actions configuration.
+   * [`redesign.md`](redesign.md) / [`docs/redesign.md`](docs/redesign.md): UI modernization, reactive lifecycle, discrete filters, and panel coordination (this document).
+   * [`qtlanalysis.md`](qtlanalysis.md) / [`docs/qtlanalysis.md`](docs/qtlanalysis.md): F2 glycemic QTL integration, automated confidence interval bounding, and interactive QTL reference table.
+
+2. **Web Distribution via `site/` and CI Sync**:
+   * Root documentation modules are automatically copied into the exported Shinylive distribution bundle (`site/`) during CI deployment.
+   * Updated [`.github/workflows/deploy-shinylive.yaml`](.github/workflows/deploy-shinylive.yaml) to trigger on changes to root markdown guides (`*.md`) and copy all documentation assets (`cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/`) into the published bundle for GitHub Pages hosting.
+
+---
+
+### Step 8: Comprehensive View & State Reset Overhaul
+
+Previously, the reset button did not completely clear the selected gene symbol in `search_gene`, which could cause state desynchronization between the selectize input and the Manhattan view.
+
+**Implementation in [`SHINY_APP/app.R`](SHINY_APP/app.R)**:
+
+The `observeEvent(input$reset_view, ...)` observer was refactored into a complete state purge:
+
+```r
+observeEvent(input$reset_view, { 
+  v$active_pk   <- NULL
+  v$active_snp  <- NULL
+  v$last_gene   <- NULL
+  v$current_chr <- "Chr1"
+  v$active_qtl  <- d$qtls[1]
+  v$user_zoom   <- NULL
+  v$reset_trigger <- v$reset_trigger + 1 
+  
+  # Completely clear gene search selectize (client and server side)
+  updateSelectizeInput(session, "search_gene", 
+                       choices = c("", sort(unique(d$genes$Symbol))), 
+                       selected = "", 
+                       server = TRUE)
+  
+  # Reset View Mode to Genome-Wide
+  updateSelectInput(session, "zoom_mode", 
+                    choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
+                    selected = "Genome-Wide")
+  
+  # Reset Category Checkboxes (Shared deselected by default)
+  updateCheckboxGroupInput(session, "show_cat", 
+                           selected = c("C57_Specific", "SJL_Specific", "Discordant"))
+  
+  # Reset Min Peak Score
+  updateSelectInput(session, "min_score", selected = "0")
+  
+  # Reset Coding SNP controls
+  updateCheckboxInput(session, "show_snps_main", value = TRUE)
+  updateCheckboxGroupInput(session, "snp_impact", selected = c("HIGH", "MODERATE"))
+  updateSliderInput(session, "min_phastcons", value = 0.7)
+})
+```
+
+* **Outcome**: A single click on **↺ Reset** returns the entire app to its pristine initial state, guaranteeing that no stale gene search, zoom level, or category filter lingers.
+
+---
+
+### Step 9: UI Ergonomics — Repositioning Reset & Adding Developer Guide Button
+
+1. **Button Repositioning**:
+   * Moved the action buttons down to sit directly below the `Min phastCons Score:` slider and horizontal divider (`hr()`).
+   * Formatted side-by-side using flexbox (`display: flex; gap: 8px;`):
+     * **↺ Reset** (`actionButton("reset_view", ...)`, blue primary style)
+     * **📖 Dev Guide** (`actionButton("show_dev_guide", ...)`, dark charcoal utility style)
+
+2. **In-App Developer Guide Modal**:
+   * Added `observeEvent(input$show_dev_guide, ...)` to render an interactive in-app modal providing immediate access to the 4 architectural modules:
+     * *Legacy Prototypes (`shinyapp.md`)*
+     * *Deployment Architecture (`publishapp.md`)*
+     * *UI Redesign & Reactivity (`redesign.md`)*
+     * *F2 Glycemic QTL Integration (`qtlanalysis.md`)*
+
+---
+
+### Step 10: Relocation & Responsive Redesign of the Detailed Peak Information Card
+
+1. **Motivation**:
+   * The detailed peak information panel was previously squeezed into the 3-column sidebar (`width = 3`).
+   * When displaying multiple local DEGs with log2 fold-changes and multi-variant coding SNP tables with `phastCons` scores, the sidebar required excessive vertical scrolling and crowded out navigation controls.
+
+2. **Relocation to Main Panel**:
+   * Moved `uiOutput("metadata_panel")` from `sidebarPanel()` to the bottom of `mainPanel()` (width = 9), placed immediately below the Locus Schematic (`plotOutput("schematic")`).
+
+3. **Two-Column Responsive Card Architecture**:
+   * Replaced the narrow single-column well with a wide, structured flexbox card:
+     * **Header Bar**: Displays the peak identifier (e.g. `peak_1234`), chromosome midpoint (`Mbp`), strain-divergent variant count, and an eye-catching purple badge if the peak falls within the active F2 glycemic QTL confidence interval.
+     * **Left Column (Local DEGs)**: Lists all differentially expressed genes within the locus window, color-coded by strain category (`C57_Specific`, `SJL_Specific`, `Discordant`, `Shared`), along with strain-specific log2 fold changes.
+     * **Right Column (Coding SNPs)**: Groups high- and moderate-impact coding variants by gene symbol, highlighting HIGH impact counts in purple, MODERATE impact in gold, maximum `phastCons` score, and detailed amino acid substitution annotations.
+
