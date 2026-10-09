@@ -230,8 +230,19 @@
 <h1>QTL Analysis Updates to App</h1>
 <p>This is based on analysis reported in the (currently private) repo
 <a href="https://github.com/AttieLab-Systems-Genetics/Vanderbilt/tree/main/results">https://github.com/AttieLab-Systems-Genetics/Vanderbilt</a>.</p>
-<p><strong>Prompt:</strong>
-Develop implementation plan for QTL features and modifications to the app described below.</p>
+<h2>Prompts</h2>
+<ul>
+<li>Develop implementation plan for QTL features and modifications to the app described below. Implement upon agreement.</li>
+<li>Develop a plan to incorporate <code>SHINY_APP/QTLresults</code> more fully into the app. Implement plan upon agreement. Details include:
+<ul>
+<li>Toggle between showing &quot;Select F2 Glycemic QTL&quot; and &quot;Search Gene Symbol&quot; based on whether &quot;View Mode&quot; is &quot;QTL Region&quot; or something else.</li>
+<li>Modify as needed throughout app to find <code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> now in <code>QTLresults</code> folder.</li>
+<li>Consider how to show this CSV file in main panel. For instance, having Select F2 Glycemic QTL&quot; be blank as default for &quot;View Mode: QTL Region&quot; and then show the table in the main panel before a selection is made, hiding the table once selection is made. This would obviate the need for <code>QTLs</code> button in upper right.</li>
+<li>Have way to reset selected peak for &quot;QTL Region&quot; to none; also, should reset to none when change QTL Region.</li>
+<li>Optionally add scan for trait using PNGs in <code>QTLresults</code> folder. Traits beginning with &quot;AUC&quot; would use the <em>auc</em>png<code>files, with others using *traj*png</code> files. Pick file based on <code>Chr</code> for trait. Put this plot above the Peak Score plot, but have checkbox to &quot;Hide Scan&quot;.</li>
+</ul>
+</li>
+</ul>
 <h2>New QTL Features and Modifications</h2>
 <p>New feature: integrate loci identified in the F2 study, as listed in
 <a href="SHINY_APP/Top_glycemic_QTL_for_sex_additive_analysis.csv">Top_glycemic_QTL_for_sex_additive_analysis.csv</a>.</p>
@@ -533,6 +544,56 @@ x_range &lt;- if (!is.null(v$user_zoom)) {
 <li>From the Chr16 view, open the QTL selector and choose <code>Slope_AUCs @ Chr13:3.6 Mb (LOD 3.9)</code> or <code>AUC_8wk_minus_AUC_4wk @ Chr13:3.6 Mb (LOD 4.4)</code>.</li>
 <li>The view instantly jumps from Chr16 to Chromosome 13, framing <strong>3.61 to 47.86 Mbp</strong>.</li>
 <li>Coding variants (orange diamonds for MODERATE, purple for HIGH) and MafA peaks within this interval are immediately accessible for clicking and schematic exploration, requiring zero manual coordinate typing or slider dragging.</li>
+</ol>
+<hr />
+<h2>7. Full <code>QTLresults</code> Integration &amp; In-Panel Exploration</h2>
+<p>Following the second prompt specifications, the application now incorporates <code>SHINY_APP/QTLresults</code> as a first-class feature of the explorer.</p>
+<h3>7.1 Key Enhancements</h3>
+<ol>
+<li><strong>Data Organization in <code>QTLresults/</code></strong>:
+<ul>
+<li><code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> is resolved from <code>QTLresults/</code> with fallbacks for local and Shiny server deployments.</li>
+<li>Resource path <code>QTLresults</code> is registered to cleanly serve static scan PNGs.</li>
+</ul>
+</li>
+<li><strong>Dynamic Top Navigation Toggle</strong>:
+<ul>
+<li>When <strong>View Mode</strong> is <code>&quot;QTL Region&quot;</code>, the primary input slot displays <strong>&quot;Select F2 Glycemic QTL&quot;</strong>.</li>
+<li>In <code>&quot;Genome-Wide&quot;</code> or <code>&quot;Chromosome&quot;</code> view, the slot displays <strong>&quot;Search Gene Symbol&quot;</strong>.</li>
+</ul>
+</li>
+<li><strong>In-Panel Interactive QTL Overview Table</strong>:
+<ul>
+<li>In <code>&quot;QTL Region&quot;</code> mode, the default selection is blank.</li>
+<li>While blank, the main panel displays an interactive table of all 11 F2 glycemic QTLs with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button for each row.</li>
+<li>Selecting a QTL hides the table and reveals the QTL region view.</li>
+<li>A <strong>&quot;← Back to QTL Overview Table&quot;</strong> action link returns to the table anytime.</li>
+<li>Obviates the need for the header <code>📊 QTLs</code> modal button, which has been removed.</li>
+</ul>
+</li>
+<li><strong>Peak Selection &amp; Reset Mechanics</strong>:
+<ul>
+<li>Entering <code>&quot;QTL Region&quot;</code> or changing QTL selection resets the active peak (<code>v$active_pk &lt;- NULL</code>).</li>
+<li>An explicit <strong>&quot;✕ Deselect Peak&quot;</strong> button appears in the navbar and schematic sidebar whenever a peak is active in view modes other than <em>Locus Zoom</em>, allowing quick return to an unselected state.</li>
+</ul>
+</li>
+<li><strong>Additive QTL Trait Scan PNGs</strong>:
+<ul>
+<li>Active QTLs display their corresponding additive scan plot from <code>QTLresults/</code> directly above the Manhattan plot:
+<ul>
+<li>Traits starting with <code>&quot;AUC&quot;</code> map to <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>.</li>
+<li>Other traits (e.g. <code>Slope_AUCs</code>) map to <code>scan_chr&lt;Chr&gt;_traj_sex_additive.png</code>.</li>
+</ul>
+</li>
+<li>A <strong>&quot;Hide QTL Scan Plot&quot;</strong> checkbox in the Manhattan controls allows toggling scan visibility.</li>
+</ul>
+</li>
+<li><strong>Continuous Right-Hand Control Card Stacking</strong>:
+<ul>
+<li>Plots (Scan plot, Manhattan plot, and Locus Schematic) are housed in a 9-column left canvas.</li>
+<li>Both control panels (<strong>Manhattan Controls</strong> and <strong>Locus Schematic Controls</strong>) are organized in a single continuous 3-column right sidebar. This ensures the schematic controls always follow immediately below the Manhattan controls, eliminating artificial vertical whitespace regardless of whether the QTL scan plot is visible.</li>
+</ul>
+</li>
 </ol>
 
     </article>

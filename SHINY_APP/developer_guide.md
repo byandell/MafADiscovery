@@ -15,7 +15,7 @@
    Dynamic view mode lifecycle (`Genome-Wide`, `Chromosome`, `QTL Region`, `Locus Zoom`), discrete filter ergonomics, coordinate auto-scaling, and total state reset.
 
 * **[F2 Glycemic QTL Integration](https://byandell.github.io/MafADiscovery/docs/qtlanalysis.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/qtlanalysis.md))  
-   F2 glycemic QTL integration, automated 95% CI bounding (`ci.low` to `ci.high`), visual interval highlights, and interactive QTL reference table.
+   F2 glycemic QTL integration, in-panel overview table, dynamic top-nav toggle, additive trait scan PNG plots (`QTLresults/`), automated CI bounding, continuous control card stacking, and peak reset controls.
 
 * **[About MafA Discovery](https://byandell.github.io/MafADiscovery/docs/about.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/about.md))  
    Biological context, Vanderbilt & UW-Madison collaborative consortium, integrated data assets, and software notes.

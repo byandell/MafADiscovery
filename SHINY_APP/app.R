@@ -226,7 +226,7 @@ ui <- fluidPage(
   ),
   conditionalPanel(
     condition = "input.zoom_mode != 'QTL Region' || (input.sel_qtl != '' && input.sel_qtl)",
-    # ── Macro Manhattan Plot Row ───────────────────────────────────────────
+    # ── Genomic Views & Controls Row ───────────────────────────────────────
     fluidRow(
       column(width = 9,
         # QTL Scan Plot (Above Manhattan Plot)
@@ -250,6 +250,9 @@ ui <- fluidPage(
         ),
         div(class = "panel-container",
           plotlyOutput("manhattan", height = "480px")
+        ),
+        div(class = "panel-container",
+          plotOutput("schematic", height = "340px")
         )
       ),
       column(width = 3,
@@ -282,17 +285,7 @@ ui <- fluidPage(
                                selected = c("HIGH", "MODERATE")),
             sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)
           )
-        )
-      )
-    ),
-    # ── Micro Locus Schematic Row ──────────────────────────────────────────
-    fluidRow(
-      column(width = 9,
-        div(class = "panel-container",
-          plotOutput("schematic", height = "340px")
-        )
-      ),
-      column(width = 3,
+        ),
         wellPanel(class = "well-ctrl",
           div(class = "ctrl-header",
             span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),

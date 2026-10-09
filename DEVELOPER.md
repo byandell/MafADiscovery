@@ -112,16 +112,27 @@ State is managed via `reactiveValues` in `v`:
 - **Browser Title & Metadata**: `fluidPage(title = "MafA Discovery: Integrated Genomic Explorer")` with `<title>` tag and inline DNA SVG favicon (`🧬`) in `tags$head`.
 - **Top Global Navigation Bar**: A unified header card containing:
   - Brand header (`🧬 MafA Discovery: Genomic Explorer`).
-  - Gene symbol search (`selectizeInput("search_gene", ...)`).
+  - Dynamic Primary Selector: Toggles between `selectizeInput("search_gene", ...)` (in *Genome-Wide*, *Chromosome*, and *Locus Zoom* modes) and `selectInput("sel_qtl", ...)` (in *QTL Region* mode).
   - View mode dropdown (`selectInput("zoom_mode", ...)`).
-  - Contextual selector container (`uiOutput("context_selector_ui")`): dynamically renders chromosome selector (`sel_chr`) in *Chromosome* mode, QTL selector (`sel_qtl`) in *QTL Region* mode, or locus indicators.
-  - Quick action buttons: `📊 QTLs` modal, `ℹ️ Guide` interpretation modal, direct `📖 Dev Guide ↗` external link, and `↺ Reset`.
-- **Contextual Plot Controls**:
-  - **Manhattan Plot**: Adjacent control panel hosting legend visibility toggle (`hide_manhattan_legend`), visible peak category checkboxes (`show_cat`), min peak score filter (`min_score`), coding SNPs toggle (`show_snps_main`), and coding variant impact/phastCons filters (`snp_impact`, `min_phastcons`).
-  - **Locus Schematic**: Adjacent control panel hosting legend visibility toggle (`hide_schematic_legend`), locus window size dropdown (`win_kb`), and a micro-architecture visual interpretation legend.
+  - Contextual selector container (`uiOutput("context_selector_ui")`): dynamically renders chromosome selector (`sel_chr`) in *Chromosome* mode, locus badge in *Locus Zoom*, or a quick `✕ Deselect Peak` button / QTL badge in *QTL Region* mode.
+  - Quick action buttons: `ℹ️ Guide` interpretation modal, direct `📖 Dev Guide ↗` external link, and `↺ Reset`. (The former header `📊 QTLs` modal button has been replaced by the direct in-panel overview table).
+- **Unified Canvas & Continuous Control Stacking**:
+  - The plots and controls are organized within a single continuous 12-column row:
+    - **Left Column (`width = 9`)**: Stacks the Additive Trait Scan Plot (when active in *QTL Region*), the Manhattan Macro Plot, and the Micro Locus Schematic.
+    - **Right Column (`width = 3`)**: Hosts **Manhattan Controls** followed immediately below by **Locus Schematic Controls**. This continuous vertical stacking eliminates artificial row whitespace and maintains clean control alignment regardless of whether the QTL scan plot is shown or hidden.
+- **In-Panel Interactive QTL Overview Table**:
+  - In *QTL Region* mode, the selection defaults to blank (`""`).
+  - While blank, an interactive table of all 11 F2 glycemic QTLs appears in the main panel with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an **"Inspect QTL →"** button for each row.
+  - Selecting a QTL hides the table and frames its confidence interval on the Manhattan plot. A **"← Back to QTL Overview Table"** action link allows returning to the overview table anytime.
+- **Additive Trait Scan Plots (`QTLresults/`)**:
+  - Positioned directly above the Manhattan plot for the active QTL.
+  - Traits starting with `"AUC"` dynamically render `scan_chr<Chr>_auc_sex_additive.png`; trajectory traits (e.g. `Slope_AUCs`) render `scan_chr<Chr>_traj_sex_additive.png`.
+  - Can be toggled on/off via the **"Hide QTL Scan Plot"** checkbox in Manhattan Controls.
+- **Peak Selection & Deselect Mechanics**:
+  - Entering *QTL Region* or switching to another QTL automatically resets the active peak (`v$active_pk <- NULL`).
+  - An explicit **"✕ Deselect Peak"** button appears in the navbar and schematic controls when a peak is active in modes other than *Locus Zoom*, enabling easy return to an unselected state.
 - **Genome-Wide Auto-Reset**: Selecting `"Genome-Wide"` in `zoom_mode` or clicking `↺ Reset` invokes a centralized `reset_to_default_state()` routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings.
 - **Legend Visibility Controls**: Discrete checkboxes (`hide_manhattan_legend`, `hide_schematic_legend`) dynamically suppress legends via Plotly `layout(showlegend = ...)` and ggplot `theme(legend.position = ...)`.
-- **QTL Table Reference**: A dedicated modal (`input$show_qtl_table`) allows inspecting all 11 F2 glycemic QTLs with their LOD scores and additive effect estimates, and jumping directly to any QTL's confidence interval.
 - **Interpretation Guide Modal**: Loaded dynamically from [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md) via `render_markdown_file()`. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
 - **Documentation Hub**: The `📖 Dev Guide ↗` button connects directly to the rendered documentation portal at `https://byandell.github.io/MafADiscovery/docs` (backed by `docs/index.html` compiled from [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md)), linking to all modules and [`SHINY_APP/about.md`](SHINY_APP/about.md).
 
@@ -168,9 +179,9 @@ The repository maintains four specialized architectural modules at root, automat
 3. **[`redesign.md`](redesign.md) — UI Redesign & Reactive Lifecycle**:
    - Dynamic view mode transitions (`Genome-Wide`, `Chromosome`, `QTL Region`, `Locus Zoom`).
    - Conditional control rendering, coordinate auto-scaling, and state persistence rules.
-4. **[`qtlanalysis.md`](qtlanalysis.md) — F2 Glycemic QTL Integration**:
-   - Ingestion of F2 study glycemic loci (`Top_glycemic_QTL_for_sex_additive_analysis.csv`).
-   - Confidence interval auto-bounding, visual interval banners, and interactive QTL reference table.
+4. **[`qtlanalysis.md`](qtlanalysis.md) — F2 Glycemic QTL Integration & QTLresults**:
+   - Ingestion of F2 study glycemic loci (`QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv`).
+   - In-panel interactive QTL overview table, dynamic top-nav toggle, additive trait scan plots (`scan_chr*.png`), CI auto-bounding, continuous control stacking, and peak reset mechanics.
 
 ---
 

@@ -261,9 +261,12 @@ Following the second prompt specifications, the application now incorporates `SH
    * Obviates the need for the header `📊 QTLs` modal button, which has been removed.
 4. **Peak Selection & Reset Mechanics**:
    * Entering `"QTL Region"` or changing QTL selection resets the active peak (`v$active_pk <- NULL`).
-   * An explicit **"✕ Deselect Peak"** button appears in the navbar and schematic sidebar whenever a peak is active, allowing quick return to an unselected state.
+   * An explicit **"✕ Deselect Peak"** button appears in the navbar and schematic sidebar whenever a peak is active in view modes other than *Locus Zoom*, allowing quick return to an unselected state.
 5. **Additive QTL Trait Scan PNGs**:
    * Active QTLs display their corresponding additive scan plot from `QTLresults/` directly above the Manhattan plot:
      * Traits starting with `"AUC"` map to `scan_chr<Chr>_auc_sex_additive.png`.
      * Other traits (e.g. `Slope_AUCs`) map to `scan_chr<Chr>_traj_sex_additive.png`.
    * A **"Hide QTL Scan Plot"** checkbox in the Manhattan controls allows toggling scan visibility.
+6. **Continuous Right-Hand Control Card Stacking**:
+   * Plots (Scan plot, Manhattan plot, and Locus Schematic) are housed in a 9-column left canvas.
+   * Both control panels (**Manhattan Controls** and **Locus Schematic Controls**) are organized in a single continuous 3-column right sidebar. This ensures the schematic controls always follow immediately below the Manhattan controls, eliminating artificial vertical whitespace regardless of whether the QTL scan plot is visible.

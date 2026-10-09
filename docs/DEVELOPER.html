@@ -257,7 +257,9 @@
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
 │   ├── B6_SJL_prioritized_protein_coding_SNPs.csv # Coding SNPs with phastCons scores
-│   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
+│   ├── QTLresults/                # F2 glycemic QTL data and trait scan plots
+│   │   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
+│   │   └── scan_chr*.png          # Trait scan PNG plots (AUC and trajectory)
 │   └── README.md                  # Detailed collaborator documentation
 ├── .github/
 │   └── workflows/
@@ -313,9 +315,10 @@
 <li>Contains evolutionary conservation scores (<code>phastCons_score</code>), variant consequences (<code>csq</code>), and amino acid alterations (<code>aa_change</code>).</li>
 </ul>
 </li>
-<li><strong>F2 Glycemic QTL Loci (<code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</strong>:
+<li><strong>F2 Glycemic QTL Loci &amp; Trait Scans (<code>QTLresults/</code>)</strong>:
 <ul>
-<li>Top glycemic QTLs from the B6 x SJL F2 study across traits, markers, chromosomes, peak positions (<code>pos</code>), 95% confidence intervals (<code>ci.low</code> to <code>ci.high</code>), and additive effects (<code>BB</code>, <code>BS</code>, <code>SS</code>).</li>
+<li><code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>: Top glycemic QTLs from the B6 x SJL F2 study across traits, markers, chromosomes, peak positions (<code>pos</code>), 95% confidence intervals (<code>ci.low</code> to <code>ci.high</code>), and additive effects (<code>BB</code>, <code>BS</code>, <code>SS</code>).</li>
+<li><code>scan_chr*.png</code>: Additive sex QTL scans for each trait/chromosome interval (AUC traits and trajectory traits).</li>
 </ul>
 </li>
 </ol>
@@ -350,21 +353,44 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 <li><strong>Top Global Navigation Bar</strong>: A unified header card containing:
 <ul>
 <li>Brand header (<code>🧬 MafA Discovery: Genomic Explorer</code>).</li>
-<li>Gene symbol search (<code>selectizeInput(&quot;search_gene&quot;, ...)</code>).</li>
+<li>Dynamic Primary Selector: Toggles between <code>selectizeInput(&quot;search_gene&quot;, ...)</code> (in <em>Genome-Wide</em>, <em>Chromosome</em>, and <em>Locus Zoom</em> modes) and <code>selectInput(&quot;sel_qtl&quot;, ...)</code> (in <em>QTL Region</em> mode).</li>
 <li>View mode dropdown (<code>selectInput(&quot;zoom_mode&quot;, ...)</code>).</li>
-<li>Contextual selector container (<code>uiOutput(&quot;context_selector_ui&quot;)</code>): dynamically renders chromosome selector (<code>sel_chr</code>) in <em>Chromosome</em> mode, QTL selector (<code>sel_qtl</code>) in <em>QTL Region</em> mode, or locus indicators.</li>
-<li>Quick action buttons: <code>📊 QTLs</code> modal, <code>ℹ️ Guide</code> interpretation modal, direct <code>📖 Dev Guide ↗</code> external link, and <code>↺ Reset</code>.</li>
+<li>Contextual selector container (<code>uiOutput(&quot;context_selector_ui&quot;)</code>): dynamically renders chromosome selector (<code>sel_chr</code>) in <em>Chromosome</em> mode, locus badge in <em>Locus Zoom</em>, or a quick <code>✕ Deselect Peak</code> button / QTL badge in <em>QTL Region</em> mode.</li>
+<li>Quick action buttons: <code>ℹ️ Guide</code> interpretation modal, direct <code>📖 Dev Guide ↗</code> external link, and <code>↺ Reset</code>. (The former header <code>📊 QTLs</code> modal button has been replaced by the direct in-panel overview table).</li>
 </ul>
 </li>
-<li><strong>Contextual Plot Controls</strong>:
+<li><strong>Unified Canvas &amp; Continuous Control Stacking</strong>:
 <ul>
-<li><strong>Manhattan Plot</strong>: Adjacent control panel hosting legend visibility toggle (<code>hide_manhattan_legend</code>), visible peak category checkboxes (<code>show_cat</code>), min peak score filter (<code>min_score</code>), coding SNPs toggle (<code>show_snps_main</code>), and coding variant impact/phastCons filters (<code>snp_impact</code>, <code>min_phastcons</code>).</li>
-<li><strong>Locus Schematic</strong>: Adjacent control panel hosting legend visibility toggle (<code>hide_schematic_legend</code>), locus window size dropdown (<code>win_kb</code>), and a micro-architecture visual interpretation legend.</li>
+<li>The plots and controls are organized within a single continuous 12-column row:
+<ul>
+<li><strong>Left Column (<code>width = 9</code>)</strong>: Stacks the Additive Trait Scan Plot (when active in <em>QTL Region</em>), the Manhattan Macro Plot, and the Micro Locus Schematic.</li>
+<li><strong>Right Column (<code>width = 3</code>)</strong>: Hosts <strong>Manhattan Controls</strong> followed immediately below by <strong>Locus Schematic Controls</strong>. This continuous vertical stacking eliminates artificial row whitespace and maintains clean control alignment regardless of whether the QTL scan plot is shown or hidden.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>In-Panel Interactive QTL Overview Table</strong>:
+<ul>
+<li>In <em>QTL Region</em> mode, the selection defaults to blank (<code>&quot;&quot;</code>).</li>
+<li>While blank, an interactive table of all 11 F2 glycemic QTLs appears in the main panel with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button for each row.</li>
+<li>Selecting a QTL hides the table and frames its confidence interval on the Manhattan plot. A <strong>&quot;← Back to QTL Overview Table&quot;</strong> action link allows returning to the overview table anytime.</li>
+</ul>
+</li>
+<li><strong>Additive Trait Scan Plots (<code>QTLresults/</code>)</strong>:
+<ul>
+<li>Positioned directly above the Manhattan plot for the active QTL.</li>
+<li>Traits starting with <code>&quot;AUC&quot;</code> dynamically render <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>; trajectory traits (e.g. <code>Slope_AUCs</code>) render <code>scan_chr&lt;Chr&gt;_traj_sex_additive.png</code>.</li>
+<li>Can be toggled on/off via the <strong>&quot;Hide QTL Scan Plot&quot;</strong> checkbox in Manhattan Controls.</li>
+</ul>
+</li>
+<li><strong>Peak Selection &amp; Deselect Mechanics</strong>:
+<ul>
+<li>Entering <em>QTL Region</em> or switching to another QTL automatically resets the active peak (<code>v$active_pk &lt;- NULL</code>).</li>
+<li>An explicit <strong>&quot;✕ Deselect Peak&quot;</strong> button appears in the navbar and schematic controls when a peak is active in modes other than <em>Locus Zoom</em>, enabling easy return to an unselected state.</li>
 </ul>
 </li>
 <li><strong>Genome-Wide Auto-Reset</strong>: Selecting <code>&quot;Genome-Wide&quot;</code> in <code>zoom_mode</code> or clicking <code>↺ Reset</code> invokes a centralized <code>reset_to_default_state()</code> routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings.</li>
 <li><strong>Legend Visibility Controls</strong>: Discrete checkboxes (<code>hide_manhattan_legend</code>, <code>hide_schematic_legend</code>) dynamically suppress legends via Plotly <code>layout(showlegend = ...)</code> and ggplot <code>theme(legend.position = ...)</code>.</li>
-<li><strong>QTL Table Reference</strong>: A dedicated modal (<code>input$show_qtl_table</code>) allows inspecting all 11 F2 glycemic QTLs with their LOD scores and additive effect estimates, and jumping directly to any QTL's confidence interval.</li>
 <li><strong>Interpretation Guide Modal</strong>: Loaded dynamically from <a href="SHINY_APP/interpretation_guide.md"><code>SHINY_APP/interpretation_guide.md</code></a> via <code>render_markdown_file()</code>. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.</li>
 <li><strong>Documentation Hub</strong>: The <code>📖 Dev Guide ↗</code> button connects directly to the rendered documentation portal at <code>https://byandell.github.io/MafADiscovery/docs</code> (backed by <code>docs/index.html</code> compiled from <a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>), linking to all modules and <a href="SHINY_APP/about.md"><code>SHINY_APP/about.md</code></a>.</li>
 </ul>
@@ -421,10 +447,10 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 <li>Conditional control rendering, coordinate auto-scaling, and state persistence rules.</li>
 </ul>
 </li>
-<li><strong><a href="qtlanalysis.html"><code>qtlanalysis.md</code></a> — F2 Glycemic QTL Integration</strong>:
+<li><strong><a href="qtlanalysis.html"><code>qtlanalysis.md</code></a> — F2 Glycemic QTL Integration &amp; QTLresults</strong>:
 <ul>
-<li>Ingestion of F2 study glycemic loci (<code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code>).</li>
-<li>Confidence interval auto-bounding, visual interval banners, and interactive QTL reference table.</li>
+<li>Ingestion of F2 study glycemic loci (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>).</li>
+<li>In-panel interactive QTL overview table, dynamic top-nav toggle, additive trait scan plots (<code>scan_chr*.png</code>), CI auto-bounding, continuous control stacking, and peak reset mechanics.</li>
 </ul>
 </li>
 </ol>
