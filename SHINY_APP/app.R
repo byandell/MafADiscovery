@@ -379,9 +379,9 @@ server <- function(input, output, session) {
     }
   })
 
-  # Dynamic schematic reset button in sidebar
+  # Dynamic schematic reset button in sidebar (hidden in Locus Zoom mode)
   output$schematic_peak_reset_ui <- renderUI({
-    if (!is.null(v$active_pk)) {
+    if (!is.null(v$active_pk) && input$zoom_mode != "Locus Zoom") {
       actionButton("clear_active_pk_schem", "✕ Deselect Current Peak", 
                    class = "btn btn-sm btn-outline-warning", 
                    style = "width: 100%; margin-top: 10px; font-weight: 600;")
