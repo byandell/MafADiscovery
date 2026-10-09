@@ -976,10 +976,11 @@ p &lt;- p +
 </ul>
 </li>
 <li>
-<p><strong>Step 16: Externalize &quot;Dev Guide&quot; Button to Relative Docs Link</strong> (Completed):</p>
+<p><strong>Step 16: Externalize &quot;Dev Guide&quot; Button with Shinylive-Aware Dynamic URL Resolution</strong> (Completed):</p>
 <ul>
-<li>Converted button in <code>SHINY_APP/app.R</code> to use relative link <code>docs/index.html</code> (<code>target=&quot;_blank&quot;</code>).</li>
-<li>Ensures the button functions seamlessly in local RStudio interactive sessions (resolved via <code>addResourcePath(&quot;docs&quot;, ...)</code>) as well as in production on GitHub Pages (<code>index.html</code>), preventing external 404 errors prior to pushing commits.</li>
+<li>Converted button in <code>SHINY_APP/app.R</code> to use client-side <code>resolveDocsUrl()</code> and relative link <code>docs/index.html</code> (<code>target=&quot;_blank&quot;</code>).</li>
+<li><strong>Shinylive Sandboxed Path Handling</strong>: When running on GitHub Pages, Shinylive executes within an embedded iframe under a virtual sub-path (e.g. <code>/MafADiscovery/app_eeyp6ad5eaxg6eqqlyd9/</code>). Standard relative links resolve into that virtual folder, producing garbled 404 links like <code>.../app_xxxx/docs/index.html</code>. <code>resolveDocsUrl()</code> intercepts the click, dynamically strips the virtual <code>/app_[^/]+/</code> segment, and rewrites the target to <code>index.html</code>.</li>
+<li><strong>Local RStudio Sessions</strong>: When running on <code>localhost</code> / <code>127.0.0.1</code>, <code>resolveDocsUrl()</code> keeps the local relative path <code>docs/index.html</code>, which Shiny resolves from disk via <code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>.</li>
 </ul>
 </li>
 <li>

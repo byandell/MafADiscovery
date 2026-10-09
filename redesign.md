@@ -549,9 +549,10 @@ flowchart TD
    * Updated [`render_docs.R`](render_docs.R) to compile `docs/index.html` (from `developer_guide.md`) and `docs/about.html`.
    * Added "About" and "Documentation Hub" to the global HTML navigation header.
 
-6. **Step 16: Externalize "Dev Guide" Button to Relative Docs Link** (Completed):
-   * Converted button in `SHINY_APP/app.R` to use relative link `docs/index.html` (`target="_blank"`).
-   * Ensures the button functions seamlessly in local RStudio interactive sessions (resolved via `addResourcePath("docs", ...)`) as well as in production on GitHub Pages (`https://byandell.github.io/MafADiscovery/docs/index.html`), preventing external 404 errors prior to pushing commits.
+6. **Step 16: Externalize "Dev Guide" Button with Shinylive-Aware Dynamic URL Resolution** (Completed):
+   * Converted button in `SHINY_APP/app.R` to use client-side `resolveDocsUrl()` and relative link `docs/index.html` (`target="_blank"`).
+   * **Shinylive Sandboxed Path Handling**: When running on GitHub Pages, Shinylive executes within an embedded iframe under a virtual sub-path (e.g. `/MafADiscovery/app_eeyp6ad5eaxg6eqqlyd9/`). Standard relative links resolve into that virtual folder, producing garbled 404 links like `.../app_xxxx/docs/index.html`. `resolveDocsUrl()` intercepts the click, dynamically strips the virtual `/app_[^/]+/` segment, and rewrites the target to `https://byandell.github.io/MafADiscovery/docs/index.html`.
+   * **Local RStudio Sessions**: When running on `localhost` / `127.0.0.1`, `resolveDocsUrl()` keeps the local relative path `docs/index.html`, which Shiny resolves from disk via `shiny::addResourcePath("docs", ...)`.
 
 7. **Step 17: Search Gene Purge on QTL Region Selection & Reactive Guards** (Completed):
    * Selecting *"QTL Region"* in `zoom_mode` automatically clears `search_gene` and purges `v$last_gene`.
