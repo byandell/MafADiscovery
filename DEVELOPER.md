@@ -106,16 +106,21 @@ State is managed via `reactiveValues` in `v`:
 
 ### UI & Navigation Lifecycle
 
-- **Dynamic View Modes**: Initial view modes include *Genome-Wide*, *Chromosome*, and *QTL Region*. *Locus Zoom* is offered dynamically once a gene is searched or a peak/SNP is clicked. If a searched gene is deselected/cleared, the app automatically reverts to *Genome-Wide* view and removes *Locus Zoom*.
-- **Conditional Controls**: 
-  - Chromosome selector (`sel_chr`) is conditionally displayed only when in *Chromosome* view mode.
-  - QTL selector (`sel_qtl`) is conditionally displayed only when in *QTL Region* view mode.
-  - Discrete locus window selector (`win_kb`: 20, 50, 100, 200, 500, 1000, 2000 kb) is conditionally displayed only in *Locus Zoom* mode.
+- **Browser Title & Metadata**: `fluidPage(title = "MafA Discovery: Integrated Genomic Explorer")` with `<title>` tag and inline DNA SVG favicon (`🧬`) in `tags$head`.
+- **Top Global Navigation Bar**: A unified header card containing:
+  - Brand header (`🧬 MafA Discovery: Genomic Explorer`).
+  - Gene symbol search (`selectizeInput("search_gene", ...)`).
+  - View mode dropdown (`selectInput("zoom_mode", ...)`).
+  - Contextual selector container (`uiOutput("context_selector_ui")`): dynamically renders chromosome selector (`sel_chr`) in *Chromosome* mode, QTL selector (`sel_qtl`) in *QTL Region* mode, or locus indicators.
+  - Quick action buttons: `📊 QTLs` modal, `ℹ️ Guide` interpretation modal, direct `📖 Dev Guide ↗` external link, and `↺ Reset`.
+- **Contextual Plot Controls**:
+  - **Manhattan Plot**: Adjacent control panel hosting legend visibility toggle (`hide_manhattan_legend`), visible peak category checkboxes (`show_cat`), min peak score filter (`min_score`), coding SNPs toggle (`show_snps_main`), and coding variant impact/phastCons filters (`snp_impact`, `min_phastcons`).
+  - **Locus Schematic**: Adjacent control panel hosting legend visibility toggle (`hide_schematic_legend`), locus window size dropdown (`win_kb`), and a micro-architecture visual interpretation legend.
+- **Genome-Wide Auto-Reset**: Selecting `"Genome-Wide"` in `zoom_mode` or clicking `↺ Reset` invokes a centralized `reset_to_default_state()` routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings.
+- **Legend Visibility Controls**: Discrete checkboxes (`hide_manhattan_legend`, `hide_schematic_legend`) dynamically suppress legends via Plotly `layout(showlegend = ...)` and ggplot `theme(legend.position = ...)`.
 - **QTL Table Reference**: A dedicated modal (`input$show_qtl_table`) allows inspecting all 11 F2 glycemic QTLs with their LOD scores and additive effect estimates, and jumping directly to any QTL's confidence interval.
-- **Category Filtering**: Visible categories default to `C57_Specific`, `SJL_Specific`, and `Discordant` (with `Shared` deselected by default) to immediately highlight strain-divergent variation.
-- **Discrete Thresholds**: Min Peak Score uses discrete selections (`All (0), 100, 200, 500, 1000, 2000, 5000`) for predictable filtering.
 - **Interpretation Guide Modal**: Loaded dynamically from [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md) via `render_markdown_file()`. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
-- **Developer Guide Modal & Reset Repositioning**: The `Reset` and `Dev Guide` buttons are positioned below the `Min phastCons Score:` slider. `Reset` performs a complete state purge (clearing gene search, resetting categories, filters, coordinates, and view modes). `Dev Guide` loads dynamically from [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md), featuring clickable links with `target="_blank"` to all architectural modules and repository resources.
+- **Documentation Hub**: The `📖 Dev Guide ↗` button connects directly to the rendered documentation portal at `https://byandell.github.io/MafADiscovery/docs` (backed by `docs/index.html` compiled from [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md)), linking to all modules and [`SHINY_APP/about.md`](SHINY_APP/about.md).
 
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 
@@ -126,6 +131,7 @@ State is managed via `reactiveValues` in `v`:
   - Peak score plotted on primary y-axis.
   - Coding SNPs scaled dynamically to `phastCons_score * y_max` with `sec_axis(~ . / y_max, name = "phastCons Conservation Score (0-1)")`.
 - Clicking either a peak or a coding variant triggers `plotly_click` handling, selecting the entity, highlighting it with a gold diamond, and opening *Locus Zoom*.
+- Supports discrete legend visibility toggle (`hide_manhattan_legend`).
 
 ### Locus Schematic Rendering
 
@@ -134,10 +140,12 @@ When an active peak is selected (`v$active_pk`):
 - Transcription start sites (TSS) are computed based on strand orientation (`Strand == 1` vs `Strand == -1`).
 - Directional arrow segments (`geom_segment(..., arrow = ...)`) indicate gene transcription direction.
 - Coding variants are mapped to their respective gene models and rendered with distinct symbols and impact colors (`#CC00CC` for HIGH, `#DAA520` for MODERATE).
+- Shows an informative guidance placeholder when no peak is selected.
+- Supports discrete legend visibility toggle (`hide_schematic_legend`).
 
 ### Detailed Peak Information Card
 
-Rendered below the Locus Schematic on the main panel (width = 9) via `shiny::renderUI()`, utilizing a wide two-column layout:
+Rendered below the Locus Schematic on the main canvas across the full 12-column grid via `shiny::renderUI()`, utilizing a wide two-column layout:
 - **Header**: Active peak ID, Mbp coordinate on chromosome, variant count, and F2 QTL association badge.
 - **Left Column**: Local DEGs with individual strain log2 fold-changes and direction.
 - **Right Column**: Local coding variants grouped by gene, summarizing HIGH/MODERATE counts, consequence annotations, and `phastCons` scores.

@@ -37,7 +37,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .header-inner {
-      max-width: 1060px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 12px 24px;
       display: flex;
@@ -62,14 +62,14 @@
       padding: 0;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
     nav.doc-nav a {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.9em;
+      font-size: 0.88em;
       font-weight: 500;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 6px;
       transition: all 0.15s ease;
     }
@@ -91,7 +91,7 @@
       background-color: #2c974b !important;
     }
     main.doc-container {
-      max-width: 1060px;
+      max-width: 1100px;
       margin: 32px auto 60px auto;
       padding: 0 24px;
     }
@@ -197,9 +197,11 @@
       <nav class="doc-nav">
         <ul>
           <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
+          <li><a href="index.html">Documentation Hub</a></li>
+          <li><a href="about.html">About</a></li>
           <li><a href="DEVELOPER.html">Developer Guide</a></li>
           <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-          <li><a href="publishapp.html">Publishing & WebAssembly</a></li>
+          <li><a href="publishapp.html">Publishing & WASM</a></li>
           <li><a href="redesign.html" class="active">UI Redesign</a></li>
           <li><a href="qtlanalysis.html">QTL Analysis</a></li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
@@ -255,6 +257,20 @@
 <li>Fix <code>Reset</code> on app to reset everything, including selected gene.</li>
 <li>Move <code>Reset</code> and <code>Developer Guide</code> (new)buttons to below &quot;Min phastCons Score:&quot; slider.</li>
 <li>Detailed &quot;Peak&quot; information now on sidebar should go below last figure on main panel.</li>
+</ul>
+<h3>More Improvements</h3>
+<ul>
+<li>Change browser tab title from &quot;Shiny App&quot; to &quot;MafA Discovery&quot;.</li>
+<li>Move controls from side panel next to plot</li>
+<li>Add plot-specific option(s) to hide legend</li>
+<li>Modify &quot;Dev Guide&quot; button on app to go to &quot;<a href="https://byandell.github.io/MafADiscovery/docs">https://byandell.github.io/MafADiscovery/docs</a>&quot;, which would have <code>docs/index.html</code> that renders <code>developer_guide.md</code></li>
+<li>Switching to &quot;View Mode: Genome-Wide&quot; should reset everthing.</li>
+<li>Add <code>SHINY_APP/about.md</code> and link from <code>docs/index.html</code>.</li>
+</ul>
+<h2>Future Considerations</h2>
+<ul>
+<li>Panels rather than select</li>
+<li>Condense redesign.md</li>
 </ul>
 <hr />
 <h2>Implementation Plan: MafA Discovery Shiny App Redesign</h2>
@@ -611,13 +627,15 @@ p &lt;- p +
 <li>
 <p><strong>Decoupled Markdown Guide Modals (<code>interpretation_guide.md</code> &amp; <code>developer_guide.md</code>)</strong>:</p>
 <ul>
-<li>Extracted all modal documentation into standalone Markdown files in <code>SHINY_APP/</code> to allow direct editing without modifying R application code:
+<li>
+<p>Extracted all modal documentation into standalone Markdown files in <code>SHINY_APP/</code> to allow direct editing without modifying R application code:</p>
 <ul>
 <li><a href="SHINY_APP/interpretation_guide.md"><code>SHINY_APP/interpretation_guide.md</code></a>: Macro/micro panel interpretation, Manhattan axes, DEG point shapes, strain colors, coding variant impacts (<code>phastCons</code>), QTL intervals, and navigation modes.</li>
-<li><a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>: Architectural guide modal featuring direct links to the rendered GitHub Pages HTML documentation (<code>https://byandell.github.io/MafADiscovery/docs/*.html</code>) and GitHub source markdown files.</li>
+<li><a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>: Architectural guide modal featuring direct links to the rendered GitHub Pages HTML documentation (<code>*.html</code>) and GitHub source markdown files.</li>
 </ul>
 </li>
-<li>Implemented a robust dynamic path-resolution loader <code>render_markdown_file(filename)</code> in <code>app.R</code>:
+<li>
+<p>Implemented a robust dynamic path-resolution loader <code>render_markdown_file(filename)</code> in <code>app.R</code>:</p>
 <pre><code class="language-r">render_markdown_file &lt;- function(filename) {
   filepath &lt;- if (file.exists(filename)) filename else if (file.exists(file.path(&quot;SHINY_APP&quot;, filename))) file.path(&quot;SHINY_APP&quot;, filename) else NULL
   if (!is.null(filepath)) {
@@ -633,8 +651,12 @@ p &lt;- p +
 }
 </code></pre>
 </li>
-<li>Registered a local static resource path (<code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>) in <code>app.R</code> so local Shiny sessions serve documentation seamlessly.</li>
-<li>Added client-side modal event handling in <code>tags$head</code> so that all markdown links inside the modal automatically open in a new browser tab (<code>target=&quot;_blank&quot;</code>, <code>rel=&quot;noopener noreferrer&quot;</code>), preserving the user's active explorer session.</li>
+<li>
+<p>Registered a local static resource path (<code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>) in <code>app.R</code> so local Shiny sessions serve documentation seamlessly.</p>
+</li>
+<li>
+<p>Added client-side modal event handling in <code>tags$head</code> so that all markdown links inside the modal automatically open in a new browser tab (<code>target=&quot;_blank&quot;</code>, <code>rel=&quot;noopener noreferrer&quot;</code>), preserving the user's active explorer session.</p>
+</li>
 </ul>
 </li>
 </ol>
@@ -664,6 +686,316 @@ p &lt;- p +
 <li><strong>Right Column (Coding SNPs)</strong>: Groups high- and moderate-impact coding variants by gene symbol, highlighting HIGH impact counts in purple, MODERATE impact in gold, maximum <code>phastCons</code> score, and detailed amino acid substitution annotations.</li>
 </ul>
 </li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>8. Implementation Plan: More Improvements</h2>
+<p>This plan details the technical architecture, UI layout restructuring, reactive observers, and documentation workflows for the items outlined in <a href="#more-improvements">More Improvements</a>.</p>
+<h3>8.1 Requirements &amp; Architectural Summary</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Objective</th>
+<th align="left">Current Behavior</th>
+<th align="left">Proposed Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Browser Tab Title</strong></td>
+<td align="left">Browser displays generic &quot;Shiny App&quot;.</td>
+<td align="left">Specify <code>fluidPage(title = &quot;MafA Discovery: Integrated Genomic Explorer&quot;, ...)</code> and add <code>&lt;title&gt;MafA Discovery: Integrated Genomic Explorer&lt;/title&gt;</code> with a custom SVG favicon in <code>tags$head</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Contextual Control Placement</strong></td>
+<td align="left">All controls are grouped in a monolithic left sidebar (<code>width = 3</code>), restricting plot width to <code>width = 9</code>.</td>
+<td align="left">Migrate controls out of the static sidebar into contextual toolbars adjacent to their respective visual components: global navigation (Gene search, View mode, Chromosome/QTL) above the Manhattan plot, and locus micro-controls adjacent to the Locus Schematic.</td>
+</tr>
+<tr>
+<td align="left"><strong>Plot Legend Visibility</strong></td>
+<td align="left">Plotly legend is permanently displayed on Manhattan plot; schematic legend is fixed.</td>
+<td align="left">Add discrete &quot;Hide Legend&quot; toggles for individual plots (<code>hide_manhattan_legend</code>, <code>hide_schematic_legend</code>) to allow maximizing plotting canvas on smaller screens or uncluttering presentation.</td>
+</tr>
+<tr>
+<td align="left"><strong>Direct Dev Guide Navigation</strong></td>
+<td align="left">&quot;📖 Dev Guide&quot; button opens an in-app modal reading <code>developer_guide.md</code>.</td>
+<td align="left">Modify &quot;📖 Dev Guide&quot; button to be a direct external link (<code>tags$a(href = &quot;https://byandell.github.io/MafADiscovery/docs&quot;, target = &quot;_blank&quot;, ...)</code>).</td>
+</tr>
+<tr>
+<td align="left"><strong>Docs Landing Page (<code>docs/index.html</code>)</strong></td>
+<td align="left"><code>docs/</code> currently lacks an <code>index.html</code> (only individual <code>.html</code> files exist).</td>
+<td align="left">Update <code>render_docs.R</code> to compile <code>SHINY_APP/developer_guide.md</code> into <code>docs/index.html</code>, providing a central documentation landing portal with direct links to all modules, repository source code, and <code>about.html</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Genome-Wide Auto-Reset</strong></td>
+<td align="left">Selecting &quot;Genome-Wide&quot; in the View Mode dropdown preserves the active gene, peak, and zoom state.</td>
+<td align="left">Enhance <code>observeEvent(input$zoom_mode, ...)</code> so that selecting <code>&quot;Genome-Wide&quot;</code> automatically purges all active selections (<code>search_gene</code>, <code>v$active_pk</code>, <code>v$active_snp</code>, <code>v$user_zoom</code>, filters), returning the app to its pristine baseline.</td>
+</tr>
+<tr>
+<td align="left"><strong>About Page Integration</strong></td>
+<td align="left">No dedicated &quot;About&quot; document exists in <code>SHINY_APP/</code>.</td>
+<td align="left">Author <a href="SHINY_APP/about.md"><code>SHINY_APP/about.md</code></a> detailing the biological background, Vanderbilt/UW collaboration, dataset provenance, and citations; compile to <code>docs/about.html</code> and link from <code>docs/index.html</code> and the global documentation header.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>8.2 Detailed Technical Specifications</h3>
+<h4>8.2.1 Browser Tab Title &amp; HTML Head Metadata</h4>
+<ul>
+<li>In <a href="SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a>:
+<pre><code class="language-r">ui &lt;- fluidPage(
+  title = &quot;MafA Discovery: Integrated Genomic Explorer&quot;,
+  tags$head(
+    tags$title(&quot;MafA Discovery: Integrated Genomic Explorer&quot;),
+    tags$link(rel = &quot;icon&quot;, href = &quot;data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;🧬&lt;/text&gt;&lt;/svg&gt;&quot;),
+    ...
+  ),
+  ...
+)
+</code></pre>
+</li>
+<li><strong>Outcome</strong>: Tab in browser immediately displays &quot;MafA Discovery: Integrated Genomic Explorer&quot; with a genomics DNA favicon instead of generic Shiny defaults.</li>
+</ul>
+<h4>8.2.2 Contextual Controls Layout (Adjacent to Plots)</h4>
+<ul>
+<li><strong>Design Motivation</strong>:
+<ul>
+<li>A fixed 3-column sidebar steals 25% of horizontal screen space, cramping genome-wide Manhattan plots where chromosome x-axes benefit from maximum width.</li>
+<li>Separating global navigation controls from micro-locus controls places inputs right where the user's attention is focused.</li>
+</ul>
+</li>
+<li><strong>Layout Structure</strong>:
+<ol>
+<li><strong>Top Global Navigation &amp; Filter Bar</strong> (Above Manhattan Plot):
+<ul>
+<li><strong>Row 1 (Primary Navigation)</strong>:
+<ul>
+<li>Search Gene Symbol (<code>selectizeInput(&quot;search_gene&quot;, ...)</code>).</li>
+<li>View Mode (<code>selectInput(&quot;zoom_mode&quot;, ...)</code>).</li>
+<li>Dynamic Chromosome Selector (<code>uiOutput(&quot;chr_selector_ui&quot;)</code>) / Dynamic QTL Selector (<code>uiOutput(&quot;qtl_selector_ui&quot;)</code>).</li>
+<li>Action buttons: <code>📊 QTLs</code>, <code>ℹ️ Guide</code>, <code>📖 Dev Guide ↗</code>, <code>↺ Reset</code>.</li>
+</ul>
+</li>
+<li><strong>Row 2 (Global Filters)</strong>:
+<ul>
+<li>Visible Categories (<code>checkboxGroupInput(&quot;show_cat&quot;, ...)</code>).</li>
+<li>Min Peak Score (<code>selectInput(&quot;min_score&quot;, ...)</code>).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Manhattan Macro Panel</strong> (Full 12-column width):
+<ul>
+<li>Visualization: <code>plotlyOutput(&quot;manhattan&quot;, height = &quot;500px&quot;)</code>.</li>
+<li>Utility Bar: Quick toggle <code>checkboxInput(&quot;hide_manhattan_legend&quot;, &quot;Hide Legend&quot;, value = FALSE)</code>.</li>
+</ul>
+</li>
+<li><strong>Locus Schematic &amp; Contextual Micro-Controls</strong> (Integrated Card):
+<ul>
+<li><strong>Sub-Bar (Micro Controls)</strong>: Placed immediately above or in a sidebar adjacent to the schematic:
+<ul>
+<li>Locus Window (<code>uiOutput(&quot;locus_window_ui&quot;)</code>).</li>
+<li>Coding SNPs toggle (<code>checkboxInput(&quot;show_snps_main&quot;, ...)</code>).</li>
+<li>SNP Impact (<code>checkboxGroupInput(&quot;snp_impact&quot;, ...)</code>).</li>
+<li>Min phastCons score (<code>sliderInput(&quot;min_phastcons&quot;, ...)</code>).</li>
+<li>Schematic legend toggle (<code>checkboxInput(&quot;hide_schematic_legend&quot;, &quot;Hide Legend&quot;, value = FALSE)</code>).</li>
+</ul>
+</li>
+<li><strong>Plot Area</strong>: <code>plotOutput(&quot;schematic&quot;, height = &quot;350px&quot;)</code>.</li>
+</ul>
+</li>
+<li><strong>Detailed Peak Information Card</strong> (Full-width responsive 2-column card as established in Step 10).</li>
+</ol>
+</li>
+</ul>
+<h4>8.2.3 Plot-Specific Legend Toggles</h4>
+<ul>
+<li><strong>Manhattan Plot Legend</strong>:
+<ul>
+<li>Control: <code>checkboxInput(&quot;hide_manhattan_legend&quot;, &quot;Hide Legend&quot;, value = FALSE)</code>.</li>
+<li>Plotly binding in <code>server</code>:
+<pre><code class="language-r">p &lt;- ggplotly(p, tooltip = &quot;text&quot;, source = &quot;manhattan&quot;) %&gt;%
+  layout(
+    showlegend = !isTRUE(input$hide_manhattan_legend),
+    legend = list(orientation = &quot;h&quot;, x = 0.5, xanchor = &quot;center&quot;, y = -0.15)
+  )
+</code></pre>
+</li>
+</ul>
+</li>
+<li><strong>Locus Schematic Legend</strong>:
+<ul>
+<li>Control: <code>checkboxInput(&quot;hide_schematic_legend&quot;, &quot;Hide Legend&quot;, value = FALSE)</code>.</li>
+<li>ggplot binding in <code>output$schematic</code>:
+<pre><code class="language-r">if (isTRUE(input$hide_schematic_legend)) {
+  p_schem &lt;- p_schem + theme(legend.position = &quot;none&quot;)
+}
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h4>8.2.4 &quot;Dev Guide&quot; Redirection to <code>docs/</code> Landing Page</h4>
+<ul>
+<li>In <code>ui</code>: Replace <code>actionButton(&quot;show_dev_guide&quot;, ...)</code> with an external anchor button:
+<pre><code class="language-r">tags$a(
+  href = &quot;https://byandell.github.io/MafADiscovery/docs&quot;,
+  target = &quot;_blank&quot;,
+  rel = &quot;noopener noreferrer&quot;,
+  class = &quot;btn btn-devguide&quot;,
+  style = &quot;text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;&quot;,
+  &quot;📖 Dev Guide ↗&quot;
+)
+</code></pre>
+</li>
+<li>In <a href="render_docs.R"><code>render_docs.R</code></a>:
+<ul>
+<li>Update generator to compile <code>SHINY_APP/developer_guide.md</code> into <code>docs/index.html</code>.</li>
+<li>Ensures <code>https://byandell.github.io/MafADiscovery/docs</code> renders a complete portal with links to all architectural guides, the app, and <code>about.html</code>.</li>
+</ul>
+</li>
+</ul>
+<h4>8.2.5 Auto-Resetting State on &quot;View Mode: Genome-Wide&quot; Selection</h4>
+<ul>
+<li>In <code>server</code> of <a href="SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a>:
+<ul>
+<li>Refactor reset routine into a centralized helper function:
+<pre><code class="language-r">reset_to_default_state &lt;- function() {
+  v$active_pk   &lt;- NULL
+  v$active_snp  &lt;- NULL
+  v$last_gene   &lt;- NULL
+  v$current_chr &lt;- &quot;Chr1&quot;
+  v$active_qtl  &lt;- d$qtls[1]
+  v$user_zoom   &lt;- NULL
+  v$reset_trigger &lt;- v$reset_trigger + 1
+  
+  updateSelectizeInput(session, &quot;search_gene&quot;, choices = c(&quot;&quot;, sort(unique(d$genes$Symbol))), selected = &quot;&quot;, server = TRUE)
+  updateCheckboxGroupInput(session, &quot;show_cat&quot;, selected = c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;))
+  updateSelectInput(session, &quot;min_score&quot;, selected = &quot;0&quot;)
+  updateCheckboxInput(session, &quot;show_snps_main&quot;, value = TRUE)
+  updateCheckboxGroupInput(session, &quot;snp_impact&quot;, selected = c(&quot;HIGH&quot;, &quot;MODERATE&quot;))
+  updateSliderInput(session, &quot;min_phastcons&quot;, value = 0.7)
+}
+</code></pre>
+</li>
+<li>In the observer for <code>input$zoom_mode</code>:
+<pre><code class="language-r">observeEvent(input$zoom_mode, {
+  if (input$zoom_mode == &quot;Genome-Wide&quot;) {
+    if (!is.null(v$active_pk) || !is.null(v$last_gene) || nzchar(input$search_gene)) {
+      reset_to_default_state()
+    }
+  }
+})
+</code></pre>
+</li>
+<li>Both the <strong>↺ Reset</strong> button and selecting <code>&quot;Genome-Wide&quot;</code> in the dropdown will now call <code>reset_to_default_state()</code>.</li>
+</ul>
+</li>
+</ul>
+<h4>8.2.6 Creation of <code>SHINY_APP/about.md</code> &amp; Docs Integration</h4>
+<ul>
+<li>Author <a href="SHINY_APP/about.md"><code>SHINY_APP/about.md</code></a> with:
+<ul>
+<li><strong>Biological Context</strong>: MafA transcription factor binding dynamics, strain divergence between C57BL/6J and SJL/J, and type 2 diabetes etiology.</li>
+<li><strong>Research Consortium</strong>: Collaborative investigation between Vanderbilt University Medical Center (Roland Stein Laboratory) and the University of Wisconsin-Madison (Departments of Statistics, Biochemistry, and Nutritional Sciences: Brian Yandell, Mark Keller, Alan Attie).</li>
+<li><strong>Integrated Data Assets</strong>:
+<ul>
+<li>MafA ChIP-seq / CUT&amp;RUN binding peak intervals and strength scores.</li>
+<li>Strain-divergent sequence polymorphisms (SNPs &amp; indels).</li>
+<li>B6 vs. SJL differential gene expression (DEGs) across islet perturbation models.</li>
+<li>High/moderate impact coding sequence variants annotated with <code>phastCons</code> conservation scores.</li>
+<li>B6 $\times$ SJL F2 intercross glycemic QTL loci with 95% confidence intervals and additive effect models.</li>
+</ul>
+</li>
+<li><strong>Citation &amp; Funding</strong>: Grant support and publication references.</li>
+</ul>
+</li>
+<li>In <a href="render_docs.R"><code>render_docs.R</code></a>:
+<ul>
+<li>Add <code>&quot;SHINY_APP/about.md&quot; = &quot;About MafA Discovery — Context &amp; Collaborators&quot;</code> to <code>files_to_render</code>.</li>
+<li>Compile to <code>docs/about.html</code>.</li>
+<li>Add <code>About</code> link to the sticky top navigation header in all rendered HTML pages:
+<pre><code class="language-html">&lt;li&gt;&lt;a href=&quot;about.html&quot;&gt;About&lt;/a&gt;&lt;/li&gt;
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3>8.3 Step-by-Step Implementation Sequence</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[Step 11: Browser Tab Title &amp; Metadata] --&gt; B[Step 12: Auto-Reset on Genome-Wide Mode]
+    B --&gt; C[Step 13: Plot-Specific Legend Toggles]
+    C --&gt; D[Step 14: Contextual Controls Layout Restructuring]
+    D --&gt; E[Step 15: Create SHINY_APP/about.md &amp; docs/index.html Portal]
+    E --&gt; F[Step 16: Externalize Dev Guide Button to docs/]
+    F --&gt; G[Step 17: Multi-Platform Verification &amp; HTML Compilation]
+</code></pre>
+<ol>
+<li>
+<p><strong>Step 11: Update Browser Tab Title &amp; Head Metadata</strong> (Completed):</p>
+<ul>
+<li>Added <code>title = &quot;MafA Discovery: Integrated Genomic Explorer&quot;</code> in <code>fluidPage()</code>.</li>
+<li>Added <code>&lt;title&gt;</code> and inline genomics SVG favicon (<code>🧬</code>) in <code>tags$head</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 12: Wire Auto-Reset on &quot;Genome-Wide&quot; View Mode</strong> (Completed):</p>
+<ul>
+<li>Centralized <code>reset_to_default_state()</code> in <code>server</code> to purge <code>v$active_pk</code>, <code>v$active_snp</code>, <code>v$last_gene</code>, <code>search_gene</code>, and restore default filters and choices.</li>
+<li>Linked <code>observeEvent(input$zoom_mode, ...)</code> to trigger <code>reset_to_default_state()</code> whenever <code>&quot;Genome-Wide&quot;</code> is selected.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 13: Implement Plot-Specific Legend Toggles</strong> (Completed):</p>
+<ul>
+<li>Added <code>hide_manhattan_legend</code> checkbox input; wired into Plotly <code>layout(showlegend = !isTRUE(input$hide_manhattan_legend))</code>.</li>
+<li>Added <code>hide_schematic_legend</code> checkbox input; wired into ggplot <code>theme(legend.position = if (isTRUE(input$hide_schematic_legend)) &quot;none&quot; else &quot;right&quot;)</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 14: Contextual Plot Controls Layout Restructuring</strong> (Completed):</p>
+<ul>
+<li>Reorganized UI from monolithic 3-column sidebar into:
+<ul>
+<li>Top Global Navigation Bar (<code>well-nav</code>): Title brand, <code>search_gene</code>, <code>zoom_mode</code>, dynamic chromosome/QTL selector (<code>context_selector_ui</code>), and quick action buttons (<code>📊 QTLs</code>, <code>ℹ️ Guide</code>, <code>📖 Dev Guide ↗</code>, <code>↺ Reset</code>).</li>
+<li>Manhattan Row: 9-column Plotly canvas + 3-column contextual control panel (<code>well-ctrl</code>) for legend toggle, peak categories, min peak score, and coding SNP filters.</li>
+<li>Locus Schematic Row: 9-column ggplot canvas + 3-column contextual control panel (<code>well-ctrl</code>) for legend toggle, locus window size (<code>win_kb</code>), and micro-architecture guide.</li>
+<li>Peak Metadata Row: Full 12-column responsive two-column card.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 15: Author <code>SHINY_APP/about.md</code> &amp; Update <code>render_docs.R</code></strong> (Completed):</p>
+<ul>
+<li>Created <a href="SHINY_APP/about.md"><code>SHINY_APP/about.md</code></a> with consortium, biological, and dataset details.</li>
+<li>Updated <a href="render_docs.R"><code>render_docs.R</code></a> to compile <code>docs/index.html</code> (from <code>developer_guide.md</code>) and <code>docs/about.html</code>.</li>
+<li>Added &quot;About&quot; and &quot;Documentation Hub&quot; to the global HTML navigation header.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 16: Externalize &quot;Dev Guide&quot; Button to Relative Docs Link</strong> (Completed):</p>
+<ul>
+<li>Converted button in <code>SHINY_APP/app.R</code> to use relative link <code>docs/index.html</code> (<code>target=&quot;_blank&quot;</code>).</li>
+<li>Ensures the button functions seamlessly in local RStudio interactive sessions (resolved via <code>addResourcePath(&quot;docs&quot;, ...)</code>) as well as in production on GitHub Pages (<code>index.html</code>), preventing external 404 errors prior to pushing commits.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 17: Search Gene Purge on QTL Region Selection &amp; Reactive Guards</strong> (Completed):</p>
+<ul>
+<li>Selecting <em>&quot;QTL Region&quot;</em> in <code>zoom_mode</code> automatically clears <code>search_gene</code> and purges <code>v$last_gene</code>.</li>
+<li>Selecting a QTL from <code>sel_qtl</code> or jumping from the interactive reference table modal (<code>jump_qtl_btn</code>) also clears <code>search_gene</code>.</li>
+<li>Hardened <code>observeEvent(input$search_gene)</code> with reactive guards so that clearing the search box while inspecting a QTL or chromosome does not trigger an unintended bounce back to <em>Genome-Wide</em> view.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 18: Deployment Workflow Protection &amp; Multi-Platform Documentation Compilation</strong> (Completed):</p>
+<ul>
+<li>Updated <code>.github/workflows/deploy-shinylive.yaml</code> so that <code>docs/index.html</code> is placed into <code>site/docs/index.html</code> without overwriting <code>site/index.html</code> (the Shinylive WebAssembly application).</li>
+<li>Executed <code>Rscript render_docs.R</code> to compile all Markdown files into standalone HTML pages (<code>docs/index.html</code>, <code>docs/about.html</code>, <code>docs/DEVELOPER.html</code>, <code>docs/redesign.html</code>, <code>docs/qtlanalysis.html</code>, <code>docs/publishapp.html</code>, <code>docs/shinyapp.html</code>).</li>
+<li>Validated local Shiny application parsing via <code>Rscript -e &quot;parse('SHINY_APP/app.R')&quot;</code>.</li>
 </ul>
 </li>
 </ol>

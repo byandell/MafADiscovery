@@ -1,58 +1,9 @@
-#!/usr/bin/env Rscript
-# render_docs.R
-# Converts Markdown developer guides into standalone, beautifully styled HTML pages
-# for publication via GitHub Pages (docs/ directory).
-
-docs_dir <- "docs"
-if (!dir.exists(docs_dir)) dir.create(docs_dir, recursive = TRUE)
-
-files_to_render <- list(
-  list(src = "SHINY_APP/developer_guide.md", dest = "index.html", title = "Documentation Hub — MafA Discovery"),
-  list(src = "SHINY_APP/about.md",           dest = "about.html", title = "About MafA Discovery — Context & Collaborators"),
-  list(src = "DEVELOPER.md",                 dest = "DEVELOPER.html", title = "Developer Guide — MafA Discovery"),
-  list(src = "shinyapp.md",                  dest = "shinyapp.html", title = "Legacy Standalone Prototypes — MafA Discovery"),
-  list(src = "publishapp.md",                dest = "publishapp.html", title = "Publishing & Deployment Guide — MafA Discovery"),
-  list(src = "redesign.md",                  dest = "redesign.html", title = "UI Redesign & Reactivity — MafA Discovery"),
-  list(src = "qtlanalysis.md",               dest = "qtlanalysis.html", title = "F2 Glycemic QTL Integration — MafA Discovery")
-)
-
-# Convert Markdown to HTML fragment
-md_to_html <- function(md_content) {
-  if (requireNamespace("commonmark", quietly = TRUE)) {
-    commonmark::markdown_html(
-      md_content,
-      extensions = c("table", "strikethrough", "autolink", "tagfilter")
-    )
-  } else if (requireNamespace("markdown", quietly = TRUE)) {
-    markdown::markdownToHTML(text = md_content, fragment.only = TRUE)
-  } else {
-    paste0("<pre>", htmltools::htmlEscape(md_content), "</pre>")
-  }
-}
-
-html_template <- function(title, body_html, current_file) {
-  nav_links <- c(
-    "index.html"       = "Documentation Hub",
-    "about.html"       = "About",
-    "DEVELOPER.html"   = "Developer Guide",
-    "shinyapp.html"    = "Legacy Prototypes",
-    "publishapp.html"  = "Publishing & WASM",
-    "redesign.html"    = "UI Redesign",
-    "qtlanalysis.html" = "QTL Analysis"
-  )
-  
-  nav_items <- vapply(names(nav_links), function(f) {
-    active_cls <- if (f == current_file) ' class="active"' else ''
-    sprintf('<li><a href="%s"%s>%s</a></li>', f, active_cls, nav_links[[f]])
-  }, character(1))
-  nav_html <- paste(nav_items, collapse = "\n          ")
-  
-  sprintf('<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>%s</title>
+  <title>Documentation Hub — MafA Discovery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -202,7 +153,7 @@ html_template <- function(title, body_html, current_file) {
       border: none;
     }
     table {
-      width: 100%%;
+      width: 100%;
       border-collapse: collapse;
       margin: 20px 0;
       font-size: 0.94em;
@@ -246,7 +197,13 @@ html_template <- function(title, body_html, current_file) {
       <nav class="doc-nav">
         <ul>
           <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
-          %s
+          <li><a href="index.html" class="active">Documentation Hub</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="DEVELOPER.html">Developer Guide</a></li>
+          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+          <li><a href="publishapp.html">Publishing & WASM</a></li>
+          <li><a href="redesign.html">UI Redesign</a></li>
+          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -255,7 +212,41 @@ html_template <- function(title, body_html, current_file) {
   
   <main class="doc-container">
     <article class="markdown-body">
-%s
+<h1>MafA Discovery: Developer Guide &amp; Architecture</h1>
+<h3>Core Documentation</h3>
+<ul>
+<li>
+<p><strong><a href="DEVELOPER.html">Developer Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/DEVELOPER.md">source</a>)<br />
+Overall technical guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.</p>
+</li>
+<li>
+<p><strong><a href="shinyapp.html">Legacy Prototypes</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/shinyapp.md">source</a>)<br />
+Technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>) standalone prototype scripts.</p>
+</li>
+<li>
+<p><strong><a href="publishapp.html">Publishing &amp; Deployment</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/publishapp.md">source</a>)<br />
+Shinylive (webR) static WebAssembly deployment architecture, performance benchmarks, and automated GitHub Actions CI configuration.</p>
+</li>
+<li>
+<p><strong><a href="redesign.html">App Redesign &amp; Reactivity</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/redesign.md">source</a>)<br />
+Dynamic view mode lifecycle (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>), discrete filter ergonomics, coordinate auto-scaling, and total state reset.</p>
+</li>
+<li>
+<p><strong><a href="qtlanalysis.html">F2 Glycemic QTL Integration</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/qtlanalysis.md">source</a>)<br />
+F2 glycemic QTL integration, automated 95% CI bounding (<code>ci.low</code> to <code>ci.high</code>), visual interval highlights, and interactive QTL reference table.</p>
+</li>
+<li>
+<p><strong><a href="about.html">About MafA Discovery</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/about.md">source</a>)<br />
+Biological context, Vanderbilt &amp; UW-Madison collaborative consortium, integrated data assets, and software notes.</p>
+</li>
+</ul>
+<hr />
+<h3>Repository Links</h3>
+<ul>
+<li><strong>GitHub Repository:</strong> <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a></li>
+<li><strong>Application Source:</strong> <a href="https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a></li>
+</ul>
+
     </article>
   </main>
 
@@ -263,43 +254,4 @@ html_template <- function(title, body_html, current_file) {
     <p>MafA Discovery Integrated Genomic Explorer &bull; Vanderbilt University / University of Wisconsin-Madison</p>
   </footer>
 </body>
-</html>', title, nav_html, body_html)
-}
-
-cat("Rendering markdown documentation to HTML...\n")
-
-for (item in files_to_render) {
-  md_file <- item$src
-  dest_file <- item$dest
-  title <- item$title
-  
-  if (!file.exists(md_file)) {
-    warning("File not found: ", md_file)
-    next
-  }
-  
-  target_html <- file.path(docs_dir, dest_file)
-  current_file <- dest_file
-  
-  cat(" -", md_file, "->", target_html, "\n")
-  md_content <- paste(readLines(md_file, encoding = "UTF-8", warn = FALSE), collapse = "\n")
-  
-  # Adjust internal relative links for HTML output:
-  md_content <- gsub("\\]\\(DEVELOPER\\.md\\)", "](DEVELOPER.html)", md_content)
-  md_content <- gsub("\\]\\(shinyapp\\.md\\)", "](shinyapp.html)", md_content)
-  md_content <- gsub("\\]\\(publishapp\\.md\\)", "](publishapp.html)", md_content)
-  md_content <- gsub("\\]\\(redesign\\.md\\)", "](redesign.html)", md_content)
-  md_content <- gsub("\\]\\(qtlanalysis\\.md\\)", "](qtlanalysis.html)", md_content)
-  md_content <- gsub("\\]\\(about\\.md\\)", "](about.html)", md_content)
-  md_content <- gsub("https://byandell\\.github\\.io/MafADiscovery/docs/", "", md_content)
-  
-  body_html <- md_to_html(md_content)
-  full_html <- html_template(title, body_html, current_file)
-  
-  writeLines(full_html, target_html, useBytes = TRUE)
-}
-
-# Ensure .nojekyll exists
-writeLines("", file.path(docs_dir, ".nojekyll"))
-
-cat("Documentation successfully rendered to docs/*.html\n")
+</html>

@@ -17,6 +17,9 @@
 * **[F2 Glycemic QTL Integration](https://byandell.github.io/MafADiscovery/docs/qtlanalysis.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/qtlanalysis.md))  
    F2 glycemic QTL integration, automated 95% CI bounding (`ci.low` to `ci.high`), visual interval highlights, and interactive QTL reference table.
 
+* **[About MafA Discovery](https://byandell.github.io/MafADiscovery/docs/about.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/about.md))  
+   Biological context, Vanderbilt & UW-Madison collaborative consortium, integrated data assets, and software notes.
+
 ---
 
 ### Repository Links

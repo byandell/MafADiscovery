@@ -79,85 +79,157 @@ prepare_data <- function() {
 }
 
 # ── 2. UI ──────────────────────────────────────────────────────────────────
+# ── 2. UI ──────────────────────────────────────────────────────────────────
 ui <- fluidPage(
-  tags$head(tags$style(HTML("
-    .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 14px; margin-top: 15px; border-radius: 6px; }
-    .meta-title { font-weight: bold; font-size: 1.15em; color: #856404; }
-    .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; }
-    .btn-rezoom:hover { background-color: #0056b3; color: white; }
-    .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
-    .btn-help:hover { background-color: #117a8b; color: white; }
-    .btn-qtl { background-color: #6f42c1; color: white; font-weight: bold; }
-    .btn-qtl:hover { background-color: #59359a; color: white; }
-    .btn-devguide { background-color: #495057; color: white; font-weight: bold; }
-    .btn-devguide:hover { background-color: #343a40; color: white; }
-    .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.25; }
-    .modal-markdown { line-height: 1.6; font-size: 0.96em; }
-    .modal-markdown h1 { font-size: 1.45em; font-weight: bold; margin-bottom: 14px; color: #222; }
-    .modal-markdown h2 { font-size: 1.25em; font-weight: bold; margin-top: 18px; color: #333; }
-    .modal-markdown h3 { font-size: 1.1em; font-weight: bold; margin-top: 14px; color: #444; }
-    .modal-markdown a { color: #007bff; text-decoration: underline; font-weight: bold; }
-    .modal-markdown a:hover { color: #0056b3; }
-    .modal-markdown ul, .modal-markdown ol { padding-left: 24px; margin-bottom: 12px; }
-    .modal-markdown li { margin-bottom: 6px; }
-    #hover_tooltip {
-      position: absolute;
-      pointer-events: none;
-      background-color: rgba(255, 255, 255, 0.95);
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-      font-size: 13px;
-      z-index: 1000;
-    }
-  ")),
-  tags$script(HTML("
-    $(document).on('shown.bs.modal', function () {
-      $('.modal-markdown a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
-    });
-  "))),
+  title = "MafA Discovery: Integrated Genomic Explorer",
+  tags$head(
+    tags$title("MafA Discovery: Integrated Genomic Explorer"),
+    tags$link(rel = "icon", href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"),
+    tags$style(HTML("
+      body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .well-nav { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 12px 18px; margin-top: 10px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+      .well-ctrl { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-size: 0.92em; }
+      .ctrl-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #edf0f2; padding-bottom: 8px; margin-bottom: 10px; }
+      .ctrl-header .checkbox { margin: 0; }
+      .panel-container { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+      .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 16px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+      .meta-title { font-weight: bold; font-size: 1.18em; color: #856404; }
+      .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; }
+      .btn-rezoom:hover { background-color: #0056b3; color: white; }
+      .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
+      .btn-help:hover { background-color: #117a8b; color: white; }
+      .btn-qtl { background-color: #6f42c1; color: white; font-weight: bold; }
+      .btn-qtl:hover { background-color: #59359a; color: white; }
+      .btn-devguide { background-color: #495057; color: white; font-weight: bold; }
+      .btn-devguide:hover { background-color: #343a40; color: white; }
+      .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.25; }
+      .modal-markdown { line-height: 1.6; font-size: 0.96em; }
+      .modal-markdown h1 { font-size: 1.45em; font-weight: bold; margin-bottom: 14px; color: #222; }
+      .modal-markdown h2 { font-size: 1.25em; font-weight: bold; margin-top: 18px; color: #333; }
+      .modal-markdown h3 { font-size: 1.1em; font-weight: bold; margin-top: 14px; color: #444; }
+      .modal-markdown a { color: #007bff; text-decoration: underline; font-weight: bold; }
+      .modal-markdown a:hover { color: #0056b3; }
+      .modal-markdown ul, .modal-markdown ol { padding-left: 24px; margin-bottom: 12px; }
+      .modal-markdown li { margin-bottom: 6px; }
+      #hover_tooltip {
+        position: absolute;
+        pointer-events: none;
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        font-size: 13px;
+        z-index: 1000;
+      }
+    ")),
+    tags$script(HTML("
+      $(document).on('shown.bs.modal', function () {
+        $('.modal-markdown a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
+      });
+    "))
+  ),
   
-  titlePanel(span("MafA Discovery: Integrated Genomic Explorer", style="font-weight:bold;")),
-  
-  sidebarLayout(
-    sidebarPanel(
-      width = 3,
-      div(style = "display: flex; gap: 8px; margin-bottom: 12px;",
-        actionButton("show_qtl_table", "📊 QTLs", class = "btn-qtl", style = "flex: 1; font-weight: bold;"),
-        actionButton("show_help", "ℹ️ Guide", class = "btn-help", style = "flex: 1; font-weight: bold;")
+  # ── Top Global Navigation Bar ──────────────────────────────────────────
+  div(class = "well-nav",
+    fluidRow(
+      column(width = 2,
+        div(style = "padding-top: 4px;",
+          span("🧬 MafA Discovery", style = "font-weight: 800; font-size: 1.28em; color: #1976d2; display: block; line-height: 1.15;"),
+          span("Genomic Explorer", style = "font-size: 0.84em; color: #666; font-weight: 500;")
+        )
       ),
-      selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL),
-      selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region")),
-      uiOutput("chr_selector_ui"),
-      uiOutput("qtl_selector_ui"),
-      uiOutput("locus_window_ui"),
-      checkboxGroupInput("show_cat", "Visible Categories:", 
-                         choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
-                         selected = c("C57_Specific", "SJL_Specific", "Discordant")),
-      selectInput("min_score", "Min Peak Score:", 
-                  choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
-                              "500" = 500, "1,000" = 1000, "2,000" = 2000, 
-                              "5,000" = 5000), 
-                  selected = 0),
-      hr(),
-      checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE),
-      checkboxGroupInput("snp_impact", "Coding SNP Impact:", 
-                         choices = c("HIGH", "MODERATE"),
-                         selected = c("HIGH", "MODERATE")),
-      sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05),
-      hr(),
-      div(style = "display: flex; gap: 8px; margin-top: 10px;",
-        actionButton("reset_view", "↺ Reset", class = "btn-rezoom", style = "flex: 1;"),
-        actionButton("show_dev_guide", "📖 Dev Guide", class = "btn-devguide", style = "flex: 1;")
+      column(width = 3,
+        selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL, width = "100%")
+      ),
+      column(width = 2,
+        selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region"), width = "100%")
+      ),
+      column(width = 2,
+        uiOutput("context_selector_ui")
+      ),
+      column(width = 3,
+        div(style = "display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 24px;",
+          actionButton("show_qtl_table", "📊 QTLs", class = "btn btn-sm btn-qtl"),
+          actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
+          tags$a(href = "docs/index.html", target = "_blank", rel = "noopener noreferrer",
+                 class = "btn btn-sm btn-devguide", style = "text-decoration: none; display: inline-flex; align-items: center;", "📖 Dev Guide ↗"),
+          actionButton("reset_view", "↺ Reset", class = "btn btn-sm btn-rezoom")
+        )
+      )
+    )
+  ),
+  
+  # ── Macro Manhattan Plot Row ───────────────────────────────────────────
+  fluidRow(
+    column(width = 9,
+      div(class = "panel-container",
+        plotlyOutput("manhattan", height = "480px")
       )
     ),
-    mainPanel(
-      width = 9,
-      plotlyOutput("manhattan", height = "500px"),
-      hr(),
-      plotOutput("schematic", height = "350px"),
-      hr(),
+    column(width = 3,
+      wellPanel(class = "well-ctrl",
+        div(class = "ctrl-header",
+          span(strong("Manhattan Controls"), style = "color: #1976d2; font-size: 1.05em;"),
+          div(style = "margin: 0;",
+            checkboxInput("hide_manhattan_legend", "Hide Legend", value = FALSE)
+          )
+        ),
+        checkboxGroupInput("show_cat", "Visible Peak Categories:", 
+                           choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
+                           selected = c("C57_Specific", "SJL_Specific", "Discordant")),
+        selectInput("min_score", "Min Peak Score:", 
+                    choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
+                                "500" = 500, "1,000" = 1000, "2,000" = 2000, 
+                                "5,000" = 5000), 
+                    selected = 0),
+        hr(style = "margin: 8px 0;"),
+        checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE),
+        conditionalPanel(
+          condition = "input.show_snps_main == true",
+          checkboxGroupInput("snp_impact", "Coding SNP Impact:", 
+                             choices = c("HIGH", "MODERATE"),
+                             selected = c("HIGH", "MODERATE")),
+          sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)
+        )
+      )
+    )
+  ),
+  
+  # ── Micro Locus Schematic Row ──────────────────────────────────────────
+  fluidRow(
+    column(width = 9,
+      div(class = "panel-container",
+        plotOutput("schematic", height = "340px")
+      )
+    ),
+    column(width = 3,
+      wellPanel(class = "well-ctrl",
+        div(class = "ctrl-header",
+          span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),
+          div(style = "margin: 0;",
+            checkboxInput("hide_schematic_legend", "Hide Legend", value = FALSE)
+          )
+        ),
+        selectInput("win_kb", "Locus Window Size:", 
+                    choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
+                                "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
+                                "2,000 kb (2 Mb)" = 2000), 
+                    selected = 500),
+        div(style = "font-size: 0.85em; color: #555; margin-top: 12px; line-height: 1.45; background: #fffdf5; padding: 10px; border-radius: 4px; border: 1px solid #fae8a4;",
+          p(style = "margin-bottom: 5px;", strong("Micro-Architecture Guide:")),
+          p(style = "margin-bottom: 4px;", "• ", strong("TSS arrows:"), " Transcription start site & direction."),
+          p(style = "margin-bottom: 4px;", "• ", strong("Gold line:"), " Active peak center."),
+          p(style = "margin-bottom: 4px;", "• ", strong("Diamonds:"), " High/moderate coding SNPs."),
+          p(style = "margin-bottom: 0;", "• Click any point in the Manhattan plot to reposition.")
+        )
+      )
+    )
+  ),
+  
+  # ── Peak Metadata Row ──────────────────────────────────────────────────
+  fluidRow(
+    column(width = 12,
       uiOutput("metadata_panel")
     )
   )
@@ -188,34 +260,26 @@ server <- function(input, output, session) {
     if (is.null(input$min_score)) 0 else as.numeric(input$min_score)
   })
   
-  # Conditionally render chromosome selector only when in "Chromosome" view mode
-  output$chr_selector_ui <- renderUI({
-    req(input$zoom_mode == "Chromosome")
-    selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr)
+  # Dynamic context selector for top nav bar (Chromosome, QTL, or indicator)
+  output$context_selector_ui <- renderUI({
+    if (input$zoom_mode == "Chromosome") {
+      selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr, width = "100%")
+    } else if (input$zoom_mode == "QTL Region") {
+      sel_val <- if (!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1]
+      selectInput("sel_qtl", "Select F2 Glycemic QTL:", choices = d$qtls$qtl_id, selected = sel_val, width = "100%")
+    } else if (input$zoom_mode == "Locus Zoom") {
+      div(style = "padding-top: 25px;",
+        span(class = "badge", style = "background-color: #856404; font-size: 0.85em; padding: 6px 10px;",
+             if (!is.null(v$active_pk)) paste("Locus:", v$active_pk$Symbol) else "Locus Zoom")
+      )
+    } else {
+      div(style = "padding-top: 25px; color: #6c757d; font-size: 0.88em; font-style: italic;",
+          "Genome-wide view")
+    }
   })
   
-  # Conditionally render QTL selector only when in "QTL Region" view mode
-  output$qtl_selector_ui <- renderUI({
-    req(input$zoom_mode == "QTL Region")
-    sel_val <- if (!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1]
-    selectInput("sel_qtl", "Select F2 Glycemic QTL:", 
-                choices = d$qtls$qtl_id, 
-                selected = sel_val)
-  })
-  
-  # Conditionally render discrete locus window selector only when in "Locus Zoom" view mode
-  output$locus_window_ui <- renderUI({
-    req(input$zoom_mode == "Locus Zoom")
-    cur_val <- if (!is.null(input$win_kb)) input$win_kb else 500
-    selectInput("win_kb", "Locus Window:", 
-                choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
-                            "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
-                            "2,000 kb (2 Mb)" = 2000), 
-                selected = cur_val)
-  })
-  
-  # Reset everything to default initial state
-  observeEvent(input$reset_view, { 
+  # Centralized state reset function
+  reset_to_default_state <- function() {
     v$active_pk   <- NULL
     v$active_snp  <- NULL
     v$last_gene   <- NULL
@@ -227,7 +291,7 @@ server <- function(input, output, session) {
     # Completely clear gene search selectize
     updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
     
-    # Reset View Mode to Genome-Wide
+    # Reset View Mode choices and selection to Genome-Wide
     updateSelectInput(session, "zoom_mode", 
                       choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
                       selected = "Genome-Wide")
@@ -243,17 +307,51 @@ server <- function(input, output, session) {
     updateCheckboxInput(session, "show_snps_main", value = TRUE)
     updateCheckboxGroupInput(session, "snp_impact", selected = c("HIGH", "MODERATE"))
     updateSliderInput(session, "min_phastcons", value = 0.7)
+    
+    # Reset Locus Window size
+    if (!is.null(input$win_kb) && input$win_kb != "500") {
+      updateSelectInput(session, "win_kb", selected = "500")
+    }
+    
+    # Reset legend toggles
+    if (isTRUE(input$hide_manhattan_legend)) {
+      updateCheckboxInput(session, "hide_manhattan_legend", value = FALSE)
+    }
+    if (isTRUE(input$hide_schematic_legend)) {
+      updateCheckboxInput(session, "hide_schematic_legend", value = FALSE)
+    }
+  }
+  
+  # Reset view action button
+  observeEvent(input$reset_view, { 
+    reset_to_default_state()
   })
   
+  # Auto-reset on "Genome-Wide" view mode selection
   observeEvent(input$zoom_mode, { 
     v$user_zoom <- NULL 
-    if (input$zoom_mode == "QTL Region" && !is.null(v$active_qtl)) {
+    if (input$zoom_mode == "Genome-Wide") {
+      has_custom_state <- !is.null(v$active_pk) || !is.null(v$last_gene) || 
+        (!is.null(input$search_gene) && nzchar(input$search_gene)) ||
+        !is.null(v$active_snp) || 
+        !identical(sort(input$show_cat), sort(c("C57_Specific", "SJL_Specific", "Discordant"))) ||
+        (!is.null(input$min_score) && input$min_score != "0") || 
+        (!is.null(input$show_snps_main) && !isTRUE(input$show_snps_main)) || 
+        (!is.null(input$min_phastcons) && input$min_phastcons != 0.7) ||
+        isTRUE(input$hide_manhattan_legend) || isTRUE(input$hide_schematic_legend)
+      
+      if (has_custom_state) {
+        reset_to_default_state()
+      }
+    } else if (input$zoom_mode == "QTL Region" && !is.null(v$active_qtl)) {
+      v$last_gene <- NULL
+      if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
+        updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
+      }
       v$current_chr <- v$active_qtl$Chr
-      if (is.null(v$active_pk)) {
-        local_pks <- d$mafa[Chr == v$active_qtl$Chr & Mid >= v$active_qtl$ci.low * 1e6 & Mid <= v$active_qtl$ci.high * 1e6]
-        if (nrow(local_pks) > 0) {
-          v$active_pk <- local_pks[which.max(`Peak Score`)]
-        }
+      local_pks <- d$mafa[Chr == v$active_qtl$Chr & Mid >= v$active_qtl$ci.low * 1e6 & Mid <= v$active_qtl$ci.high * 1e6]
+      if (nrow(local_pks) > 0) {
+        v$active_pk <- local_pks[which.max(`Peak Score`)]
       }
     }
   })
@@ -273,6 +371,10 @@ server <- function(input, output, session) {
       v$active_qtl   <- q_row[1]
       v$current_chr  <- q_row$Chr[1]
       v$user_zoom    <- NULL
+      v$last_gene    <- NULL
+      if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
+        updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
+      }
       local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
       if (nrow(local_pks) > 0) {
         v$active_pk <- local_pks[which.max(`Peak Score`)]
@@ -300,16 +402,11 @@ server <- function(input, output, session) {
         }
       }
     } else {
-      # Deselected / cleared: revert to whole genome and remove Locus Zoom
-      if (!is.null(v$active_pk) || !is.null(v$last_gene)) {
-        v$active_pk     <- NULL
-        v$active_snp    <- NULL
-        v$last_gene     <- NULL
-        v$user_zoom     <- NULL
-        v$reset_trigger <- v$reset_trigger + 1
-        updateSelectInput(session, "zoom_mode", 
-                          choices = c("Genome-Wide", "Chromosome", "QTL Region"), 
-                          selected = "Genome-Wide")
+      # Deselected / cleared: revert to whole genome only if in Locus Zoom mode from search
+      if (identical(input$zoom_mode, "Locus Zoom") && !is.null(v$last_gene)) {
+        reset_to_default_state()
+      } else {
+        v$last_gene <- NULL
       }
     }
   }, ignoreInit = TRUE)
@@ -347,6 +444,10 @@ server <- function(input, output, session) {
       v$active_qtl   <- q_row[1]
       v$current_chr  <- q_row$Chr[1]
       v$user_zoom    <- NULL
+      v$last_gene    <- NULL
+      if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
+        updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
+      }
       local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
       if (nrow(local_pks) > 0) {
         v$active_pk <- local_pks[which.max(`Peak Score`)]
@@ -670,6 +771,7 @@ server <- function(input, output, session) {
     
     ggplotly(p, tooltip="text", source="manhattan") %>% 
       layout(uirevision = v$reset_trigger, 
+             showlegend = !isTRUE(input$hide_manhattan_legend),
              margin = list(t = 50),
              xaxis = list(ticks = "outside", ticklen = 5, tickcolor = "black"),
              yaxis = list(ticks = "outside", ticklen = 5, tickcolor = "black")) %>% 
@@ -677,7 +779,16 @@ server <- function(input, output, session) {
   })
 
   output$schematic <- renderPlot({
-    req(v$active_pk)
+    if (is.null(v$active_pk)) {
+      return(
+        ggplot() + 
+          annotate("text", x = 0.5, y = 0.5, 
+                   label = "Click any peak or coding SNP on the Manhattan plot above\nor search a gene in the top bar to inspect locus architecture", 
+                   size = 5.2, color = "#6c757d", fontface = "italic") + 
+          theme_void() + 
+          theme(panel.background = element_rect(fill = "#fdfdfe", color = "#e9ecef", linewidth = 1))
+      )
+    }
     pk <- v$active_pk
     win <- get_win_kb() * 1000
     
@@ -760,7 +871,8 @@ server <- function(input, output, session) {
       annotate("text", x = pk$Mid, y = 1.55, label = paste("MafA peak", sub(".*peak_", "", pk$PeakID)), 
                color = "gold4", fontface = "bold", size = 6) +
       geom_text(aes(x = (Start + End)/2, y = y_lev + rect_h + 0.08, label = Symbol, color = Category), fontface = "bold", size = 6) +
-      scale_fill_manual(values=all_fill_colors) + scale_color_manual(values=all_color_colors) +
+      scale_fill_manual(name = "Category / Impact", values=all_fill_colors) + 
+      scale_color_manual(name = "Category / Impact", values=all_color_colors) +
       scale_x_continuous(limits = c(pk$Mid - win, pk$Mid + win), labels = function(x) format(x/1e6, digits=5), expand = c(0, 0)) +
       labs(x=paste(pk$Chr, "(Mbp)"), y="") +
       theme_minimal() + 
@@ -769,7 +881,8 @@ server <- function(input, output, session) {
         panel.grid=element_blank(), 
         axis.line.x = element_line(),
         axis.text.x = element_text(size = 12, face = "bold"),
-        axis.title.x = element_text(size = 14, face = "bold")
+        axis.title.x = element_text(size = 14, face = "bold"),
+        legend.position = if (isTRUE(input$hide_schematic_legend)) "none" else "right"
       )
   })
   

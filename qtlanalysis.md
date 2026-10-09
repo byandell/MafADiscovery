@@ -1,5 +1,8 @@
 # QTL Analysis Updates to App
 
+This is based on analysis reported in the (currently private) repo
+[https://github.com/AttieLab-Systems-Genetics/Vanderbilt](https://github.com/AttieLab-Systems-Genetics/Vanderbilt/tree/main/results).
+
 **Prompt:**
 Develop implementation plan for QTL features and modifications to the app described below.
 
@@ -217,13 +220,14 @@ All features requested in Mark's notes have been implemented in [`SHINY_APP/app.
 ### 6.2 Target Workflow Walkthroughs
 
 #### Walkthrough A: Exploring the Chr16 Glycemic QTL
+
 1. Select **View Mode: QTL Region** $\rightarrow$ choose `AUC_of_AUCs @ Chr16:85.4 Mb (LOD 5.0)` (or click **📊 QTLs** $\rightarrow$ select Chr16 and click **Zoom to QTL**).
 2. The Manhattan plot immediately frames **~50 to 97 Mbp** on Chromosome 16.
 3. Because "Shared" is deselected by default, strain-divergent peaks and high-impact coding SNPs stand out clearly.
 4. Clicking any peak within the interval automatically renders the high-resolution locus schematic (± Locus Window) and highlights proximal DEGs upregulated in SJL backcrossed mice.
 
 #### Walkthrough B: Jumping Directly to the Chr13 QTL
+
 1. From the Chr16 view, open the QTL selector and choose `Slope_AUCs @ Chr13:3.6 Mb (LOD 3.9)` or `AUC_8wk_minus_AUC_4wk @ Chr13:3.6 Mb (LOD 4.4)`.
 2. The view instantly jumps from Chr16 to Chromosome 13, framing **3.61 to 47.86 Mbp**.
 3. Coding variants (orange diamonds for MODERATE, purple for HIGH) and MafA peaks within this interval are immediately accessible for clicking and schematic exploration, requiring zero manual coordinate typing or slider dragging.
-

@@ -46,7 +46,11 @@ jobs:
           Rscript render_docs.R
           mkdir -p site/docs
           cp docs/*.html site/docs/
-          cp docs/*.html site/
+          for f in docs/*.html; do
+            if [ "$(basename "$f")" != "index.html" ]; then
+              cp "$f" site/
+            fi
+          done
           cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/ 2>/dev/null || true
         shell: bash
 
