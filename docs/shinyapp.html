@@ -189,15 +189,30 @@
       background: #ffffff;
     }
   </style>
+  <script>
+    function handleOpenApp(e) {
+      if (window.opener && !window.opener.closed) {
+        e.preventDefault();
+        try {
+          window.opener.focus();
+        } catch (err) {}
+        try {
+          window.close();
+        } catch (err) {}
+        return false;
+      }
+      return true;
+    }
+  </script>
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <a href="../" class="header-brand" onclick="return handleOpenApp(event);">🧬 MafA Discovery</a>
       <nav class="doc-nav">
         <ul>
-          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
-          <li><a href="index.html">Documentation Hub</a></li>
+          <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
+          <li><a href="./">Documentation Hub</a></li>
           <li><a href="about.html">About</a></li>
           <li><a href="DEVELOPER.html">Developer Guide</a></li>
           <li><a href="shinyapp.html" class="active">Legacy Prototypes</a></li>

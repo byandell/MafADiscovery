@@ -189,15 +189,30 @@
       background: #ffffff;
     }
   </style>
+  <script>
+    function handleOpenApp(e) {
+      if (window.opener && !window.opener.closed) {
+        e.preventDefault();
+        try {
+          window.opener.focus();
+        } catch (err) {}
+        try {
+          window.close();
+        } catch (err) {}
+        return false;
+      }
+      return true;
+    }
+  </script>
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <a href="../" class="header-brand" onclick="return handleOpenApp(event);">🧬 MafA Discovery</a>
       <nav class="doc-nav">
         <ul>
-          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
-          <li><a href="index.html">Documentation Hub</a></li>
+          <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
+          <li><a href="./">Documentation Hub</a></li>
           <li><a href="about.html">About</a></li>
           <li><a href="DEVELOPER.html">Developer Guide</a></li>
           <li><a href="shinyapp.html">Legacy Prototypes</a></li>
@@ -978,9 +993,9 @@ p &lt;- p +
 <li>
 <p><strong>Step 16: Externalize &quot;Dev Guide&quot; Button with Shinylive-Aware Dynamic URL Resolution</strong> (Completed):</p>
 <ul>
-<li>Converted button in <code>SHINY_APP/app.R</code> to use client-side <code>resolveDocsUrl()</code> and relative link <code>docs/index.html</code> (<code>target=&quot;_blank&quot;</code>).</li>
-<li><strong>Shinylive Sandboxed Path Handling</strong>: When running on GitHub Pages, Shinylive executes within an embedded iframe under a virtual sub-path (e.g. <code>/MafADiscovery/app_eeyp6ad5eaxg6eqqlyd9/</code>). Standard relative links resolve into that virtual folder, producing garbled 404 links like <code>.../app_xxxx/docs/index.html</code>. <code>resolveDocsUrl()</code> intercepts the click, dynamically strips the virtual <code>/app_[^/]+/</code> segment, and rewrites the target to <code>index.html</code>.</li>
-<li><strong>Local RStudio Sessions</strong>: When running on <code>localhost</code> / <code>127.0.0.1</code>, <code>resolveDocsUrl()</code> keeps the local relative path <code>docs/index.html</code>, which Shiny resolves from disk via <code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>.</li>
+<li>Converted button in <code>SHINY_APP/app.R</code> to use client-side <code>resolveDocsUrl()</code> and clean relative link <code>docs</code> (<code>target=&quot;_blank&quot;</code>).</li>
+<li><strong>Shinylive Sandboxed Path Handling</strong>: When running on GitHub Pages, Shinylive executes within an embedded iframe under a virtual sub-path (e.g. <code>/MafADiscovery/app_eeyp6ad5eaxg6eqqlyd9/</code>). Standard relative links resolve into that virtual folder, producing garbled 404 links like <code>.../app_xxxx/docs</code>. <code>resolveDocsUrl()</code> intercepts the click, dynamically strips the virtual <code>/app_[^/]+/</code> segment, and rewrites the target to clean URL <code>https://byandell.github.io/MafADiscovery/docs</code>.</li>
+<li><strong>Local RStudio Sessions</strong>: When running on <code>localhost</code> / <code>127.0.0.1</code>, <code>resolveDocsUrl()</code> keeps the local clean path <code>docs</code>, which Shiny resolves from disk via <code>shiny::addResourcePath(&quot;docs&quot;, ...)</code>.</li>
 </ul>
 </li>
 <li>
@@ -997,6 +1012,22 @@ p &lt;- p +
 <li>Updated <code>.github/workflows/deploy-shinylive.yaml</code> so that <code>docs/index.html</code> is placed into <code>site/docs/index.html</code> without overwriting <code>site/index.html</code> (the Shinylive WebAssembly application).</li>
 <li>Executed <code>Rscript render_docs.R</code> to compile all Markdown files into standalone HTML pages (<code>docs/index.html</code>, <code>docs/about.html</code>, <code>docs/DEVELOPER.html</code>, <code>docs/redesign.html</code>, <code>docs/qtlanalysis.html</code>, <code>docs/publishapp.html</code>, <code>docs/shinyapp.html</code>).</li>
 <li>Validated local Shiny application parsing via <code>Rscript -e &quot;parse('SHINY_APP/app.R')&quot;</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 19: Smart Return-to-App Navigation from Documentation Pages</strong> (Completed):</p>
+<ul>
+<li>Configured the <strong>&quot;📖 Dev Guide ↗&quot;</strong> button in <code>SHINY_APP/app.R</code> with <code>rel=&quot;opener&quot;</code> so the newly opened documentation tab retains access to <code>window.opener</code>.</li>
+<li>Added <code>handleOpenApp(event)</code> in <code>render_docs.R</code> across all rendered HTML documentation pages. When the user clicks <strong>&quot;🚀 Open App&quot;</strong> (or the brand title in the documentation header), the script checks if <code>window.opener</code> exists and is still open; if so, it brings the original Shiny app tab back into focus (<code>window.opener.focus()</code>) and closes the docs tab (<code>window.close()</code>), returning directly to the active session without re-executing or resetting the Shiny app.</li>
+<li>If the docs page was opened standalone (e.g. via direct URL or bookmark without an opener), the link behaves as a clean hyperlink navigating to <code>../</code> (<code>https://byandell.github.io/MafADiscovery</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 20: Shinylive WebAssembly HTML Shell Browser Title Customization</strong> (Completed):</p>
+<ul>
+<li>Standard Shiny UI title definitions (<code>titlePanel()</code>, <code>fluidPage(title = ...)</code>) only affect the internal DOM; when deployed via Shinylive, the outer wrapper HTML (<code>site/index.html</code>) generated by <code>shinylive::export</code> defaults to <code>&lt;title&gt;Shiny App&lt;/title&gt;</code>.</li>
+<li>Updated <code>.github/workflows/deploy-shinylive.yaml</code> to pass <code>template_params = list(title = &quot;MafA Discovery: Integrated Genomic Explorer&quot;, include_in_head = ...)</code> to <code>shinylive::export()</code>, ensuring the generated outer HTML shell embeds the project title and SVG DNA favicon directly in the page header.</li>
+<li>Added client-side <code>document.title = 'MafA Discovery: Integrated Genomic Explorer';</code> in <code>SHINY_APP/app.R</code> and a post-export <code>sed</code> replacement safeguard in CI.</li>
 </ul>
 </li>
 </ol>

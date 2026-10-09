@@ -124,15 +124,17 @@ ui <- fluidPage(
       }
     ")),
     tags$script(HTML("
+      document.title = 'MafA Discovery: Integrated Genomic Explorer';
+      window.name = 'mafa_app';
       $(document).on('shown.bs.modal', function () {
         $('.modal-markdown a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
       });
       function resolveDocsUrl() {
         if (window.location.pathname.indexOf('/app_') !== -1 || window.location.hostname.includes('github.io')) {
           var base = window.location.pathname.replace(/\\/app_[^\\/]+.*$/, '').replace(/\\/index\\.html$/, '').replace(/\\/$/, '');
-          return window.location.origin + base + '/docs/index.html';
+          return window.location.origin + base + '/docs';
         }
-        return 'docs/index.html';
+        return 'docs';
       }
       $(document).on('click', '#btn-devguide-link', function(e) {
         $(this).attr('href', resolveDocsUrl());
@@ -162,7 +164,7 @@ ui <- fluidPage(
         div(style = "display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 24px;",
           actionButton("show_qtl_table", "📊 QTLs", class = "btn btn-sm btn-qtl"),
           actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
-          tags$a(id = "btn-devguide-link", href = "docs/index.html", target = "_blank", rel = "noopener noreferrer",
+          tags$a(id = "btn-devguide-link", href = "docs", target = "_blank", rel = "opener",
                  onclick = "this.href = resolveDocsUrl();",
                  class = "btn btn-sm btn-devguide", style = "text-decoration: none; display: inline-flex; align-items: center;", "📖 Dev Guide ↗"),
           actionButton("reset_view", "↺ Reset", class = "btn btn-sm btn-rezoom")

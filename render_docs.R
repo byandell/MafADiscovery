@@ -32,7 +32,7 @@ md_to_html <- function(md_content) {
 
 html_template <- function(title, body_html, current_file) {
   nav_links <- c(
-    "index.html"       = "Documentation Hub",
+    "./"               = "Documentation Hub",
     "about.html"       = "About",
     "DEVELOPER.html"   = "Developer Guide",
     "shinyapp.html"    = "Legacy Prototypes",
@@ -42,7 +42,7 @@ html_template <- function(title, body_html, current_file) {
   )
   
   nav_items <- vapply(names(nav_links), function(f) {
-    active_cls <- if (f == current_file) ' class="active"' else ''
+    active_cls <- if (f == current_file || (current_file == "index.html" && f == "./")) ' class="active"' else ''
     sprintf('<li><a href="%s"%s>%s</a></li>', f, active_cls, nav_links[[f]])
   }, character(1))
   nav_html <- paste(nav_items, collapse = "\n          ")
@@ -238,14 +238,29 @@ html_template <- function(title, body_html, current_file) {
       background: #ffffff;
     }
   </style>
+  <script>
+    function handleOpenApp(e) {
+      if (window.opener && !window.opener.closed) {
+        e.preventDefault();
+        try {
+          window.opener.focus();
+        } catch (err) {}
+        try {
+          window.close();
+        } catch (err) {}
+        return false;
+      }
+      return true;
+    }
+  </script>
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a href="../index.html" class="header-brand">🧬 MafA Discovery</a>
+      <a href="../" class="header-brand" onclick="return handleOpenApp(event);">🧬 MafA Discovery</a>
       <nav class="doc-nav">
         <ul>
-          <li><a href="../index.html" class="app-link">🚀 Open App</a></li>
+          <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           %s
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
