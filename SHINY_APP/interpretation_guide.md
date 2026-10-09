@@ -28,5 +28,5 @@ Renders a high-resolution window (± Locus Window) centered on the active MafA b
 ### 3. Navigation Modes
 * **Genome-Wide:** Global linear coordinate view across all 21 mouse chromosomes.
 * **Chromosome:** Focused view of an individual chromosome with absolute Mbp tick marks.
-* **QTL Region:** Direct zoom into the 95% confidence interval boundaries (`ci.low` to `ci.high`) of an F2 glycemic QTL.
+* **QTL Region:** Access the interactive F2 Glycemic QTL Overview Table or zoom into the 95% confidence interval boundaries (`ci.low` to `ci.high`) of a selected QTL, displaying its additive sex QTL LOD scan directly above the Manhattan plot.
 * **Locus Zoom:** Fine-scale schematic centered on an active MafA binding peak.

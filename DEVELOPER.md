@@ -29,7 +29,9 @@ MafADiscovery/
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
 │   ├── B6_SJL_prioritized_protein_coding_SNPs.csv # Coding SNPs with phastCons scores
-│   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
+│   ├── QTLresults/                # F2 glycemic QTL data and trait scan plots
+│   │   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
+│   │   └── scan_chr*.png          # Trait scan PNG plots (AUC and trajectory)
 │   └── README.md                  # Detailed collaborator documentation
 ├── .github/
 │   └── workflows/
@@ -73,8 +75,9 @@ All genomic coordinates in this project are standardized on the mouse **GRCm39 /
 5. **Prioritized Coding SNPs (`B6_SJL_prioritized_protein_coding_SNPs.csv`)**:
    - High- and moderate-impact coding variants between C57BL/6J and SJL/J.
    - Contains evolutionary conservation scores (`phastCons_score`), variant consequences (`csq`), and amino acid alterations (`aa_change`).
-6. **F2 Glycemic QTL Loci (`Top_glycemic_QTL_for_sex_additive_analysis.csv`)**:
-   - Top glycemic QTLs from the B6 x SJL F2 study across traits, markers, chromosomes, peak positions (`pos`), 95% confidence intervals (`ci.low` to `ci.high`), and additive effects (`BB`, `BS`, `SS`).
+6. **F2 Glycemic QTL Loci & Trait Scans (`QTLresults/`)**:
+   - `Top_glycemic_QTL_for_sex_additive_analysis.csv`: Top glycemic QTLs from the B6 x SJL F2 study across traits, markers, chromosomes, peak positions (`pos`), 95% confidence intervals (`ci.low` to `ci.high`), and additive effects (`BB`, `BS`, `SS`).
+   - `scan_chr*.png`: Additive sex QTL scans for each trait/chromosome interval (AUC traits and trajectory traits).
 
 ---
 

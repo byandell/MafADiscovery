@@ -3,8 +3,15 @@
 This is based on analysis reported in the (currently private) repo
 [https://github.com/AttieLab-Systems-Genetics/Vanderbilt](https://github.com/AttieLab-Systems-Genetics/Vanderbilt/tree/main/results).
 
-**Prompt:**
-Develop implementation plan for QTL features and modifications to the app described below.
+## Prompts
+
+* Develop implementation plan for QTL features and modifications to the app described below. Implement upon agreement.
+* Develop a plan to incorporate `SHINY_APP/QTLresults` more fully into the app. Implement plan upon agreement. Details include:
+  * Toggle between showing "Select F2 Glycemic QTL" and "Search Gene Symbol" based on whether "View Mode" is "QTL Region" or something else.
+  * Modify as needed throughout app to find `Top_glycemic_QTL_for_sex_additive_analysis.csv` now in `QTLresults` folder.
+  * Consider how to show this CSV file in main panel. For instance, having Select F2 Glycemic QTL" be blank as default for "View Mode: QTL Region" and then show the table in the main panel before a selection is made, hiding the table once selection is made. This would obviate the need for `QTLs` button in upper right.
+  * Have way to reset selected peak for "QTL Region" to none; also, should reset to none when change QTL Region.
+  * Optionally add scan for trait using PNGs in `QTLresults` folder. Traits beginning with "AUC" would use the *auc*png`files, with others using *traj*png` files. Pick file based on `Chr` for trait. Put this plot above the Peak Score plot, but have checkbox to "Hide Scan".  
 
 ## New QTL Features and Modifications
 
@@ -63,15 +70,15 @@ In `SHINY_APP/app.R`:
    ```
 
 2. **Standardize Coordinates & Identifiers**:
-   - Standardize chromosome naming: `qtls[, Chr := paste0("Chr", Chr)]`.
-   - Ensure numeric conversions: `pos`, `ci.low`, `ci.high`, `lod`, `BB_effect`, `BS_effect`, `SS_effect`.
-   - Create display label for selector:
+   * Standardize chromosome naming: `qtls[, Chr := paste0("Chr", Chr)]`.
+   * Ensure numeric conversions: `pos`, `ci.low`, `ci.high`, `lod`, `BB_effect`, `BS_effect`, `SS_effect`.
+   * Create display label for selector:
 
      ```r
      qtls[, qtl_id := paste0(trait, " @ ", Chr, ":", round(pos, 1), " Mb (LOD ", round(lod, 1), ")")]
      ```
 
-   - Calculate global Manhattan positions using `chr_map`:
+   * Calculate global Manhattan positions using `chr_map`:
 
      ```r
      qtls[chr_map, on = "Chr", `:=`(
@@ -89,13 +96,13 @@ In `SHINY_APP/app.R`:
 
 #### 3.1 Dynamic Sidebar Controls
 
-- **View Mode Selector**:
+* **View Mode Selector**:
 
   ```r
   selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region"))
   ```
 
-- **Conditional QTL Selector (`output$qtl_selector_ui`)**:
+* **Conditional QTL Selector (`output$qtl_selector_ui`)**:
   Renders when `input$zoom_mode == "QTL Region"`:
 
   ```r
@@ -104,7 +111,7 @@ In `SHINY_APP/app.R`:
               selected = v$active_qtl$qtl_id)
   ```
 
-- **Visible Categories Control**:
+* **Visible Categories Control**:
   Re-introduce `checkboxGroupInput("show_cat", "Visible Categories:", ...)` with `"Shared"` deselected by default:
 
   ```r
@@ -117,20 +124,20 @@ In `SHINY_APP/app.R`:
 
 #### 3.2 Interactive QTL Explorer Table
 
-- Add a collapsible card or modal button:
-  - Button in header: `actionButton("show_qtl_table", "📊 View F2 QTL Table", class = "btn btn-outline-primary")`
-  - Modal or bottom panel rendering `tableOutput("qtl_table")` or a formatted interactive table with columns:
+* Add a collapsible card or modal button:
+  * Button in header: `actionButton("show_qtl_table", "📊 View F2 QTL Table", class = "btn btn-outline-primary")`
+  * Modal or bottom panel rendering `tableOutput("qtl_table")` or a formatted interactive table with columns:
     `Trait`, `Chr`, `Peak (Mbp)`, `95% CI (Mbp)`, `LOD`, `Additive Effects (BB, BS, SS)`.
-  - Selecting any row in this table sets the active QTL and switches `View Mode` to `"QTL Region"`.
+  * Selecting any row in this table sets the active QTL and switches `View Mode` to `"QTL Region"`.
 
 ---
 
 ### 4. Reactive State & Server Architecture
 
 1. **Reactive State in `v`**:
-   - `v$active_qtl`: Holds current QTL record (defaults to the top QTL, e.g., Chr16 AUC_of_AUCs LOD 5.07 or first entry).
-   - `v$current_chr`: Synced to `v$active_qtl$Chr` whenever a QTL is selected.
-   - `v$active_pk`: Holds selected MafA peak. If in `"QTL Region"` mode and no peak is selected, auto-select the highest peak within the QTL interval for seamless schematic preview.
+   * `v$active_qtl`: Holds current QTL record (defaults to the top QTL, e.g., Chr16 AUC_of_AUCs LOD 5.07 or first entry).
+   * `v$current_chr`: Synced to `v$active_qtl$Chr` whenever a QTL is selected.
+   * `v$active_pk`: Holds selected MafA peak. If in `"QTL Region"` mode and no peak is selected, auto-select the highest peak within the QTL interval for seamless schematic preview.
 
 2. **QTL Selection Observer (`input$sel_qtl`)**:
 
@@ -171,31 +178,31 @@ In `SHINY_APP/app.R`:
    ```
 
 4. **Visual QTL Annotations on Manhattan Plot**:
-   - In `"QTL Region"` and `"Chromosome"` modes, draw:
-     - A shaded rectangular background: `geom_rect(aes(xmin = q$GlobalCI_Low_Mbp, xmax = q$GlobalCI_High_Mbp, ymin = 0, ymax = Inf), fill = "#E3F2FD", alpha = 0.3)`.
-     - A vertical dashed marker at the QTL peak position: `geom_vline(xintercept = q$GlobalPos_Mbp, linetype = "dashed", color = "#1976D2")`.
-     - Text annotation indicating QTL Trait and LOD score.
+   * In `"QTL Region"` and `"Chromosome"` modes, draw:
+     * A shaded rectangular background: `geom_rect(aes(xmin = q$GlobalCI_Low_Mbp, xmax = q$GlobalCI_High_Mbp, ymin = 0, ymax = Inf), fill = "#E3F2FD", alpha = 0.3)`.
+     * A vertical dashed marker at the QTL peak position: `geom_vline(xintercept = q$GlobalPos_Mbp, linetype = "dashed", color = "#1976D2")`.
+     * Text annotation indicating QTL Trait and LOD score.
 
 ---
 
 ### 5. Detailed Step-by-Step Implementation Sequence
 
 1. **Step 1: Load and Process QTL Data** (Completed):
-   - Updated `prepare_data()` to ingest `Top_glycemic_QTL_for_sex_additive_analysis.csv` and calculate linear global coordinates (`GlobalPos_Mbp`, `GlobalCI_Low_Mbp`, `GlobalCI_High_Mbp`).
+   * Updated `prepare_data()` to ingest `Top_glycemic_QTL_for_sex_additive_analysis.csv` and calculate linear global coordinates (`GlobalPos_Mbp`, `GlobalCI_Low_Mbp`, `GlobalCI_High_Mbp`).
 2. **Step 2: Add Category Filter with Default Deselect "Shared"** (Completed):
-   - Re-introduced `checkboxGroupInput("show_cat", ...)` in the sidebar with `selected = c("C57_Specific", "SJL_Specific", "Discordant")` (Shared deselected by default).
-   - Wired `filtered_peaks`, `schematic`, and `metadata_panel` to respect `input$show_cat`.
+   * Re-introduced `checkboxGroupInput("show_cat", ...)` in the sidebar with `selected = c("C57_Specific", "SJL_Specific", "Discordant")` (Shared deselected by default).
+   * Wired `filtered_peaks`, `schematic`, and `metadata_panel` to respect `input$show_cat`.
 3. **Step 3: Implement "QTL Region" View Mode** (Completed):
-   - Expanded `selectInput("zoom_mode", ...)` options to include `"QTL Region"`.
-   - Added dynamic `output$qtl_selector_ui` for QTL dropdown selection.
-   - Wired x-axis boundaries to `[ci.low, ci.high]` of the active QTL with local Mbp coordinate ticks.
+   * Expanded `selectInput("zoom_mode", ...)` options to include `"QTL Region"`.
+   * Added dynamic `output$qtl_selector_ui` for QTL dropdown selection.
+   * Wired x-axis boundaries to `[ci.low, ci.high]` of the active QTL with local Mbp coordinate ticks.
 4. **Step 4: Annotate Manhattan Plot with QTL Interval** (Completed):
-   - Rendered interval highlight (translucent blue rectangle) and peak position marker (dashed line) for the active QTL.
-   - Formatted local Mbp tick marks within the QTL confidence interval.
+   * Rendered interval highlight (translucent blue rectangle) and peak position marker (dashed line) for the active QTL.
+   * Formatted local Mbp tick marks within the QTL confidence interval.
 5. **Step 5: Add F2 QTL Table Modal / Viewer** (Completed):
-   - Added quick-reference table modal (`input$show_qtl_table`) displaying all 11 QTL loci with quick-zoom action.
+   * Added quick-reference table modal (`input$show_qtl_table`) displaying all 11 QTL loci with quick-zoom action.
 6. **Step 6: Update Documentation & Verification** (Completed):
-   - Updated `DEVELOPER.md` architecture and reactive lifecycle.
+   * Updated `DEVELOPER.md` architecture and reactive lifecycle.
 
 ---
 
@@ -231,3 +238,32 @@ All features requested in Mark's notes have been implemented in [`SHINY_APP/app.
 1. From the Chr16 view, open the QTL selector and choose `Slope_AUCs @ Chr13:3.6 Mb (LOD 3.9)` or `AUC_8wk_minus_AUC_4wk @ Chr13:3.6 Mb (LOD 4.4)`.
 2. The view instantly jumps from Chr16 to Chromosome 13, framing **3.61 to 47.86 Mbp**.
 3. Coding variants (orange diamonds for MODERATE, purple for HIGH) and MafA peaks within this interval are immediately accessible for clicking and schematic exploration, requiring zero manual coordinate typing or slider dragging.
+
+---
+
+## 7. Full `QTLresults` Integration & In-Panel Exploration
+
+Following the second prompt specifications, the application now incorporates `SHINY_APP/QTLresults` as a first-class feature of the explorer.
+
+### 7.1 Key Enhancements
+
+1. **Data Organization in `QTLresults/`**:
+   * `Top_glycemic_QTL_for_sex_additive_analysis.csv` is resolved from `QTLresults/` with fallbacks for local and Shiny server deployments.
+   * Resource path `QTLresults` is registered to cleanly serve static scan PNGs.
+2. **Dynamic Top Navigation Toggle**:
+   * When **View Mode** is `"QTL Region"`, the primary input slot displays **"Select F2 Glycemic QTL"**.
+   * In `"Genome-Wide"` or `"Chromosome"` view, the slot displays **"Search Gene Symbol"**.
+3. **In-Panel Interactive QTL Overview Table**:
+   * In `"QTL Region"` mode, the default selection is blank.
+   * While blank, the main panel displays an interactive table of all 11 F2 glycemic QTLs with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an **"Inspect QTL →"** button for each row.
+   * Selecting a QTL hides the table and reveals the QTL region view.
+   * A **"← Back to QTL Overview Table"** action link returns to the table anytime.
+   * Obviates the need for the header `📊 QTLs` modal button, which has been removed.
+4. **Peak Selection & Reset Mechanics**:
+   * Entering `"QTL Region"` or changing QTL selection resets the active peak (`v$active_pk <- NULL`).
+   * An explicit **"✕ Deselect Peak"** button appears in the navbar and schematic sidebar whenever a peak is active, allowing quick return to an unselected state.
+5. **Additive QTL Trait Scan PNGs**:
+   * Active QTLs display their corresponding additive scan plot from `QTLresults/` directly above the Manhattan plot:
+     * Traits starting with `"AUC"` map to `scan_chr<Chr>_auc_sex_additive.png`.
+     * Other traits (e.g. `Slope_AUCs`) map to `scan_chr<Chr>_traj_sex_additive.png`.
+   * A **"Hide QTL Scan Plot"** checkbox in the Manhattan controls allows toggling scan visibility.

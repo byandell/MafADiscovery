@@ -31,9 +31,9 @@ All genomic coordinates across datasets are aligned to the mouse **GRCm39 (mm39)
 4. **Prioritized Coding Polymorphisms (`B6_SJL_prioritized_protein_coding_SNPs.csv`)**:
    * Protein-coding sequence variants between B6 and SJL classified by impact severity (`HIGH` and `MODERATE`).
    * Annotated with evolutionary conservation scores (`phastCons`), consequence types (`csq`), and amino acid substitutions (`aa_change`).
-5. **F2 Glycemic QTL Loci (`Top_glycemic_QTL_for_sex_additive_analysis.csv`)**:
+5. **F2 Glycemic QTL Loci & Scans (`QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv`)**:
    * Top quantitative trait loci from the B6 $\times$ SJL F2 intercross study across glycemic traits (e.g., AUC, glucose response).
-   * Annotated with peak marker coordinates, LOD scores, 95% Bayesian confidence intervals (`ci.low` to `ci.high`), and additive effect models (`BB`, `BS`, `SS`).
+   * Annotated with peak marker coordinates, LOD scores, 95% Bayesian confidence intervals (`ci.low` to `ci.high`), additive effect models (`BB`, `BS`, `SS`), and corresponding trait scan plots.
 
 ---
 

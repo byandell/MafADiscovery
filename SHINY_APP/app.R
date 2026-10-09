@@ -6,13 +6,14 @@
 # 3. Run the following lines to install dependencies:
 #    install.packages(c("shiny", "data.table", "ggplot2", "plotly"))
 #
-# 4. REQUIRED FILES (Ensure these 8 files are in the same folder):
+# 4. REQUIRED FILES (Ensure these files and directories are present):
 #    - app.R                                           (This script)
 #    - MafA_Peaks_with_SNPs_v3.csv                     (Peak data)
 #    - Master_DEG_Strain_Comparison_v3.csv             (DEG data)
 #    - mouse_genes_mm39_v3.csv                         (Genomic backbone)
 #    - B6_SJL_prioritized_protein_coding_SNPs.csv      (SNP data)
-#    - Top_glycemic_QTL_for_sex_additive_analysis.csv  (F2 Glycemic QTL data)
+#    - QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv  (F2 Glycemic QTL data)
+#    - QTLresults/scan_chr*.png                        (Additive QTL scan plots)
 #    - interpretation_guide.md                         (Interpretation modal guide)
 #    - developer_guide.md                              (Developer architecture modal)
 #
@@ -28,6 +29,12 @@ library(plotly)
 docs_path <- if (dir.exists("docs")) "docs" else if (dir.exists("../docs")) "../docs" else NULL
 if (!is.null(docs_path)) {
   shiny::addResourcePath("docs", normalizePath(docs_path))
+}
+
+# Serve QTLresults directory for scan plot images
+qtl_res_path <- if (dir.exists("QTLresults")) "QTLresults" else if (dir.exists("SHINY_APP/QTLresults")) "SHINY_APP/QTLresults" else NULL
+if (!is.null(qtl_res_path)) {
+  shiny::addResourcePath("QTLresults", normalizePath(qtl_res_path))
 }
 
 # ── 1. DATA ENGINE ────────────────────────────────────────────────────────
@@ -49,7 +56,14 @@ prepare_data <- function() {
   mafa      <- fread("MafA_Peaks_with_SNPs_v3.csv")
   all_genes <- fread("mouse_genes_mm39_v3.csv")
   snps      <- fread("B6_SJL_prioritized_protein_coding_SNPs.csv")
-  qtls      <- fread("Top_glycemic_QTL_for_sex_additive_analysis.csv")
+  qtl_csv_candidates <- c(
+    "QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv",
+    "SHINY_APP/QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv",
+    "Top_glycemic_QTL_for_sex_additive_analysis.csv",
+    "SHINY_APP/Top_glycemic_QTL_for_sex_additive_analysis.csv"
+  )
+  qtl_csv_path <- qtl_csv_candidates[file.exists(qtl_csv_candidates)][1]
+  qtls      <- fread(qtl_csv_path)
   
   # Format SNP data
   snps[, Chr := paste0("Chr", chr)]
@@ -122,6 +136,16 @@ ui <- fluidPage(
         font-size: 13px;
         z-index: 1000;
       }
+      #qtl_scan_img img {
+        max-width: 100%;
+        max-height: 320px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 4px;
+      }
+      .table-qtl th { background-color: #f1f4f9; font-weight: 600; font-size: 0.9em; }
+      .table-qtl td { vertical-align: middle !important; font-size: 0.92em; }
     ")),
     tags$script(HTML("
       document.title = 'MafA Discovery: Integrated Genomic Explorer';
@@ -152,7 +176,14 @@ ui <- fluidPage(
         )
       ),
       column(width = 3,
-        selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL, width = "100%")
+        conditionalPanel(
+          condition = "input.zoom_mode == 'QTL Region'",
+          selectInput("sel_qtl", "Select F2 Glycemic QTL:", choices = c("— Select an F2 Glycemic QTL —" = ""), width = "100%")
+        ),
+        conditionalPanel(
+          condition = "input.zoom_mode != 'QTL Region'",
+          selectizeInput("search_gene", "Search Gene Symbol:", choices = NULL, width = "100%")
+        )
       ),
       column(width = 2,
         selectInput("zoom_mode", "View Mode:", choices = c("Genome-Wide", "Chromosome", "QTL Region"), width = "100%")
@@ -162,7 +193,6 @@ ui <- fluidPage(
       ),
       column(width = 3,
         div(style = "display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 24px;",
-          actionButton("show_qtl_table", "📊 QTLs", class = "btn btn-sm btn-qtl"),
           actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
           tags$a(id = "btn-devguide-link", href = "docs", target = "_blank", rel = "opener",
                  onclick = "this.href = resolveDocsUrl();",
@@ -173,77 +203,124 @@ ui <- fluidPage(
     )
   ),
   
-  # ── Macro Manhattan Plot Row ───────────────────────────────────────────
-  fluidRow(
-    column(width = 9,
-      div(class = "panel-container",
-        plotlyOutput("manhattan", height = "480px")
-      )
-    ),
-    column(width = 3,
-      wellPanel(class = "well-ctrl",
-        div(class = "ctrl-header",
-          span(strong("Manhattan Controls"), style = "color: #1976d2; font-size: 1.05em;"),
-          div(style = "margin: 0;",
-            checkboxInput("hide_manhattan_legend", "Hide Legend", value = FALSE)
+  # ── Main Content Area: QTL Overview Table vs Genomic Views ────────────
+  conditionalPanel(
+    condition = "input.zoom_mode == 'QTL Region' && (input.sel_qtl == '' || !input.sel_qtl)",
+    fluidRow(
+      column(width = 12,
+        div(class = "panel-container", style = "padding: 22px;",
+          div(style = "display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6f42c1; padding-bottom: 10px; margin-bottom: 14px;",
+            div(
+              span("📊 Top Glycemic QTLs (F2 Study — Sex Additive Analysis)", 
+                   style = "font-weight: 800; font-size: 1.3em; color: #6f42c1;"),
+              p("Select a QTL row below or pick one from the top dropdown to view its genomic confidence interval, trait scan plot, MafA ChIP peaks, and strain-divergent coding SNPs.", 
+                style = "color: #555; margin: 4px 0 0 0; font-size: 0.94em;")
+            )
+          ),
+          div(style = "overflow-x: auto;",
+            uiOutput("qtl_interactive_table")
           )
-        ),
-        checkboxGroupInput("show_cat", "Visible Peak Categories:", 
-                           choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
-                           selected = c("C57_Specific", "SJL_Specific", "Discordant")),
-        selectInput("min_score", "Min Peak Score:", 
-                    choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
-                                "500" = 500, "1,000" = 1000, "2,000" = 2000, 
-                                "5,000" = 5000), 
-                    selected = 0),
-        hr(style = "margin: 8px 0;"),
-        checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE),
+        )
+      )
+    )
+  ),
+  conditionalPanel(
+    condition = "input.zoom_mode != 'QTL Region' || (input.sel_qtl != '' && input.sel_qtl)",
+    # ── Macro Manhattan Plot Row ───────────────────────────────────────────
+    fluidRow(
+      column(width = 9,
+        # QTL Scan Plot (Above Manhattan Plot)
         conditionalPanel(
-          condition = "input.show_snps_main == true",
-          checkboxGroupInput("snp_impact", "Coding SNP Impact:", 
-                             choices = c("HIGH", "MODERATE"),
-                             selected = c("HIGH", "MODERATE")),
-          sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)
-        )
-      )
-    )
-  ),
-  
-  # ── Micro Locus Schematic Row ──────────────────────────────────────────
-  fluidRow(
-    column(width = 9,
-      div(class = "panel-container",
-        plotOutput("schematic", height = "340px")
-      )
-    ),
-    column(width = 3,
-      wellPanel(class = "well-ctrl",
-        div(class = "ctrl-header",
-          span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),
-          div(style = "margin: 0;",
-            checkboxInput("hide_schematic_legend", "Hide Legend", value = FALSE)
+          condition = "input.zoom_mode == 'QTL Region' && input.sel_qtl != '' && input.hide_scan == false",
+          div(class = "panel-container", style = "margin-bottom: 14px; padding: 12px 16px; background: #ffffff;",
+            div(style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;",
+              span(strong(textOutput("qtl_scan_title", inline = TRUE)), style = "color: #1976d2; font-size: 1.02em;"),
+              actionLink("back_to_qtl_table", "← Back to QTL Overview Table", style = "font-size: 0.9em; font-weight: 600; color: #6f42c1;")
+            ),
+            div(style = "text-align: center;",
+              imageOutput("qtl_scan_img", height = "auto")
+            )
           )
         ),
-        selectInput("win_kb", "Locus Window Size:", 
-                    choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
-                                "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
-                                "2,000 kb (2 Mb)" = 2000), 
-                    selected = 500),
-        div(style = "font-size: 0.85em; color: #555; margin-top: 12px; line-height: 1.45; background: #fffdf5; padding: 10px; border-radius: 4px; border: 1px solid #fae8a4;",
-          p(style = "margin-bottom: 5px;", strong("Micro-Architecture Guide:")),
-          p(style = "margin-bottom: 4px;", "• ", strong("TSS arrows:"), " Transcription start site & direction."),
-          p(style = "margin-bottom: 4px;", "• ", strong("Gold line:"), " Active peak center."),
-          p(style = "margin-bottom: 4px;", "• ", strong("Diamonds:"), " High/moderate coding SNPs."),
-          p(style = "margin-bottom: 0;", "• Click any point in the Manhattan plot to reposition.")
+        conditionalPanel(
+          condition = "input.zoom_mode == 'QTL Region' && input.sel_qtl != '' && input.hide_scan == true",
+          div(style = "margin-bottom: 8px; display: flex; justify-content: flex-end;",
+            actionLink("back_to_qtl_table_mini", "← Back to QTL Overview Table", style = "font-size: 0.9em; font-weight: 600; color: #6f42c1;")
+          )
+        ),
+        div(class = "panel-container",
+          plotlyOutput("manhattan", height = "480px")
+        )
+      ),
+      column(width = 3,
+        wellPanel(class = "well-ctrl",
+          div(class = "ctrl-header",
+            span(strong("Manhattan Controls"), style = "color: #1976d2; font-size: 1.05em;"),
+            div(style = "margin: 0;",
+              checkboxInput("hide_manhattan_legend", "Hide Legend", value = FALSE)
+            )
+          ),
+          conditionalPanel(
+            condition = "input.zoom_mode == 'QTL Region' && input.sel_qtl != ''",
+            checkboxInput("hide_scan", "Hide QTL Scan Plot", value = FALSE),
+            hr(style = "margin: 8px 0;")
+          ),
+          checkboxGroupInput("show_cat", "Visible Peak Categories:", 
+                             choices = c("Shared", "C57_Specific", "SJL_Specific", "Discordant"),
+                             selected = c("C57_Specific", "SJL_Specific", "Discordant")),
+          selectInput("min_score", "Min Peak Score:", 
+                      choices = c("All (0)" = 0, "100" = 100, "200" = 200, 
+                                  "500" = 500, "1,000" = 1000, "2,000" = 2000, 
+                                  "5,000" = 5000), 
+                      selected = 0),
+          hr(style = "margin: 8px 0;"),
+          checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE),
+          conditionalPanel(
+            condition = "input.show_snps_main == true",
+            checkboxGroupInput("snp_impact", "Coding SNP Impact:", 
+                               choices = c("HIGH", "MODERATE"),
+                               selected = c("HIGH", "MODERATE")),
+            sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)
+          )
         )
       )
-    )
-  ),
-  
-  # ── Peak Metadata Row ──────────────────────────────────────────────────
-  fluidRow(
-    column(width = 12,
-      uiOutput("metadata_panel")
+    ),
+    # ── Micro Locus Schematic Row ──────────────────────────────────────────
+    fluidRow(
+      column(width = 9,
+        div(class = "panel-container",
+          plotOutput("schematic", height = "340px")
+        )
+      ),
+      column(width = 3,
+        wellPanel(class = "well-ctrl",
+          div(class = "ctrl-header",
+            span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),
+            div(style = "margin: 0;",
+              checkboxInput("hide_schematic_legend", "Hide Legend", value = FALSE)
+            )
+          ),
+          selectInput("win_kb", "Locus Window Size:", 
+                      choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
+                                  "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
+                                  "2,000 kb (2 Mb)" = 2000), 
+                      selected = 500),
+          uiOutput("schematic_peak_reset_ui"),
+          div(style = "font-size: 0.85em; color: #555; margin-top: 12px; line-height: 1.45; background: #fffdf5; padding: 10px; border-radius: 4px; border: 1px solid #fae8a4;",
+            p(style = "margin-bottom: 5px;", strong("Micro-Architecture Guide:")),
+            p(style = "margin-bottom: 4px;", "• ", strong("TSS arrows:"), " Transcription start site & direction."),
+            p(style = "margin-bottom: 4px;", "• ", strong("Gold line:"), " Active peak center."),
+            p(style = "margin-bottom: 4px;", "• ", strong("Diamonds:"), " High/moderate coding SNPs."),
+            p(style = "margin-bottom: 0;", "• Click any point in the Manhattan plot to reposition.")
+          )
+        )
+      )
+    ),
+    # ── Peak Metadata Row ──────────────────────────────────────────────────
+    fluidRow(
+      column(width = 12,
+        uiOutput("metadata_panel")
+      )
     )
   )
 )
@@ -254,7 +331,7 @@ server <- function(input, output, session) {
   v <- reactiveValues(
     active_pk   = NULL, 
     active_snp  = NULL, 
-    active_qtl  = d$qtls[1], 
+    active_qtl  = NULL, 
     last_gene   = NULL, 
     current_chr = "Chr1", 
     reset_trigger = 0, 
@@ -263,6 +340,7 @@ server <- function(input, output, session) {
   cat_colors <- c("Shared"="#228B22", "C57_Specific"="#0000CC", "SJL_Specific"="#CC0000", "Discordant"="#FF8C00", "Non-DE"="#D3D3D3")
   
   updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), server = TRUE)
+  updateSelectInput(session, "sel_qtl", choices = c("— Select an F2 Glycemic QTL —" = "", d$qtls$qtl_id), selected = "")
   
   # Discrete input accessors with fallbacks
   get_win_kb <- reactive({
@@ -278,8 +356,18 @@ server <- function(input, output, session) {
     if (input$zoom_mode == "Chromosome") {
       selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr, width = "100%")
     } else if (input$zoom_mode == "QTL Region") {
-      sel_val <- if (!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1]
-      selectInput("sel_qtl", "Select F2 Glycemic QTL:", choices = d$qtls$qtl_id, selected = sel_val, width = "100%")
+      if (!is.null(v$active_pk)) {
+        actionButton("clear_active_pk", "✕ Deselect Peak", class = "btn btn-sm btn-outline-warning", 
+                     style = "margin-top: 25px; font-weight: 600;", title = "Clear selected MafA peak")
+      } else if (!is.null(v$active_qtl)) {
+        div(style = "padding-top: 25px;",
+          span(class = "badge", style = "background-color: #6f42c1; font-size: 0.85em; padding: 6px 10px;",
+               paste("QTL:", v$active_qtl$Chr))
+        )
+      } else {
+        div(style = "padding-top: 25px; color: #6c757d; font-size: 0.88em; font-style: italic;",
+            "Overview Table")
+      }
     } else if (input$zoom_mode == "Locus Zoom") {
       div(style = "padding-top: 25px;",
         span(class = "badge", style = "background-color: #856404; font-size: 0.85em; padding: 6px 10px;",
@@ -290,6 +378,41 @@ server <- function(input, output, session) {
           "Genome-wide view")
     }
   })
+
+  # Dynamic schematic reset button in sidebar
+  output$schematic_peak_reset_ui <- renderUI({
+    if (!is.null(v$active_pk)) {
+      actionButton("clear_active_pk_schem", "✕ Deselect Current Peak", 
+                   class = "btn btn-sm btn-outline-warning", 
+                   style = "width: 100%; margin-top: 10px; font-weight: 600;")
+    } else {
+      NULL
+    }
+  })
+
+  # Observers for peak deselect actions
+  observeEvent(input$clear_active_pk, {
+    v$active_pk  <- NULL
+    v$active_snp <- NULL
+  })
+  observeEvent(input$clear_active_pk_schem, {
+    v$active_pk  <- NULL
+    v$active_snp <- NULL
+  })
+
+  # Observers for returning to QTL table
+  observeEvent(input$back_to_qtl_table, {
+    updateSelectInput(session, "sel_qtl", selected = "")
+    v$active_qtl <- NULL
+    v$active_pk  <- NULL
+    v$active_snp <- NULL
+  })
+  observeEvent(input$back_to_qtl_table_mini, {
+    updateSelectInput(session, "sel_qtl", selected = "")
+    v$active_qtl <- NULL
+    v$active_pk  <- NULL
+    v$active_snp <- NULL
+  })
   
   # Centralized state reset function
   reset_to_default_state <- function() {
@@ -297,12 +420,13 @@ server <- function(input, output, session) {
     v$active_snp  <- NULL
     v$last_gene   <- NULL
     v$current_chr <- "Chr1"
-    v$active_qtl  <- d$qtls[1]
+    v$active_qtl  <- NULL
     v$user_zoom   <- NULL
     v$reset_trigger <- v$reset_trigger + 1 
     
-    # Completely clear gene search selectize
+    # Completely clear gene search selectize and QTL select
     updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
+    updateSelectInput(session, "sel_qtl", choices = c("— Select an F2 Glycemic QTL —" = "", d$qtls$qtl_id), selected = "")
     
     # Reset View Mode choices and selection to Genome-Wide
     updateSelectInput(session, "zoom_mode", 
@@ -326,12 +450,15 @@ server <- function(input, output, session) {
       updateSelectInput(session, "win_kb", selected = "500")
     }
     
-    # Reset legend toggles
+    # Reset legend and scan toggles
     if (isTRUE(input$hide_manhattan_legend)) {
       updateCheckboxInput(session, "hide_manhattan_legend", value = FALSE)
     }
     if (isTRUE(input$hide_schematic_legend)) {
       updateCheckboxInput(session, "hide_schematic_legend", value = FALSE)
+    }
+    if (!is.null(input$hide_scan) && isTRUE(input$hide_scan)) {
+      updateCheckboxInput(session, "hide_scan", value = FALSE)
     }
   }
   
@@ -356,15 +483,21 @@ server <- function(input, output, session) {
       if (has_custom_state) {
         reset_to_default_state()
       }
-    } else if (input$zoom_mode == "QTL Region" && !is.null(v$active_qtl)) {
-      v$last_gene <- NULL
+    } else if (input$zoom_mode == "QTL Region") {
+      v$last_gene  <- NULL
+      v$active_pk  <- NULL
+      v$active_snp <- NULL
       if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
         updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
       }
-      v$current_chr <- v$active_qtl$Chr
-      local_pks <- d$mafa[Chr == v$active_qtl$Chr & Mid >= v$active_qtl$ci.low * 1e6 & Mid <= v$active_qtl$ci.high * 1e6]
-      if (nrow(local_pks) > 0) {
-        v$active_pk <- local_pks[which.max(`Peak Score`)]
+      if (is.null(input$sel_qtl) || input$sel_qtl == "") {
+        v$active_qtl <- NULL
+      } else {
+        q_row <- d$qtls[qtl_id == input$sel_qtl]
+        if (nrow(q_row) > 0) {
+          v$active_qtl  <- q_row[1]
+          v$current_chr <- q_row$Chr[1]
+        }
       }
     }
   })
@@ -378,19 +511,23 @@ server <- function(input, output, session) {
 
   # QTL Selection observer
   observeEvent(input$sel_qtl, {
-    req(input$sel_qtl)
+    if (is.null(input$sel_qtl) || input$sel_qtl == "") {
+      v$active_qtl <- NULL
+      v$active_pk  <- NULL
+      v$active_snp <- NULL
+      v$user_zoom  <- NULL
+      return()
+    }
     q_row <- d$qtls[qtl_id == input$sel_qtl]
     if (nrow(q_row) > 0) {
       v$active_qtl   <- q_row[1]
       v$current_chr  <- q_row$Chr[1]
       v$user_zoom    <- NULL
       v$last_gene    <- NULL
+      v$active_pk    <- NULL   # Reset to none when changing QTL Region!
+      v$active_snp   <- NULL
       if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
         updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
-      }
-      local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
-      if (nrow(local_pks) > 0) {
-        v$active_pk <- local_pks[which.max(`Peak Score`)]
       }
     }
   })
@@ -424,60 +561,10 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = TRUE)
 
-  # Interactive QTL Reference Table Modal
-  observeEvent(input$show_qtl_table, {
-    showModal(modalDialog(
-      title = span(strong("Top Glycemic QTLs (F2 Study - Sex Additive Analysis)"), style = "color: #6f42c1;"),
-      div(
-        p("Select a QTL below to jump directly to its confidence interval boundaries on the Manhattan plot:"),
-        div(style = "display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;",
-          div(style = "flex: 1;",
-            selectInput("modal_qtl_select", "Select QTL:", choices = d$qtls$qtl_id, 
-                        selected = if(!is.null(v$active_qtl)) v$active_qtl$qtl_id else d$qtls$qtl_id[1],
-                        width = "100%")
-          ),
-          actionButton("jump_qtl_btn", "Zoom to QTL", class = "btn-qtl", 
-                       style = "margin-bottom: 15px; height: 38px;")
-        ),
-        hr(),
-        div(style = "max-height: 400px; overflow-y: auto;",
-          tableOutput("qtl_summary_table")
-        )
-      ),
-      size = "l",
-      easyClose = TRUE,
-      footer = modalButton("Close")
-    ))
-  })
-
-  observeEvent(input$jump_qtl_btn, {
-    req(input$modal_qtl_select)
-    q_row <- d$qtls[qtl_id == input$modal_qtl_select]
-    if (nrow(q_row) > 0) {
-      v$active_qtl   <- q_row[1]
-      v$current_chr  <- q_row$Chr[1]
-      v$user_zoom    <- NULL
-      v$last_gene    <- NULL
-      if (!is.null(input$search_gene) && nzchar(input$search_gene)) {
-        updateSelectizeInput(session, "search_gene", choices = c("", sort(unique(d$genes$Symbol))), selected = "", server = TRUE)
-      }
-      local_pks <- d$mafa[Chr == q_row$Chr[1] & Mid >= q_row$ci.low * 1e6 & Mid <= q_row$ci.high * 1e6]
-      if (nrow(local_pks) > 0) {
-        v$active_pk <- local_pks[which.max(`Peak Score`)]
-      }
-      updateSelectInput(session, "zoom_mode", 
-                        choices = c("Genome-Wide", "Chromosome", "QTL Region", if (!is.null(v$active_pk)) "Locus Zoom"), 
-                        selected = "QTL Region")
-      removeModal()
-    }
-  })
-
-  output$qtl_summary_table <- renderTable({
+  # Interactive In-Panel QTL Overview Table
+  output$qtl_interactive_table <- renderUI({
     tab <- copy(d$qtls)
     tab[, `:=`(
-      Trait = trait,
-      Marker = marker,
-      Chr = Chr,
       `Peak (Mb)` = sprintf("%.2f", pos),
       `95% CI (Mb)` = paste0(sprintf("%.2f", ci.low), " – ", sprintf("%.2f", ci.high)),
       LOD = sprintf("%.2f", lod),
@@ -485,8 +572,92 @@ server <- function(input, output, session) {
       `BS Effect` = sprintf("%.3f", BS_effect),
       `SS Effect` = sprintf("%.3f", SS_effect)
     )]
-    tab[, .(Trait, Marker, Chr, `Peak (Mb)`, `95% CI (Mb)`, LOD, `BB Effect`, `BS Effect`, `SS Effect`)]
-  }, striped = TRUE, hover = TRUE, bordered = TRUE, spacing = "s")
+    
+    rows <- lapply(seq_len(nrow(tab)), function(i) {
+      row <- tab[i]
+      tags$tr(
+        tags$td(strong(row$trait), style = "color: #1976d2; font-size: 0.95em;"),
+        tags$td(tags$code(row$marker)),
+        tags$td(span(class = "badge", style = "background-color: #6f42c1; color: white;", row$Chr)),
+        tags$td(row$`Peak (Mb)`),
+        tags$td(row$`95% CI (Mb)`),
+        tags$td(strong(row$LOD), style = "color: #28a745;"),
+        tags$td(row$`BB Effect`),
+        tags$td(row$`BS Effect`),
+        tags$td(row$`SS Effect`),
+        tags$td(style = "text-align: center;",
+          actionButton(
+            inputId = paste0("btn_pick_qtl_", i),
+            label = "Inspect QTL →",
+            class = "btn btn-sm btn-primary",
+            style = "padding: 3px 12px; font-size: 0.85em; font-weight: 600;"
+          )
+        )
+      )
+    })
+    
+    tags$table(
+      class = "table table-hover table-striped table-bordered table-qtl align-middle",
+      style = "margin-top: 10px; background-color: #ffffff; border-radius: 6px; overflow: hidden;",
+      tags$thead(
+        tags$tr(
+          tags$th("Trait"),
+          tags$th("Marker"),
+          tags$th("Chr"),
+          tags$th("Peak (Mb)"),
+          tags$th("95% CI (Mb)"),
+          tags$th("LOD"),
+          tags$th("BB Effect"),
+          tags$th("BS Effect"),
+          tags$th("SS Effect"),
+          tags$th("Action", style = "text-align: center;")
+        )
+      ),
+      tags$tbody(rows)
+    )
+  })
+
+  # Register row click observers dynamically
+  observe({
+    req(d$qtls)
+    n_qtls <- nrow(d$qtls)
+    lapply(seq_len(n_qtls), function(i) {
+      observeEvent(input[[paste0("btn_pick_qtl_", i)]], {
+        updateSelectInput(session, "sel_qtl", selected = d$qtls$qtl_id[i])
+      }, ignoreInit = TRUE)
+    })
+  })
+
+  # Trait Scan Plot outputs
+  output$qtl_scan_title <- renderText({
+    req(v$active_qtl)
+    paste0("📊 Additive Sex QTL Scan: ", v$active_qtl$trait, " (", v$active_qtl$Chr, " @ ", round(v$active_qtl$pos, 1), " Mb, LOD ", round(v$active_qtl$lod, 1), ")")
+  })
+
+  output$qtl_scan_img <- renderImage({
+    req(input$zoom_mode == "QTL Region", v$active_qtl, !isTRUE(input$hide_scan))
+    q <- v$active_qtl
+    chr_num <- tolower(gsub("^Chr", "", q$Chr))
+    scan_type <- if (grepl("^AUC", q$trait)) "auc" else "traj"
+    img_filename <- sprintf("scan_chr%s_%s_sex_additive.png", chr_num, scan_type)
+    
+    candidates <- c(
+      file.path("QTLresults", img_filename),
+      file.path("SHINY_APP", "QTLresults", img_filename),
+      img_filename
+    )
+    img_path <- candidates[file.exists(candidates)][1]
+    
+    if (is.na(img_path) || is.null(img_path) || !file.exists(img_path)) {
+      return(list(src = "", alt = "Scan plot not found"))
+    }
+    
+    list(
+      src = normalizePath(img_path),
+      contentType = "image/png",
+      alt = paste("Additive Sex QTL Scan for", q$trait, "on", q$Chr)
+    )
+  }, deleteFile = FALSE)
 
   # Helper to load and render markdown files inside modals
   render_markdown_file <- function(filename) {

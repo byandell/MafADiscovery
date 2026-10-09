@@ -66,7 +66,8 @@ To run the application locally or export it, ensure the files reside together in
 | `Master_DEG_Strain_Comparison_v3.csv` | Differential expression data (`GeneId`, `Symbol`, `Chr`, `Start`, `End`, `Category`, `Direction`, `log2FC_C57`, `log2FC_SJL`) |
 | `mouse_genes_mm39_v3.csv` | Mouse GRCm39 gene annotation backbone (`GeneId`, `Symbol`, `Chr`, `Start`, `End`, `Strand`, `Type`) |
 | `B6_SJL_prioritized_protein_coding_SNPs.csv` | Prioritized coding SNPs with consequence, amino acid changes, and phastCons scores |
-| `Top_glycemic_QTL_for_sex_additive_analysis.csv` | F2 glycemic QTL loci with 95% confidence intervals and additive effects |
+| `QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv` | F2 glycemic QTL loci with 95% confidence intervals and additive effects |
+| `QTLresults/scan_chr*.png` | Additive sex QTL LOD scans for AUC and trajectory glycemic traits |
 | `interpretation_guide.md` | In-app modal documentation explaining macro/micro panels and navigation |
 | `developer_guide.md` | In-app modal documentation linking to architectural guides and GitHub repo |
 | [`README.md`](README.md) | Documentation for the active application |
