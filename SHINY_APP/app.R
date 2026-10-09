@@ -73,6 +73,7 @@ prepare_data <- function() {
   snps[, impact_simple := ifelse(any_high == TRUE | impact %like% "HIGH", "HIGH", "MODERATE")]
   
   # Format QTL data
+  qtls[, orig_idx := .I]
   qtls[, Chr := paste0("Chr", Chr)]
   qtls[, pos := as.numeric(pos)]
   qtls[, ci.low := as.numeric(ci.low)]
@@ -144,6 +145,15 @@ ui <- fluidPage(
         object-fit: contain;
         border-radius: 4px;
       }
+      #qtl_auc_loci_img img, #qtl_traj_loci_img img {
+        max-width: 100%;
+        max-height: 480px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      }
       .table-qtl th { background-color: #f1f4f9; font-weight: 600; font-size: 0.9em; }
       .table-qtl td { vertical-align: middle !important; font-size: 0.92em; }
     ")),
@@ -209,16 +219,49 @@ ui <- fluidPage(
     fluidRow(
       column(width = 12,
         div(class = "panel-container", style = "padding: 22px;",
-          div(style = "display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6f42c1; padding-bottom: 10px; margin-bottom: 14px;",
+          div(style = "display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #6f42c1; padding-bottom: 10px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;",
             div(
-              span("📊 Top Glycemic QTLs (F2 Study — Sex Additive Analysis)", 
+              span("📊 F2 Glycemic QTL Loci (Sex Additive Analysis)", 
                    style = "font-weight: 800; font-size: 1.3em; color: #6f42c1;"),
-              p("Select a QTL row below or pick one from the top dropdown to view its genomic confidence interval, trait scan plot, MafA ChIP peaks, and strain-divergent coding SNPs.", 
+              p("Explore key loci LOD scans and click 'Inspect QTL →' to frame genomic confidence intervals, trait scans, and local MafA binding architecture.", 
                 style = "color: #555; margin: 4px 0 0 0; font-size: 0.94em;")
+            ),
+            div(style = "display: flex; gap: 18px; align-items: center; background: #f8f9fa; padding: 6px 14px; border-radius: 6px; border: 1px solid #e1e4e8;",
+              checkboxInput("hide_auc_loci_plot", "Hide AUC Key Loci Scan", value = FALSE),
+              checkboxInput("hide_traj_loci_plot", "Hide Trajectory Key Loci Scan", value = FALSE)
             )
           ),
-          div(style = "overflow-x: auto;",
-            uiOutput("qtl_interactive_table")
+          # Section 1: AUC Traits
+          div(style = "margin-bottom: 28px;",
+            div(style = "display: flex; align-items: center; gap: 8px; margin-bottom: 10px;",
+              span("📈 AUC Glycemic Traits", style = "font-weight: 700; font-size: 1.15em; color: #1976d2;"),
+              span(class = "badge", style = "background-color: #1976d2;", "AUC Study")
+            ),
+            conditionalPanel(
+              condition = "input.hide_auc_loci_plot == false",
+              div(style = "text-align: center; margin-bottom: 14px; background: #fafbfc; padding: 12px; border-radius: 6px; border: 1px solid #e1e4e8;",
+                imageOutput("qtl_auc_loci_img", height = "auto")
+              )
+            ),
+            div(style = "overflow-x: auto;",
+              uiOutput("qtl_auc_table")
+            )
+          ),
+          # Section 2: Trajectory & Other Traits
+          div(style = "margin-top: 15px;",
+            div(style = "display: flex; align-items: center; gap: 8px; margin-bottom: 10px;",
+              span("📉 Trajectory & Rate Glycemic Traits", style = "font-weight: 700; font-size: 1.15em; color: #6f42c1;"),
+              span(class = "badge", style = "background-color: #6f42c1;", "Trajectory Study")
+            ),
+            conditionalPanel(
+              condition = "input.hide_traj_loci_plot == false",
+              div(style = "text-align: center; margin-bottom: 14px; background: #fafbfc; padding: 12px; border-radius: 6px; border: 1px solid #e1e4e8;",
+                imageOutput("qtl_traj_loci_img", height = "auto")
+              )
+            ),
+            div(style = "overflow-x: auto;",
+              uiOutput("qtl_traj_table")
+            )
           )
         )
       )
@@ -453,6 +496,12 @@ server <- function(input, output, session) {
     if (!is.null(input$hide_scan) && isTRUE(input$hide_scan)) {
       updateCheckboxInput(session, "hide_scan", value = FALSE)
     }
+    if (!is.null(input$hide_auc_loci_plot) && isTRUE(input$hide_auc_loci_plot)) {
+      updateCheckboxInput(session, "hide_auc_loci_plot", value = FALSE)
+    }
+    if (!is.null(input$hide_traj_loci_plot) && isTRUE(input$hide_traj_loci_plot)) {
+      updateCheckboxInput(session, "hide_traj_loci_plot", value = FALSE)
+    }
   }
   
   # Reset view action button
@@ -554,9 +603,12 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = TRUE)
 
-  # Interactive In-Panel QTL Overview Table
-  output$qtl_interactive_table <- renderUI({
-    tab <- copy(d$qtls)
+  # Helper function to generate clean QTL summary sub-tables with Inspect buttons
+  render_qtl_subtable <- function(subset_dt) {
+    if (is.null(subset_dt) || nrow(subset_dt) == 0) {
+      return(tags$p("No QTL loci in this category.", style = "color: #777; font-style: italic; padding: 10px;"))
+    }
+    tab <- copy(subset_dt)
     tab[, `:=`(
       `Peak (Mb)` = sprintf("%.2f", pos),
       `95% CI (Mb)` = paste0(sprintf("%.2f", ci.low), " – ", sprintf("%.2f", ci.high)),
@@ -580,7 +632,7 @@ server <- function(input, output, session) {
         tags$td(row$`SS Effect`),
         tags$td(style = "text-align: center;",
           actionButton(
-            inputId = paste0("btn_pick_qtl_", i),
+            inputId = paste0("btn_pick_qtl_", row$orig_idx),
             label = "Inspect QTL →",
             class = "btn btn-sm btn-primary",
             style = "padding: 3px 12px; font-size: 0.85em; font-weight: 600;"
@@ -591,7 +643,7 @@ server <- function(input, output, session) {
     
     tags$table(
       class = "table table-hover table-striped table-bordered table-qtl align-middle",
-      style = "margin-top: 10px; background-color: #ffffff; border-radius: 6px; overflow: hidden;",
+      style = "margin-top: 8px; margin-bottom: 6px; background-color: #ffffff; border-radius: 6px; overflow: hidden;",
       tags$thead(
         tags$tr(
           tags$th("Trait"),
@@ -608,6 +660,52 @@ server <- function(input, output, session) {
       ),
       tags$tbody(rows)
     )
+  }
+
+  # Key Loci Scan Plot Outputs for Overview Panel
+  output$qtl_auc_loci_img <- renderImage({
+    candidates <- c(
+      file.path("QTLresults", "scan_auc_sex_additive_key_loci.png"),
+      file.path("SHINY_APP", "QTLresults", "scan_auc_sex_additive_key_loci.png"),
+      "scan_auc_sex_additive_key_loci.png"
+    )
+    img_path <- candidates[file.exists(candidates)][1]
+    if (is.na(img_path) || is.null(img_path) || !file.exists(img_path)) {
+      return(list(src = "", alt = "AUC Key Loci scan plot not found"))
+    }
+    list(
+      src = normalizePath(img_path),
+      contentType = "image/png",
+      alt = "AUC Sex Additive Key Loci Scan"
+    )
+  }, deleteFile = FALSE)
+
+  output$qtl_traj_loci_img <- renderImage({
+    candidates <- c(
+      file.path("QTLresults", "scan_traj_sex_additive_key_loci.png"),
+      file.path("SHINY_APP", "QTLresults", "scan_traj_sex_additive_key_loci.png"),
+      "scan_traj_sex_additive_key_loci.png"
+    )
+    img_path <- candidates[file.exists(candidates)][1]
+    if (is.na(img_path) || is.null(img_path) || !file.exists(img_path)) {
+      return(list(src = "", alt = "Trajectory Key Loci scan plot not found"))
+    }
+    list(
+      src = normalizePath(img_path),
+      contentType = "image/png",
+      alt = "Trajectory Sex Additive Key Loci Scan"
+    )
+  }, deleteFile = FALSE)
+
+  # Interactive Sub-Table Outputs
+  output$qtl_auc_table <- renderUI({
+    req(d$qtls)
+    render_qtl_subtable(d$qtls[grepl("^AUC_gluc", trait)])
+  })
+
+  output$qtl_traj_table <- renderUI({
+    req(d$qtls)
+    render_qtl_subtable(d$qtls[!grepl("^AUC_gluc", trait)])
   })
 
   # Register row click observers dynamically
@@ -631,7 +729,7 @@ server <- function(input, output, session) {
     req(input$zoom_mode == "QTL Region", v$active_qtl, !isTRUE(input$hide_scan))
     q <- v$active_qtl
     chr_num <- tolower(gsub("^Chr", "", q$Chr))
-    scan_type <- if (grepl("^AUC", q$trait)) "auc" else "traj"
+    scan_type <- if (grepl("^AUC_gluc", q$trait)) "auc" else "traj"
     img_filename <- sprintf("scan_chr%s_%s_sex_additive.png", chr_num, scan_type)
     
     candidates <- c(

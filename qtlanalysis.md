@@ -253,19 +253,23 @@ Following the second prompt specifications, the application now incorporates `SH
 2. **Dynamic Top Navigation Toggle**:
    * When **View Mode** is `"QTL Region"`, the primary input slot displays **"Select F2 Glycemic QTL"**.
    * In `"Genome-Wide"` or `"Chromosome"` view, the slot displays **"Search Gene Symbol"**.
-3. **In-Panel Interactive QTL Overview Table**:
-   * In `"QTL Region"` mode, the default selection is blank.
-   * While blank, the main panel displays an interactive table of all 11 F2 glycemic QTLs with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an **"Inspect QTL →"** button for each row.
-   * Selecting a QTL hides the table and reveals the QTL region view.
-   * A **"← Back to QTL Overview Table"** action link returns to the table anytime.
+3. **In-Panel Interactive QTL Overview Table & Key Loci Scans**:
+   * In `"QTL Region"` mode, the default selection is blank (`""`).
+   * While blank, the overview panel is organized into two distinct sections:
+     * **AUC Glycemic Traits**: Renders `QTLresults/scan_auc_sex_additive_key_loci.png` followed by the interactive table of `AUC_gluc_*` trait peaks (`AUC_gluc_4wk`, `AUC_gluc_5wk`, `AUC_gluc_6wk`, `AUC_gluc_8wk`).
+     * **Trajectory & Rate Glycemic Traits**: Renders `QTLresults/scan_traj_sex_additive_key_loci.png` followed by the trajectory and rate trait table (`Slope_AUCs`, `AUC_8wk_minus_AUC_4wk`, and `AUC_of_AUCs`).
+   * **Key Loci Plot Toggles**: Two independent checkboxes at the top right of the panel (**"Hide AUC Key Loci Scan"** and **"Hide Trajectory Key Loci Scan"**) let users selectively suppress either or both summary plots to reduce vertical scrolling.
+   * Both tables provide trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an **"Inspect QTL →"** button.
+   * Clicking **"Inspect QTL →"** (or selecting a QTL from the top dropdown) hides the overview panel, frames the QTL confidence interval on the Manhattan plot, and activates the chromosome-specific trait scan.
+   * A **"← Back to QTL Overview Table"** action link returns to the overview anytime.
    * Obviates the need for the header `📊 QTLs` modal button, which has been removed.
 4. **Peak Selection & Reset Mechanics**:
    * Entering `"QTL Region"` or changing QTL selection resets the active peak (`v$active_pk <- NULL`).
    * An explicit **"✕ Deselect Peak"** button appears in the navbar and schematic sidebar whenever a peak is active in view modes other than *Locus Zoom*, allowing quick return to an unselected state.
 5. **Additive QTL Trait Scan PNGs**:
    * Active QTLs display their corresponding additive scan plot from `QTLresults/` directly above the Manhattan plot:
-     * Traits starting with `"AUC"` map to `scan_chr<Chr>_auc_sex_additive.png`.
-     * Other traits (e.g. `Slope_AUCs`) map to `scan_chr<Chr>_traj_sex_additive.png`.
+     * Traits starting with `"AUC_gluc"` map to `scan_chr<Chr>_auc_sex_additive.png`.
+     * Trajectory and compound traits (`Slope_AUCs`, `AUC_8wk_minus_AUC_4wk`, `AUC_of_AUCs`) map to `scan_chr<Chr>_traj_sex_additive.png`.
    * A **"Hide QTL Scan Plot"** checkbox in the Manhattan controls allows toggling scan visibility.
 6. **Continuous Right-Hand Control Card Stacking**:
    * Plots (Scan plot, Manhattan plot, and Locus Schematic) are housed in a 9-column left canvas.

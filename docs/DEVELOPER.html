@@ -372,14 +372,21 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 <li><strong>In-Panel Interactive QTL Overview Table</strong>:
 <ul>
 <li>In <em>QTL Region</em> mode, the selection defaults to blank (<code>&quot;&quot;</code>).</li>
-<li>While blank, an interactive table of all 11 F2 glycemic QTLs appears in the main panel with trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button for each row.</li>
-<li>Selecting a QTL hides the table and frames its confidence interval on the Manhattan plot. A <strong>&quot;← Back to QTL Overview Table&quot;</strong> action link allows returning to the overview table anytime.</li>
+<li>While blank, an interactive overview panel presents the 11 F2 glycemic QTLs organized into two dedicated sections:
+<ul>
+<li><strong>AUC Glycemic Traits</strong>: Displays the genome-wide key loci scan (<code>QTLresults/scan_auc_sex_additive_key_loci.png</code>) followed by an interactive table of <code>AUC_gluc_*</code> trait peaks (e.g. <code>AUC_gluc_4wk</code>, <code>AUC_gluc_5wk</code>, <code>AUC_gluc_6wk</code>, <code>AUC_gluc_8wk</code>).</li>
+<li><strong>Trajectory &amp; Rate Glycemic Traits</strong>: Displays the genome-wide key loci scan (<code>QTLresults/scan_traj_sex_additive_key_loci.png</code>) followed by the trajectory and rate trait table (<code>Slope_AUCs</code>, <code>AUC_8wk_minus_AUC_4wk</code>, and <code>AUC_of_AUCs</code>).</li>
+</ul>
+</li>
+<li><strong>Key Loci Plot Toggles</strong>: Two independent checkboxes at the top right of the panel (<strong>&quot;Hide AUC Key Loci Scan&quot;</strong> and <strong>&quot;Hide Trajectory Key Loci Scan&quot;</strong>) allow hiding either or both summary plots to minimize vertical scrolling.</li>
+<li>Each row provides trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button.</li>
+<li>Clicking <strong>&quot;Inspect QTL →&quot;</strong> (or choosing a QTL from the navbar dropdown) hides the overview panel, frames the 95% confidence interval on the Manhattan plot, and activates the chromosome-specific trait scan plot. A <strong>&quot;← Back to QTL Overview Table&quot;</strong> action link allows returning to the overview anytime.</li>
 </ul>
 </li>
 <li><strong>Additive Trait Scan Plots (<code>QTLresults/</code>)</strong>:
 <ul>
 <li>Positioned directly above the Manhattan plot for the active QTL.</li>
-<li>Traits starting with <code>&quot;AUC&quot;</code> dynamically render <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>; trajectory traits (e.g. <code>Slope_AUCs</code>) render <code>scan_chr&lt;Chr&gt;_traj_sex_additive.png</code>.</li>
+<li>Traits starting with <code>&quot;AUC_gluc&quot;</code> dynamically render <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>; trajectory/rate traits (<code>Slope_AUCs</code>, <code>AUC_8wk_minus_AUC_4wk</code>, <code>AUC_of_AUCs</code>) render <code>scan_chr&lt;Chr&gt;_traj_sex_additive.png</code>.</li>
 <li>Can be toggled on/off via the <strong>&quot;Hide QTL Scan Plot&quot;</strong> checkbox in Manhattan Controls.</li>
 </ul>
 </li>
