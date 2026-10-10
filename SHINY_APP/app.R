@@ -14,8 +14,8 @@
 #    - B6_SJL_prioritized_protein_coding_SNPs.csv      (SNP data)
 #    - QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv  (F2 Glycemic QTL data)
 #    - QTLresults/scan_chr*.png                        (Additive QTL scan plots)
-#    - interpretation_guide.md                         (Interpretation modal guide)
-#    - developer_guide.md                              (Developer architecture modal)
+#    - guides/user_guide.md                            (User guide modal)
+#    - guides/developer_guide.md                       (Developer architecture modal)
 #
 # 5. TO LAUNCH:
 #    Open this file in RStudio and click 'Run App', or run: shiny::runApp()
@@ -198,9 +198,9 @@ ui <- fluidPage(
       function resolveDocsUrl() {
         if (window.location.pathname.indexOf('/app_') !== -1 || window.location.hostname.includes('github.io')) {
           var base = window.location.pathname.replace(/\\/app_[^\\/]+.*$/, '').replace(/\\/index\\.html$/, '').replace(/\\/$/, '');
-          return window.location.origin + base + '/docs';
+          return window.location.origin + base + '/docs/';
         }
-        return 'docs';
+        return 'docs/';
       }
       $(document).on('click', '#btn-devguide-link', function(e) {
         $(this).attr('href', resolveDocsUrl());
@@ -275,7 +275,7 @@ ui <- fluidPage(
       column(width = 3,
         div(class = "top-nav-buttons",
           actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
-          tags$a(id = "btn-devguide-link", href = "docs", target = "_blank", rel = "opener",
+          tags$a(id = "btn-devguide-link", href = "docs/", target = "_blank", rel = "opener",
                  onclick = "this.href = resolveDocsUrl();",
                  class = "btn btn-sm btn-devguide", style = "text-decoration: none; display: inline-flex; align-items: center;", "📖 Dev Guide ↗"),
           actionButton("reset_view", "↺ Reset", class = "btn btn-sm btn-rezoom")
@@ -839,12 +839,26 @@ server <- function(input, output, session) {
 
   # Helper to load and render markdown files inside modals
   render_markdown_file <- function(filename) {
-    filepath <- if (file.exists(filename)) {
-      filename
-    } else if (file.exists(file.path("SHINY_APP", filename))) {
-      file.path("SHINY_APP", filename)
+    filenames <- if (filename %in% c("user_guide.md", "interpretation_guide.md")) {
+      c("user_guide.md", "interpretation_guide.md")
     } else {
-      NULL
+      filename
+    }
+    candidate_paths <- unlist(lapply(filenames, function(fn) {
+      c(
+        fn,
+        file.path("guides", fn),
+        file.path("..", "guides", fn),
+        file.path("SHINY_APP", "guides", fn),
+        file.path("SHINY_APP", fn)
+      )
+    }))
+    filepath <- NULL
+    for (p in candidate_paths) {
+      if (file.exists(p)) {
+        filepath <- p
+        break
+      }
     }
     
     if (!is.null(filepath)) {
@@ -863,11 +877,11 @@ server <- function(input, output, session) {
     }
   }
 
-  # Interpretation Modal Guide
+  # User Guide Modal
   observeEvent(input$show_help, {
     showModal(modalDialog(
-      title = span(strong("MafA Discovery: How to Interpret Panels & Navigate"), style = "color: #17a2b8;"),
-      render_markdown_file("interpretation_guide.md"),
+      title = NULL,
+      render_markdown_file("user_guide.md"),
       size = "l",
       easyClose = TRUE,
       footer = modalButton("Close")
@@ -877,7 +891,7 @@ server <- function(input, output, session) {
   # Developer Guide Modal
   observeEvent(input$show_dev_guide, {
     showModal(modalDialog(
-      title = span(strong("MafA Discovery: Developer Guide & Architecture"), style = "color: #343a40;"),
+      title = NULL,
       render_markdown_file("developer_guide.md"),
       size = "l",
       easyClose = TRUE,

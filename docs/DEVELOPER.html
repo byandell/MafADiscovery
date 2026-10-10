@@ -82,6 +82,93 @@
       color: var(--primary);
       font-weight: 600;
     }
+    .nav-dropdown {
+      position: relative;
+    }
+    .dropdown-details {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-toggle {
+      color: var(--text-muted);
+      font-size: 0.88em;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      list-style: none;
+      transition: all 0.15s ease;
+    }
+    .dropdown-toggle::-webkit-details-marker {
+      display: none;
+    }
+    .dropdown-toggle::marker {
+      display: none;
+    }
+    .dropdown-toggle:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-toggle.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-details .arrow {
+      font-size: 0.75em;
+      margin-left: 2px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    .dropdown-details[open] .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 220px;
+      padding: 6px 0;
+      margin: 4px 0 0 0;
+      list-style: none;
+      z-index: 1000;
+    }
+    .dropdown-menu li {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text);
+      font-size: 0.88em;
+      text-decoration: none;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-menu a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 4px 0;
+    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -203,6 +290,12 @@
       }
       return true;
     }
+    document.addEventListener("click", function(e) {
+      var dropdown = document.getElementById("dev-dropdown");
+      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
+        dropdown.removeAttribute("open");
+      }
+    });
   </script>
 </head>
 <body>
@@ -213,12 +306,22 @@
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./">Documentation Hub</a></li>
+          <li><a href="user_guide.html">User Guide</a></li>
           <li><a href="about.html">About</a></li>
-          <li><a href="DEVELOPER.html" class="active">Developer Guide</a></li>
-          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-          <li><a href="publishapp.html">Publishing & WASM</a></li>
-          <li><a href="redesign.html">UI Redesign</a></li>
-          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li class="nav-dropdown">
+       <details class="dropdown-details" id="dev-dropdown">
+         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
+         <ul class="dropdown-menu">
+           <li><a href="DEVELOPER.html" class="active">Master Developer Guide</a></li>
+              <li><a href="guides.html">Guides Directory Index</a></li>
+              <li class="dropdown-divider"></li>
+              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
+              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
+              <li><a href="publishapp.html">Publishing & WASM</a></li>
+              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+         </ul>
+       </details>
+     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -251,8 +354,6 @@
 ├── app.R                          # Top-level launcher: shiny::runApp(&quot;SHINY_APP&quot;)
 ├── SHINY_APP/                     # Self-contained Shiny application source
 │   ├── app.R                      # Main application UI and Server logic
-│   ├── interpretation_guide.md    # In-app interpretation modal content
-│   ├── developer_guide.md         # In-app developer guide modal content with links
 │   ├── MafA_Peaks_with_SNPs_v3.csv              # MafA ChIP/CUT&amp;RUN peaks and scores
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
@@ -261,11 +362,24 @@
 │   │   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
 │   │   └── scan_chr*.png          # Trait scan PNG plots (AUC and trajectory)
 │   └── README.md                  # Detailed collaborator documentation
+├── guides/                        # Technical guides &amp; architectural modules
+│   ├── README.md                  # Guides catalog and directory overview
+│   ├── developer_guide.md         # In-app developer architecture modal &amp; hub
+│   ├── user_guide.md              # In-app user guide modal (panel &amp; navigation)
+│   ├── about.md                   # Biological context, consortium &amp; data layers
+│   ├── qtlanalysis.md             # F2 glycemic QTL integration technical guide
+│   ├── redesign.md                # UI redesign, reactivity &amp; layout documentation
+│   ├── publishapp.md              # Shinylive static web deployment guide
+│   └── shinyapp.md                # Legacy standalone prototype specifications
 ├── .github/
 │   └── workflows/
 │       └── deploy-shinylive.yaml  # GitHub Actions automated Shinylive export &amp; deployment
 ├── docs/                          # Standalone HTML documentation pages for GitHub Pages
 │   ├── DEVELOPER.html             # Rendered master Developer Guide
+│   ├── index.html                 # Documentation Hub portal (from guides/developer_guide.md)
+│   ├── user_guide.html            # Rendered User Guide
+│   ├── guides.html                # Rendered Guides directory catalog
+│   ├── about.html                 # Rendered About page
 │   ├── shinyapp.html              # Rendered Legacy Prototypes guide
 │   ├── publishapp.html            # Rendered Publishing &amp; WebAssembly guide
 │   ├── redesign.html              # Rendered UI Redesign guide
@@ -273,10 +387,6 @@
 │   └── .nojekyll                  # Bypasses Jekyll on GitHub Pages
 ├── render_docs.R                  # Generator script rendering *.md to docs/*.html
 ├── MafADiscovery.Rproj            # RStudio project configuration
-├── shinyapp.md                    # Root architectural module: legacy prototypes
-├── publishapp.md                  # Root architectural module: publishing guide
-├── redesign.md                    # Root architectural module: UI redesign
-├── qtlanalysis.md                 # Root architectural module: QTL integration
 ├── DEVELOPER.md                   # Root master developer guide (this file)
 ├── AGENTS.md                      # AI assistant project guidelines
 ├── LICENSE                        # MIT License
@@ -398,8 +508,8 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 </li>
 <li><strong>Genome-Wide Auto-Reset</strong>: Selecting <code>&quot;Genome-Wide&quot;</code> in <code>zoom_mode</code> or clicking <code>↺ Reset</code> invokes a centralized <code>reset_to_default_state()</code> routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings (preserving mobile legend defaults on mobile devices).</li>
 <li><strong>Legend Visibility Controls &amp; Mobile Optimization</strong>: Discrete checkboxes (<code>hide_manhattan_legend</code>, <code>hide_schematic_legend</code>) dynamically suppress legends via Plotly <code>layout(showlegend = ...)</code> and ggplot <code>theme(legend.position = ...)</code>. On mobile devices (iPhone, touch/narrow viewports $\le 768$px), client-side detection automatically defaults both checkboxes to <code>TRUE</code> (hidden) upon launch to preserve full plot width on smaller screens.</li>
-<li><strong>Interpretation Guide Modal</strong>: Loaded dynamically from <a href="SHINY_APP/interpretation_guide.md"><code>SHINY_APP/interpretation_guide.md</code></a> via <code>render_markdown_file()</code>. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.</li>
-<li><strong>Documentation Hub</strong>: The <code>📖 Dev Guide ↗</code> button connects directly to the rendered documentation portal at <code>https://byandell.github.io/MafADiscovery/docs</code> (backed by <code>docs/index.html</code> compiled from <a href="SHINY_APP/developer_guide.md"><code>SHINY_APP/developer_guide.md</code></a>), linking to all modules and <a href="SHINY_APP/about.md"><code>SHINY_APP/about.md</code></a>.</li>
+<li><strong>User Guide Modal</strong>: Loaded dynamically from <a href="user_guide.html"><code>guides/user_guide.md</code></a> via <code>render_markdown_file()</code> with <code>title = NULL</code> in <code>modalDialog</code>, allowing the single markdown H1 header to serve as the clean dialog title without duplication. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.</li>
+<li><strong>Documentation Hub</strong>: The <code>📖 Dev Guide ↗</code> button connects directly to the rendered documentation portal at <code>docs/</code> (or `` when hosted), backed by <code>docs/index.html</code> compiled from <a href="index.html">`guides/developer_guide.md`</a>. The explicit trailing slash ensures all relative links (`user_guide.html`, `DEVELOPER.html`, etc.) correctly resolve within the `docs/` directory during local trials and live deployment. The site header includes a semantic `<details>` / `<summary>` <strong>Developer Guide ▾</strong> dropdown that remains initially closed on page load.</li>
 </ul>
 <h3>Plotly Manhattan Plot &amp; Dual-Axis Scaling</h3>
 <ul>
@@ -434,30 +544,45 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 </ul>
 <hr />
 <h2>Modular Architectural Documentation</h2>
-<p>The repository maintains four specialized architectural modules at root, automatically synchronized to GitHub Pages during CI deployment:</p>
+<p>The repository maintains specialized architectural and user guides in the <a href="guides.html"><code>guides/</code></a> directory, automatically synchronized to GitHub Pages during CI deployment:</p>
 <ol>
-<li><strong><a href="shinyapp.html"><code>shinyapp.md</code></a> — Legacy Standalone Prototypes</strong>:
+<li><strong><a href="index.html"><code>guides/developer_guide.md</code></a> — Documentation Hub</strong>:
 <ul>
-<li>Comprehensive technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>).</li>
-<li>Documents the original Bioconductor <code>GenomicRanges</code> implementation and data requirements.</li>
+<li>Central portal and modal guide organizing links to all architectural modules and repository code.</li>
 </ul>
 </li>
-<li><strong><a href="publishapp.html"><code>publishapp.md</code></a> — Publishing &amp; Deployment</strong>:
+<li><strong><a href="user_guide.html"><code>guides/user_guide.md</code></a> — User Guide (Panel &amp; Navigation)</strong>:
+<ul>
+<li>In-app modal documentation explaining Manhattan plot interpretations, gene schematic models, and navigation modes.</li>
+</ul>
+</li>
+<li><strong><a href="about.html"><code>guides/about.md</code></a> — About MafA Discovery</strong>:
+<ul>
+<li>Research consortium background, biological motivation, and catalog of integrated genomic data layers.</li>
+</ul>
+</li>
+<li><strong><a href="qtlanalysis.html"><code>guides/qtlanalysis.md</code></a> — F2 Glycemic QTL Integration &amp; QTLresults</strong>:
+<ul>
+<li>Ingestion of F2 study glycemic loci (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>).</li>
+<li>In-panel interactive QTL overview table, dynamic top-nav toggle, additive trait scan plots (<code>scan_chr*.png</code>), CI auto-bounding, continuous control stacking, and peak reset mechanics.</li>
+</ul>
+</li>
+<li><strong><a href="redesign.html"><code>guides/redesign.md</code></a> — UI Redesign &amp; Reactive Lifecycle</strong>:
+<ul>
+<li>Dynamic view mode transitions (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>).</li>
+<li>Conditional control rendering, coordinate auto-scaling, state persistence rules, and mobile responsiveness.</li>
+</ul>
+</li>
+<li><strong><a href="publishapp.html"><code>guides/publishapp.md</code></a> — Publishing &amp; Deployment</strong>:
 <ul>
 <li>Architecture for static WebAssembly distribution via Shinylive (webR).</li>
 <li>Automated GitHub Actions deployment (<code>deploy-shinylive.yaml</code>) and GitHub Pages hosting configuration.</li>
 </ul>
 </li>
-<li><strong><a href="redesign.html"><code>redesign.md</code></a> — UI Redesign &amp; Reactive Lifecycle</strong>:
+<li><strong><a href="shinyapp.html"><code>guides/shinyapp.md</code></a> — Legacy Standalone Prototypes</strong>:
 <ul>
-<li>Dynamic view mode transitions (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>).</li>
-<li>Conditional control rendering, coordinate auto-scaling, and state persistence rules.</li>
-</ul>
-</li>
-<li><strong><a href="qtlanalysis.html"><code>qtlanalysis.md</code></a> — F2 Glycemic QTL Integration &amp; QTLresults</strong>:
-<ul>
-<li>Ingestion of F2 study glycemic loci (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>).</li>
-<li>In-panel interactive QTL overview table, dynamic top-nav toggle, additive trait scan plots (<code>scan_chr*.png</code>), CI auto-bounding, continuous control stacking, and peak reset mechanics.</li>
+<li>Comprehensive technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>).</li>
+<li>Documents the original Bioconductor <code>GenomicRanges</code> implementation and data requirements.</li>
 </ul>
 </li>
 </ol>
@@ -467,10 +592,11 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 <ol>
 <li><strong>Workflow (<code>.github/workflows/deploy-shinylive.yaml</code>)</strong>:
 <ul>
-<li>Triggers on push to <code>main</code> / <code>master</code> when files in <code>SHINY_APP/**</code>, root markdown guides (<code>*.md</code>), or the workflow itself change.</li>
-<li>Sets up R on Ubuntu, installs <code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, and <code>plotly</code>.</li>
-<li>Executes <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code>.</li>
-<li>Copies root documentation assets (<code>DEVELOPER.md</code>, <code>shinyapp.md</code>, <code>publishapp.md</code>, <code>redesign.md</code>, <code>qtlanalysis.md</code>) into <code>site/</code> for public hosting.</li>
+<li>Triggers on push to <code>main</code> / <code>master</code> when files in <code>SHINY_APP/**</code>, <code>guides/**</code>, <code>*.md</code>, or the workflow itself change.</li>
+<li>Sets up R on Ubuntu, installs <code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, <code>plotly</code>, and <code>commonmark</code>.</li>
+<li>Copies <code>guides/*.md</code> to <code>SHINY_APP/guides/</code> and executes <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code>.</li>
+<li>Runs <code>render_docs.R</code> to compile all guides into <code>docs/*.html</code>.</li>
+<li>Copies documentation assets (<code>DEVELOPER.md</code>, <code>guides/*.md</code>) into <code>site/</code> for public hosting.</li>
 <li>Uploads <code>site/</code> and deploys to GitHub Pages via <code>actions/deploy-pages@v4</code>.</li>
 </ul>
 </li>

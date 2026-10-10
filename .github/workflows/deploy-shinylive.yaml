@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
     paths:
       - 'SHINY_APP/**'
+      - 'guides/**'
       - '*.md'
       - 'render_docs.R'
       - '.github/workflows/deploy-shinylive.yaml'
@@ -38,15 +39,20 @@ jobs:
 
       - name: Export Shinylive site
         run: |
-          shinylive::export(
-            appdir = "SHINY_APP", 
-            destdir = "site",
-            template_params = list(
-              title = "MafA Discovery: Integrated Genomic Explorer",
-              include_in_head = "<link rel=\"icon\" href=\"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧬</text></svg>\">"
+          mkdir -p SHINY_APP/guides
+          cp guides/*.md SHINY_APP/guides/
+          Rscript -e '
+            shinylive::export(
+              appdir = "SHINY_APP", 
+              destdir = "site",
+              template_params = list(
+                title = "MafA Discovery: Integrated Genomic Explorer",
+                include_in_head = "<link rel=\"icon\" href=\"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧬</text></svg>\">"
+              )
             )
-          )
-        shell: Rscript {0}
+          '
+          rm -rf SHINY_APP/guides
+        shell: bash
 
       - name: Render HTML documentation & copy to site
         run: |
@@ -60,7 +66,7 @@ jobs:
           done
           sed -i.bak 's|<title>Shiny App</title>|<title>MafA Discovery: Integrated Genomic Explorer</title>|g' site/index.html 2>/dev/null || true
           rm -f site/index.html.bak 2>/dev/null || true
-          cp DEVELOPER.md shinyapp.md publishapp.md redesign.md qtlanalysis.md site/ 2>/dev/null || true
+          cp DEVELOPER.md guides/*.md site/ 2>/dev/null || true
         shell: bash
 
       - name: Disable Jekyll for GitHub Pages

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About MafA Discovery — Context & Collaborators</title>
+  <title>User Guide — MafA Discovery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -307,7 +307,7 @@
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
-          <li><a href="about.html" class="active">About</a></li>
+          <li><a href="about.html">About</a></li>
           <li class="nav-dropdown">
        <details class="dropdown-details" id="dev-dropdown">
          <summary class="dropdown-toggle">Developer Guide <span class="arrow">▾</span></summary>
@@ -330,74 +330,40 @@
   
   <main class="doc-container">
     <article class="markdown-body">
-<h1>About MafA Discovery</h1>
-<p>An interactive genomic explorer for MafA transcription factor binding peaks, strain-divergent variants, differential gene expression, and F2 glycemic QTL loci in C57BL/6J and SJL/J mouse models.</p>
-<hr />
-<h2>1. Research Overview</h2>
-<p>MafA is a critical basic leucine zipper (bZIP) transcription factor that regulates pancreatic $\beta$-cell maturation, insulin gene transcription, and glucose homeostasis. Genetic variation between inbred mouse strains alters transcription factor binding affinity, chromatin accessibility, and downstream transcriptional networks, predisposing certain strains to $\beta$-cell dysfunction and diabetes.</p>
-<p>The <strong>MafA Discovery Integrated Genomic Explorer</strong> was developed to bridge molecular binding events with organismal phenotypic outcomes:</p>
+<h1>User Guide: How to Interpret Panels &amp; Navigate</h1>
+<h3>1. Top Panel: Manhattan Macro View</h3>
+<p>Displays MafA binding peaks, prioritized coding SNPs, and F2 glycemic QTL intervals:</p>
 <ul>
-<li>Linking MafA ChIP-seq / CUT&amp;RUN binding peaks to proximal strain-divergent genetic variants between <strong>C57BL/6J</strong> (diabetes-resistant baseline) and <strong>SJL/J</strong> (diabetes-susceptible).</li>
-<li>Connecting MafA chromatin occupancy to downstream differential gene expression (DEGs) in islet tissue.</li>
-<li>Mapping candidate binding peaks and high-impact coding variants directly into 95% confidence intervals of <strong>F2 glycemic QTL loci</strong>.</li>
-</ul>
-<hr />
-<h2>2. Integrated Data Layers</h2>
-<p>All genomic coordinates across datasets are aligned to the mouse <strong>GRCm39 (mm39)</strong> reference assembly:</p>
-<ol>
-<li><strong>MafA Binding Peaks (<code>MafA_Peaks_with_SNPs_v3.csv</code>)</strong>:
+<li><strong>Primary Y-Axis (Left):</strong> MafA Peak Score reflecting ChIP/CUT&amp;RUN binding strength.</li>
+<li><strong>Point Shapes:</strong> Differentially expressed gene (DEG) direction (▲ UP, ▼ DOWN in diabetes/perturbation).</li>
+<li><strong>Point Colors:</strong> Strain-specificity category:
 <ul>
-<li>Peak intervals, genomic midpoints, and ChIP/CUT&amp;RUN binding strength scores.</li>
-<li>Total strain-divergent variant counts within each binding peak interval (<code>variant_count</code>).</li>
+<li><span style="color:#228B22; font-weight:bold;">Shared</span> (green)</li>
+<li><span style="color:#0000CC; font-weight:bold;">C57_Specific</span> (blue)</li>
+<li><span style="color:#CC0000; font-weight:bold;">SJL_Specific</span> (red)</li>
+<li><span style="color:#FF8C00; font-weight:bold;">Discordant</span> (orange)</li>
 </ul>
 </li>
-<li><strong>Differential Gene Expression (<code>Master_DEG_Strain_Comparison_v3.csv</code>)</strong>:
-<ul>
-<li>RNA-seq differential expression between C57BL/6J and SJL/J islets under baseline and perturbational conditions.</li>
-<li>Categorized into <code>Shared</code>, <code>C57_Specific</code>, <code>SJL_Specific</code>, and <code>Discordant</code> responses with log2 fold-changes.</li>
-</ul>
-</li>
-<li><strong>Mouse Genomic Backbone (<code>mouse_genes_mm39_v3.csv</code>)</strong>:
-<ul>
-<li>Comprehensive Ensembl GRCm39 gene models with coordinates, strand orientations, and gene biotypes.</li>
-</ul>
-</li>
-<li><strong>Prioritized Coding Polymorphisms (<code>B6_SJL_prioritized_protein_coding_SNPs.csv</code>)</strong>:
-<ul>
-<li>Protein-coding sequence variants between B6 and SJL classified by impact severity (<code>HIGH</code> and <code>MODERATE</code>).</li>
-<li>Annotated with evolutionary conservation scores (<code>phastCons</code>), consequence types (<code>csq</code>), and amino acid substitutions (<code>aa_change</code>).</li>
-</ul>
-</li>
-<li><strong>F2 Glycemic QTL Loci &amp; Scans (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</strong>:
-<ul>
-<li>Top quantitative trait loci from the B6 $\times$ SJL F2 intercross study across glycemic traits (e.g., AUC, glucose response).</li>
-<li>Annotated with peak marker coordinates, LOD scores, 95% Bayesian confidence intervals (<code>ci.low</code> to <code>ci.high</code>), additive effect models (<code>BB</code>, <code>BS</code>, <code>SS</code>), and corresponding trait scan plots.</li>
-</ul>
-</li>
-</ol>
-<hr />
-<h2>3. Collaborative Consortium</h2>
-<p>This investigation is a joint collaboration between:</p>
-<ul>
-<li><strong>Vanderbilt University Medical Center</strong>:
-<ul>
-<li>Department of Molecular Physiology and Biophysics</li>
-<li>Jee Yeon Cha (PI) and Mallory Maurer</li>
-</ul>
-</li>
-<li><strong>University of Wisconsin-Madison</strong>:
-<ul>
-<li>Department of Statistics — Brian Yandell</li>
-<li>Department of Biochemistry — Mark Keller</li>
-</ul>
-</li>
+<li><strong>Secondary Y-Axis &amp; Diamonds:</strong> Coding SNPs between C57BL/6J and SJL/J strains, scaled by evolutionary conservation score (<code>phastCons</code> 0–1). Pink/purple = HIGH impact, Gold = MODERATE impact.</li>
+<li><strong>QTL Interval Highlight:</strong> Translucent blue shading and vertical dashed line show the F2 glycemic QTL confidence interval (95% CI) and peak marker position.</li>
+<li><strong>Interactivity:</strong> Click any peak or SNP point to inspect its locus. Use &quot;Visible Categories&quot; to isolate strain-divergent peaks.</li>
 </ul>
 <hr />
-<h2>4. Software &amp; Implementation</h2>
+<h3>2. Bottom Panel: Locus Micro Schematic</h3>
+<p>Renders a high-resolution window (± Locus Window) centered on the active MafA binding peak:</p>
 <ul>
-<li><strong>Production Application</strong>: Built with R Shiny, <code>data.table</code>, <code>ggplot2</code>, and <code>plotly</code>.</li>
-<li><strong>Serverless WebAssembly (WASM)</strong>: Deployed serverlessly via <a href="https://github.com/posit-dev/shinylive-r">Shinylive for R (webR)</a> on GitHub Pages, requiring zero server maintenance.</li>
-<li><strong>Open Source Repository</strong>: Source code and documentation are available on GitHub at <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a>.</li>
+<li><strong>MafA Peak:</strong> Marked with a gold dashed line and highlighted region.</li>
+<li><strong>Gene Models:</strong> Horizontal bars depict gene bodies. Arrows denote transcription start site (TSS) and orientation.</li>
+<li><strong>Coding SNPs:</strong> Diamonds show exact positions of coding SNPs within exons. Outlined diamonds indicate <code>phastCons</code> ≥ 0.7.</li>
+<li><strong>Peak Deselection:</strong> Click <strong>&quot;✕ Deselect Current Peak&quot;</strong> (located in the Manhattan Controls side panel immediately below the Hide Legend checkbox) to clear the active peak and close the locus view.</li>
+</ul>
+<hr />
+<h3>3. Navigation Modes</h3>
+<ul>
+<li><strong>Genome-Wide:</strong> Global linear coordinate view across all 21 mouse chromosomes.</li>
+<li><strong>Chromosome:</strong> Focused view of an individual chromosome with absolute Mbp tick marks.</li>
+<li><strong>QTL Region:</strong> Access the interactive F2 Glycemic QTL Overview Table or zoom into the 95% confidence interval boundaries (<code>ci.low</code> to <code>ci.high</code>) of a selected QTL, displaying its additive sex QTL LOD scan directly above the Manhattan plot.</li>
+<li><strong>Locus Zoom:</strong> Fine-scale schematic centered on an active MafA binding peak.</li>
 </ul>
 
     </article>

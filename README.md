@@ -38,14 +38,24 @@ MafADiscovery/
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene annotation backbone
 │   ├── B6_SJL_prioritized_protein_coding_SNPs.csv # Coding SNPs with phastCons scores
+│   ├── QTLresults/                # F2 glycemic QTL data and trait scan plots
 │   └── README.md                  # Detailed collaborator user guide
+├── guides/                        # Technical guides & documentation modules
+│   ├── README.md                  # Guides catalog and directory overview
+│   ├── developer_guide.md         # In-app developer architecture modal & hub
+│   ├── user_guide.md              # In-app user guide modal (panel & navigation)
+│   ├── about.md                   # Consortium, biological background & data layers
+│   ├── qtlanalysis.md             # F2 glycemic QTL integration technical guide
+│   ├── redesign.md                # UI redesign, reactivity & layout documentation
+│   ├── publishapp.md              # Shinylive static web deployment guide
+│   └── shinyapp.md                # Legacy standalone prototype specifications
 ├── .github/
 │   └── workflows/
 │       └── deploy-shinylive.yaml  # Automated CI/CD Shinylive export & Pages deployment
-├── docs/                          # Shinylive static web distribution bundle
+├── docs/                          # Standalone HTML documentation pages for GitHub Pages
+├── render_docs.R                  # Generator script rendering guides to docs/*.html
 ├── MafADiscovery.Rproj            # RStudio project configuration
-├── shinyapp.md                    # Shinylive & GitHub Pages technical notes
-├── DEVELOPER.md                   # Architecture & developer reference guide
+├── DEVELOPER.md                   # Master architecture & developer reference guide
 ├── AGENTS.md                      # AI assistant project guidelines
 ├── LICENSE                        # MIT License
 └── README.md                      # Repository overview (this file)
@@ -128,7 +138,7 @@ The application relies on four curated CSV datasets stored in [`SHINY_APP/`](SHI
 
 ## Developer Documentation
 
-For technical architectural details, data engine documentation, and coding guidelines, see [**`DEVELOPER.md`**](DEVELOPER.md).
+For technical architectural details, data engine documentation, and coding guidelines, see [**`DEVELOPER.md`**](DEVELOPER.md). For modular technical specifications, in-app modal guides, and deployment workflows, see the [**`guides/` directory**](guides/README.md).
 
 ---
 

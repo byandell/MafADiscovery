@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About MafA Discovery — Context & Collaborators</title>
+  <title>Guides Directory — MafA Discovery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -307,13 +307,13 @@
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
-          <li><a href="about.html" class="active">About</a></li>
+          <li><a href="about.html">About</a></li>
           <li class="nav-dropdown">
        <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle">Developer Guide <span class="arrow">▾</span></summary>
+         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
          <ul class="dropdown-menu">
            <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
-              <li><a href="guides.html">Guides Directory Index</a></li>
+              <li><a href="guides.html" class="active">Guides Directory Index</a></li>
               <li class="dropdown-divider"></li>
               <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
               <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
@@ -330,75 +330,87 @@
   
   <main class="doc-container">
     <article class="markdown-body">
-<h1>About MafA Discovery</h1>
-<p>An interactive genomic explorer for MafA transcription factor binding peaks, strain-divergent variants, differential gene expression, and F2 glycemic QTL loci in C57BL/6J and SJL/J mouse models.</p>
+<h1>MafA Discovery — Documentation &amp; Architecture Guides</h1>
+<p>Welcome to the <code>guides/</code> directory for the <strong>MafA Discovery Integrated Genomic Explorer</strong>. This folder consolidates all architectural documentation, in-app modal guides, technical implementation plans, and deployment specifications.</p>
 <hr />
-<h2>1. Research Overview</h2>
-<p>MafA is a critical basic leucine zipper (bZIP) transcription factor that regulates pancreatic $\beta$-cell maturation, insulin gene transcription, and glucose homeostasis. Genetic variation between inbred mouse strains alters transcription factor binding affinity, chromatin accessibility, and downstream transcriptional networks, predisposing certain strains to $\beta$-cell dysfunction and diabetes.</p>
-<p>The <strong>MafA Discovery Integrated Genomic Explorer</strong> was developed to bridge molecular binding events with organismal phenotypic outcomes:</p>
+<h2>1. Guides Directory Catalog</h2>
+<table>
+<thead>
+<tr>
+<th align="left">Guide</th>
+<th align="left">Target Audience</th>
+<th align="left">Description</th>
+<th align="left">Online HTML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><a href="index.html"><strong><code>developer_guide.md</code></strong></a></td>
+<td align="left">Developers &amp; Collaborators</td>
+<td align="left">Central index and documentation hub linking all architectural modules and GitHub source repositories.</td>
+<td align="left"><a href="index.html">Documentation Hub</a></td>
+</tr>
+<tr>
+<td align="left"><a href="user_guide.html"><strong><code>user_guide.md</code></strong></a></td>
+<td align="left">End Users &amp; Researchers</td>
+<td align="left">In-app modal user guide explaining Manhattan macro view, Locus micro schematic, coding variant impacts, and navigation modes.</td>
+<td align="left"><a href="user_guide.html">User Guide</a></td>
+</tr>
+<tr>
+<td align="left"><a href="about.html"><strong><code>about.md</code></strong></a></td>
+<td align="left">All Users</td>
+<td align="left">Biological overview of MafA transcription factor dynamics, Vanderbilt/UW research consortium, and integrated data layers.</td>
+<td align="left"><a href="about.html">About MafA Discovery</a></td>
+</tr>
+<tr>
+<td align="left"><a href="qtlanalysis.html"><strong><code>qtlanalysis.md</code></strong></a></td>
+<td align="left">Geneticists &amp; Developers</td>
+<td align="left">Technical specification of the F2 glycemic QTL integration, additive sex LOD scan plots, and interactive overview table.</td>
+<td align="left"><a href="qtlanalysis.html">QTL Analysis</a></td>
+</tr>
+<tr>
+<td align="left"><a href="redesign.html"><strong><code>redesign.md</code></strong></a></td>
+<td align="left">Developers &amp; UI Engineers</td>
+<td align="left">Chronological implementation record of UI modernization, state reset lifecycle, contextual control placement, and mobile responsiveness.</td>
+<td align="left"><a href="redesign.html">UI Redesign</a></td>
+</tr>
+<tr>
+<td align="left"><a href="publishapp.html"><strong><code>publishapp.md</code></strong></a></td>
+<td align="left">DevOps &amp; Developers</td>
+<td align="left">Static WebAssembly (WASM) Shinylive export strategy, dependency elimination, and GitHub Actions continuous deployment.</td>
+<td align="left"><a href="publishapp.html">Publishing &amp; Deployment</a></td>
+</tr>
+<tr>
+<td align="left"><a href="shinyapp.html"><strong><code>shinyapp.md</code></strong></a></td>
+<td align="left">Developers &amp; Archivists</td>
+<td align="left">Historical specifications and architectural lineage for legacy standalone prototype scripts (Version 1 &amp; Version 2).</td>
+<td align="left"><a href="shinyapp.html">Legacy Prototypes</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. Core Repository Reference Documents</h2>
+<p>Outside of this <code>guides/</code> directory, the following primary documentation files are maintained at key repository locations:</p>
 <ul>
-<li>Linking MafA ChIP-seq / CUT&amp;RUN binding peaks to proximal strain-divergent genetic variants between <strong>C57BL/6J</strong> (diabetes-resistant baseline) and <strong>SJL/J</strong> (diabetes-susceptible).</li>
-<li>Connecting MafA chromatin occupancy to downstream differential gene expression (DEGs) in islet tissue.</li>
-<li>Mapping candidate binding peaks and high-impact coding variants directly into 95% confidence intervals of <strong>F2 glycemic QTL loci</strong>.</li>
+<li><a href="guides.html"><strong><code>../README.md</code></strong></a>: Primary repository landing page, quick start instructions, environment setup, and feature highlights.</li>
+<li><a href="DEVELOPER.html"><strong><code>../DEVELOPER.md</code></strong></a>: Master technical developer manual detailing data layer schemas, GRCm39 coordinates, reactive state architecture, and coding standards.</li>
+<li><a href="../SHINY_APP/README.md"><strong><code>../SHINY_APP/README.md</code></strong></a>: Dedicated user and collaborator manual for the production Shiny application in <code>SHINY_APP/</code>.</li>
+<li><a href="../AGENTS.md"><strong><code>../AGENTS.md</code></strong></a>: Coding guidelines and governance rules for AI assistants working in this repository.</li>
 </ul>
 <hr />
-<h2>2. Integrated Data Layers</h2>
-<p>All genomic coordinates across datasets are aligned to the mouse <strong>GRCm39 (mm39)</strong> reference assembly:</p>
-<ol>
-<li><strong>MafA Binding Peaks (<code>MafA_Peaks_with_SNPs_v3.csv</code>)</strong>:
+<h2>3. In-App Modal Integration</h2>
+<p>The application in <a href="../SHINY_APP/app.R"><code>../SHINY_APP/app.R</code></a> loads guides directly into interactive modal dialogs via <code>render_markdown_file()</code>:</p>
 <ul>
-<li>Peak intervals, genomic midpoints, and ChIP/CUT&amp;RUN binding strength scores.</li>
-<li>Total strain-divergent variant counts within each binding peak interval (<code>variant_count</code>).</li>
+<li><strong>ℹ️ Help Modal (<code>input$show_help</code>)</strong>: Reads <a href="user_guide.html"><code>user_guide.md</code></a> to orient researchers on plot axes, symbols, and navigation.</li>
+<li><strong>📖 Dev Guide Modal (<code>input$show_dev_guide</code>)</strong>: Reads <a href="index.html"><code>developer_guide.md</code></a> providing direct hyperlinks to web documentation and source code.</li>
 </ul>
-</li>
-<li><strong>Differential Gene Expression (<code>Master_DEG_Strain_Comparison_v3.csv</code>)</strong>:
-<ul>
-<li>RNA-seq differential expression between C57BL/6J and SJL/J islets under baseline and perturbational conditions.</li>
-<li>Categorized into <code>Shared</code>, <code>C57_Specific</code>, <code>SJL_Specific</code>, and <code>Discordant</code> responses with log2 fold-changes.</li>
-</ul>
-</li>
-<li><strong>Mouse Genomic Backbone (<code>mouse_genes_mm39_v3.csv</code>)</strong>:
-<ul>
-<li>Comprehensive Ensembl GRCm39 gene models with coordinates, strand orientations, and gene biotypes.</li>
-</ul>
-</li>
-<li><strong>Prioritized Coding Polymorphisms (<code>B6_SJL_prioritized_protein_coding_SNPs.csv</code>)</strong>:
-<ul>
-<li>Protein-coding sequence variants between B6 and SJL classified by impact severity (<code>HIGH</code> and <code>MODERATE</code>).</li>
-<li>Annotated with evolutionary conservation scores (<code>phastCons</code>), consequence types (<code>csq</code>), and amino acid substitutions (<code>aa_change</code>).</li>
-</ul>
-</li>
-<li><strong>F2 Glycemic QTL Loci &amp; Scans (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</strong>:
-<ul>
-<li>Top quantitative trait loci from the B6 $\times$ SJL F2 intercross study across glycemic traits (e.g., AUC, glucose response).</li>
-<li>Annotated with peak marker coordinates, LOD scores, 95% Bayesian confidence intervals (<code>ci.low</code> to <code>ci.high</code>), additive effect models (<code>BB</code>, <code>BS</code>, <code>SS</code>), and corresponding trait scan plots.</li>
-</ul>
-</li>
-</ol>
+<p>Path resolution searches local and parent paths so documentation resolves cleanly during local R sessions, containerized deployments, and Shinylive WebAssembly builds.</p>
 <hr />
-<h2>3. Collaborative Consortium</h2>
-<p>This investigation is a joint collaboration between:</p>
-<ul>
-<li><strong>Vanderbilt University Medical Center</strong>:
-<ul>
-<li>Department of Molecular Physiology and Biophysics</li>
-<li>Jee Yeon Cha (PI) and Mallory Maurer</li>
-</ul>
-</li>
-<li><strong>University of Wisconsin-Madison</strong>:
-<ul>
-<li>Department of Statistics — Brian Yandell</li>
-<li>Department of Biochemistry — Mark Keller</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2>4. Software &amp; Implementation</h2>
-<ul>
-<li><strong>Production Application</strong>: Built with R Shiny, <code>data.table</code>, <code>ggplot2</code>, and <code>plotly</code>.</li>
-<li><strong>Serverless WebAssembly (WASM)</strong>: Deployed serverlessly via <a href="https://github.com/posit-dev/shinylive-r">Shinylive for R (webR)</a> on GitHub Pages, requiring zero server maintenance.</li>
-<li><strong>Open Source Repository</strong>: Source code and documentation are available on GitHub at <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a>.</li>
-</ul>
+<h2>4. Documentation Rendering Pipeline</h2>
+<p>All Markdown files in this directory are compiled into standalone, styled HTML pages using <a href="../render_docs.R"><code>../render_docs.R</code></a>:</p>
+<pre><code class="language-bash">Rscript render_docs.R
+</code></pre>
+<p>The resulting pages are placed into <code>docs/</code> and deployed to GitHub Pages via <code>.github/workflows/deploy-shinylive.yaml</code>, serving live documentation at <a href=""></a>.</p>
 
     </article>
   </main>

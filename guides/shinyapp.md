@@ -21,7 +21,7 @@ Create, document, and preserve the standalone prototype applications in `SHINY_A
 3. **Legacy Preservation & Standalone Execution**:
    - House these legacy scripts in `SHINY_APP_LEGACY/` as self-contained prototypes.
    - Maintain full documentation in [`SHINY_APP_LEGACY/README.md`](SHINY_APP_LEGACY/README.md).
-   - Provide a clear migration path to the production application in [`SHINY_APP/app.R`](SHINY_APP/app.R).
+   - Provide a clear migration path to the production application in [`SHINY_APP/app.R`](../SHINY_APP/app.R).
 
 ---
 
@@ -54,7 +54,7 @@ flowchart TD
 
 | Feature / Dimension | Version 1 (`MafA_Discovery_App.R`) | Version 2 (`MafA_Discovery_App_v2.R`) |
 | :--- | :--- | :--- |
-| **Script Path** | [`SHINY_APP_LEGACY/MafA_Discovery_App.R`](SHINY_APP_LEGACY/MafA_Discovery_App.R) | [`SHINY_APP_LEGACY/MafA_Discovery_App_v2.R`](SHINY_APP_LEGACY/MafA_Discovery_App_v2.R) |
+| **Script Path** | `SHINY_APP_LEGACY/MafA_Discovery_App.R` | `SHINY_APP_LEGACY/MafA_Discovery_App_v2.R` |
 | **Data Ingestion** | 3 CSVs (~6.3 MB) | 4 CSVs (~15.4 MB, adds prioritized coding SNPs) |
 | **Genomic Distance Engine** | Bioconductor `GenomicRanges::nearest()` & `findOverlaps()` | Bioconductor `GenomicRanges::nearest()` & `findOverlaps()` |
 | **Default Locus Window** | 250 kb | 500 kb |
@@ -151,14 +151,14 @@ flowchart TD
    - Ensure both scripts use relative local CSV file paths (`fread("...")`).
    - Allow execution either by copying CSVs from `SHINY_APP/` or by creating relative symlinks.
 5. **Step 5: Documentation & Archival**:
-   - Maintain comprehensive documentation in [`SHINY_APP_LEGACY/README.md`](SHINY_APP_LEGACY/README.md).
+   - Maintain comprehensive documentation in `SHINY_APP_LEGACY/README.md`.
    - Document differences, dependencies, and execution instructions.
 
 ---
 
 ### 5. Architectural Lineage: Legacy to Production
 
-| Component | Legacy v1 (`MafA_Discovery_App.R`) | Legacy v2 (`MafA_Discovery_App_v2.R`) | Production (`SHINY_APP/app.R`) |
+| Component | Legacy v1 (`MafA_Discovery_App.R`) | Legacy v2 (`MafA_Discovery_App_v2.R`) | Production ([`SHINY_APP/app.R`](../SHINY_APP/app.R)) |
 | :--- | :--- | :--- | :--- |
 | **Bioconductor Dependency** | Required (`GenomicRanges`) | Required (`GenomicRanges`) | **Removed** (pure `data.table` rolling join) |
 | **WebAssembly / Shinylive** | Incompatible (heavy C binaries) | Incompatible (heavy C binaries) | **100% Compatible** (zero runtime compilation) |
@@ -166,4 +166,4 @@ flowchart TD
 | **Navigation Modes** | 3 modes | 3 modes | **4 modes** (adds `QTL Region` auto-zoom) |
 | **Filter Controls** | Continuous sliders | Continuous sliders | **Discrete selects** (clean intervals for window & score) |
 | **Category Default** | All visible | All visible | **"Shared" deselected by default** (highlights strain differences) |
-| **Interpretation Guide** | None | None | **Built-in Modal** (macro/micro panel guide + QTL table) |
+| **Interpretation Guide** | None | None | **Built-in Modal** ([`user_guide.md`](user_guide.md)) |

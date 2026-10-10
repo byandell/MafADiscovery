@@ -68,9 +68,9 @@ To run the application locally or export it, ensure the files reside together in
 | `B6_SJL_prioritized_protein_coding_SNPs.csv` | Prioritized coding SNPs with consequence, amino acid changes, and phastCons scores |
 | `QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv` | F2 glycemic QTL loci with 95% confidence intervals and additive effects |
 | `QTLresults/scan_chr*.png` | Additive sex QTL LOD scans for AUC and trajectory glycemic traits |
-| `interpretation_guide.md` | In-app modal documentation explaining macro/micro panels and navigation |
-| `developer_guide.md` | In-app modal documentation linking to architectural guides and GitHub repo |
-| [`README.md`](README.md) | Documentation for the active application |
+| [`../guides/user_guide.md`](../guides/user_guide.md) | In-app user guide modal explaining macro/micro panels and navigation |
+| [`../guides/developer_guide.md`](../guides/developer_guide.md) | In-app modal documentation linking to architectural guides and GitHub repo |
+| [`README.md`](README.md) | Documentation for the active application (this file) |
 
 > [!NOTE]
 > The app loads the CSV files using relative file paths (e.g. `fread("Master_DEG_Strain_Comparison_v3.csv")`). Keep the CSV files in the same directory as `app.R`.

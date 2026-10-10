@@ -22,11 +22,12 @@ Rather than moving and overwriting the source files into `docs/`, the standard b
 ```
 MafADiscovery/
 ├── SHINY_APP/                     # SOURCE: R scripts, raw CSVs, docs
-│   ├── app.R                      # Main application file (renamed or symlinked)
+│   ├── app.R                      # Main application file
 │   ├── MafA_Peaks_with_SNPs_v3.csv
 │   ├── Master_DEG_Strain_Comparison_v3.csv
 │   ├── mouse_genes_mm39_v3.csv
 │   └── README.md
+├── guides/                        # Architectural and developer guides
 ├── docs/                          # BUILD TARGET: Published via GitHub Pages
 │   ├── .nojekyll                  # Required: bypasses Jekyll processing
 │   ├── index.html                 # Shinylive entry point
@@ -38,13 +39,12 @@ MafADiscovery/
 
 ## 3. Dependency & Performance Audit (webR Readiness)
 
-The app (`MafA_Discovery_App.R`) relies on 5 libraries:
+The app (`app.R`) relies on 4 standard CRAN libraries:
 
 1. `shiny`, `ggplot2`, `plotly`, `data.table`: All are available as pre-compiled WebAssembly binaries in the r-wasm CRAN repository (`repo.r-wasm.org`).
 2. `GenomicRanges`: Bioconductor package with C dependencies.
-   - *Consideration*: While webR supports many Bioconductor packages, loading `GenomicRanges` + `S4Vectors` + `IRanges` adds ~25 MB of WASM binaries to download.
-   - *Optimization Option*: The app uses `GenomicRanges` solely for `findOverlaps()` and `nearest()` (finding DEGs within `win_kb` of peak midpoint). This can optionally be replaced with a fast `data.table` interval join or base R calculation to cut app load time by >60%.
-3. **Data payload**: The 3 CSVs total ~6.3 MB (`mouse_genes_mm39_v3.csv` is ~5.1 MB). This comfortably loads into browser memory in webR.
+   - *Optimization*: The app replaces Bioconductor `GenomicRanges` with optimized `data.table` interval joins (`roll = "nearest"` on query positions). This eliminates ~25 MB of WASM downloads and cuts app load time by >60%.
+3. **Data payload**: The CSVs total ~15 MB with prioritized SNPs. This comfortably loads into browser memory in webR.
 
 ---
 
@@ -52,8 +52,8 @@ The app (`MafA_Discovery_App.R`) relies on 5 libraries:
 
 ### Phase 1: Prepare the App for Export
 
-1. Standardize the script filename: Shinylive expects `app.R` (or a single R script). We can create an `app.R` in `SHINY_APP/` that cleanly wraps or links to `MafA_Discovery_App.R`.
-2. Verify package dependencies in webR format. If desired, benchmark whether to keep `GenomicRanges` or streamline the distance check via `data.table`.
+1. Standardize the script filename: Shinylive expects `app.R` in `SHINY_APP/`.
+2. Verify package dependencies in webR format with pure `data.table` distance checks.
 
 ### Phase 2: Static Export via Shinylive
 
@@ -88,10 +88,10 @@ The app (`MafA_Discovery_App.R`) relies on 5 libraries:
 Rather than committing and uploading heavy precompiled Shinylive/webR assets (`docs/shinylive/` ~60MB) directly into Git history, the build and deployment is handled on the GitHub Pages end via GitHub Actions:
 
 1. **Workflow Automation (`.github/workflows/deploy-shinylive.yaml`)**:
-   - Triggers on push to `main` (when `SHINY_APP/**`, `*.md`, or the workflow changes) or manual `workflow_dispatch`.
+   - Triggers on push to `main` (when `SHINY_APP/**`, `guides/**`, `*.md`, or the workflow changes) or manual `workflow_dispatch`.
    - Sets up Ubuntu runner with R, installs standard CRAN dependencies (`shiny`, `shinylive`, `data.table`, `ggplot2`, `plotly`).
-   - Runs `shinylive::export(appdir = "SHINY_APP", destdir = "site")` in CI.
-   - Copies root developer guides (`DEVELOPER.md`, `shinyapp.md`, `publishapp.md`, `redesign.md`, `qtlanalysis.md`) into `site/` for public hosting alongside the app.
+   - Copies guide markdown files to `SHINY_APP/guides/` and runs `shinylive::export(appdir = "SHINY_APP", destdir = "site")` in CI.
+   - Copies developer guides (`DEVELOPER.md`, `guides/*.md`) into `site/` for public hosting alongside the app.
    - Deploys the static bundle as a Pages artifact via `actions/deploy-pages@v4`.
 2. **Repository Cleanliness**:
    - `/docs/` and `/site/` are added to `.gitignore`.
@@ -113,7 +113,7 @@ All implementation steps for **Option 1 (Shinylive / webR)** with `data.table` a
    - Eliminated Bioconductor dependencies (`GenomicRanges`, `IRanges`, `S4Vectors`, `Seqinfo`), reducing required WASM packages from 43 to 38 and speeding up browser load times.
 
 2. **Source and Entry Point Standardized**:
-   - Created [`SHINY_APP/app.R`](SHINY_APP/app.R) as the primary Shiny application entry point for both local development and Shinylive packaging.
+   - Created [`SHINY_APP/app.R`](../SHINY_APP/app.R) as the primary Shiny application entry point for both local development and Shinylive packaging.
    - Maintained all source files in `SHINY_APP/`.
 
 3. **Serverless CI/CD Pipeline (`.github/workflows/deploy-shinylive.yaml`)**:

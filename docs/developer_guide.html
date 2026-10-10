@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About MafA Discovery — Context & Collaborators</title>
+  <title>Documentation Hub — MafA Discovery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -307,7 +307,7 @@
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
-          <li><a href="about.html" class="active">About</a></li>
+          <li><a href="about.html">About</a></li>
           <li class="nav-dropdown">
        <details class="dropdown-details" id="dev-dropdown">
          <summary class="dropdown-toggle">Developer Guide <span class="arrow">▾</span></summary>
@@ -330,74 +330,50 @@
   
   <main class="doc-container">
     <article class="markdown-body">
-<h1>About MafA Discovery</h1>
-<p>An interactive genomic explorer for MafA transcription factor binding peaks, strain-divergent variants, differential gene expression, and F2 glycemic QTL loci in C57BL/6J and SJL/J mouse models.</p>
+<h1>MafA Discovery: Documentation Hub &amp; Developer Guide</h1>
+<p>Welcome to the documentation portal for the <strong>MafA Discovery Integrated Genomic Explorer</strong>.</p>
 <hr />
-<h2>1. Research Overview</h2>
-<p>MafA is a critical basic leucine zipper (bZIP) transcription factor that regulates pancreatic $\beta$-cell maturation, insulin gene transcription, and glucose homeostasis. Genetic variation between inbred mouse strains alters transcription factor binding affinity, chromatin accessibility, and downstream transcriptional networks, predisposing certain strains to $\beta$-cell dysfunction and diabetes.</p>
-<p>The <strong>MafA Discovery Integrated Genomic Explorer</strong> was developed to bridge molecular binding events with organismal phenotypic outcomes:</p>
+<h3>User Documentation</h3>
 <ul>
-<li>Linking MafA ChIP-seq / CUT&amp;RUN binding peaks to proximal strain-divergent genetic variants between <strong>C57BL/6J</strong> (diabetes-resistant baseline) and <strong>SJL/J</strong> (diabetes-susceptible).</li>
-<li>Connecting MafA chromatin occupancy to downstream differential gene expression (DEGs) in islet tissue.</li>
-<li>Mapping candidate binding peaks and high-impact coding variants directly into 95% confidence intervals of <strong>F2 glycemic QTL loci</strong>.</li>
-</ul>
-<hr />
-<h2>2. Integrated Data Layers</h2>
-<p>All genomic coordinates across datasets are aligned to the mouse <strong>GRCm39 (mm39)</strong> reference assembly:</p>
-<ol>
-<li><strong>MafA Binding Peaks (<code>MafA_Peaks_with_SNPs_v3.csv</code>)</strong>:
-<ul>
-<li>Peak intervals, genomic midpoints, and ChIP/CUT&amp;RUN binding strength scores.</li>
-<li>Total strain-divergent variant counts within each binding peak interval (<code>variant_count</code>).</li>
-</ul>
+<li>
+<p><strong><a href="user_guide.html">User Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/user_guide.md">source</a>)<br />
+Complete guide to interpreting the Manhattan macro view, Locus micro schematic, coding variant consequence scoring (<code>phastCons</code>), QTL confidence intervals, and navigation modes.</p>
 </li>
-<li><strong>Differential Gene Expression (<code>Master_DEG_Strain_Comparison_v3.csv</code>)</strong>:
-<ul>
-<li>RNA-seq differential expression between C57BL/6J and SJL/J islets under baseline and perturbational conditions.</li>
-<li>Categorized into <code>Shared</code>, <code>C57_Specific</code>, <code>SJL_Specific</code>, and <code>Discordant</code> responses with log2 fold-changes.</li>
-</ul>
-</li>
-<li><strong>Mouse Genomic Backbone (<code>mouse_genes_mm39_v3.csv</code>)</strong>:
-<ul>
-<li>Comprehensive Ensembl GRCm39 gene models with coordinates, strand orientations, and gene biotypes.</li>
-</ul>
-</li>
-<li><strong>Prioritized Coding Polymorphisms (<code>B6_SJL_prioritized_protein_coding_SNPs.csv</code>)</strong>:
-<ul>
-<li>Protein-coding sequence variants between B6 and SJL classified by impact severity (<code>HIGH</code> and <code>MODERATE</code>).</li>
-<li>Annotated with evolutionary conservation scores (<code>phastCons</code>), consequence types (<code>csq</code>), and amino acid substitutions (<code>aa_change</code>).</li>
-</ul>
-</li>
-<li><strong>F2 Glycemic QTL Loci &amp; Scans (<code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>)</strong>:
-<ul>
-<li>Top quantitative trait loci from the B6 $\times$ SJL F2 intercross study across glycemic traits (e.g., AUC, glucose response).</li>
-<li>Annotated with peak marker coordinates, LOD scores, 95% Bayesian confidence intervals (<code>ci.low</code> to <code>ci.high</code>), additive effect models (<code>BB</code>, <code>BS</code>, <code>SS</code>), and corresponding trait scan plots.</li>
-</ul>
-</li>
-</ol>
-<hr />
-<h2>3. Collaborative Consortium</h2>
-<p>This investigation is a joint collaboration between:</p>
-<ul>
-<li><strong>Vanderbilt University Medical Center</strong>:
-<ul>
-<li>Department of Molecular Physiology and Biophysics</li>
-<li>Jee Yeon Cha (PI) and Mallory Maurer</li>
-</ul>
-</li>
-<li><strong>University of Wisconsin-Madison</strong>:
-<ul>
-<li>Department of Statistics — Brian Yandell</li>
-<li>Department of Biochemistry — Mark Keller</li>
-</ul>
+<li>
+<p><strong><a href="about.html">About MafA Discovery</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/about.md">source</a>)<br />
+Biological background on MafA transcription factor dynamics in C57BL/6J and SJL/J mouse models, collaborative research consortium, and integrated data assets.</p>
 </li>
 </ul>
 <hr />
-<h2>4. Software &amp; Implementation</h2>
+<h3>Developer &amp; Technical Documentation</h3>
 <ul>
-<li><strong>Production Application</strong>: Built with R Shiny, <code>data.table</code>, <code>ggplot2</code>, and <code>plotly</code>.</li>
-<li><strong>Serverless WebAssembly (WASM)</strong>: Deployed serverlessly via <a href="https://github.com/posit-dev/shinylive-r">Shinylive for R (webR)</a> on GitHub Pages, requiring zero server maintenance.</li>
-<li><strong>Open Source Repository</strong>: Source code and documentation are available on GitHub at <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a>.</li>
+<li>
+<p><strong><a href="DEVELOPER.html">Master Developer Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/DEVELOPER.md">source</a>)<br />
+Overall technical guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.</p>
+</li>
+<li>
+<p><strong><a href="qtlanalysis.html">F2 Glycemic QTL Integration</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/qtlanalysis.md">source</a>)<br />
+F2 glycemic QTL integration, in-panel overview table, dynamic top-nav toggle, additive trait scan PNG plots (<code>QTLresults/</code>), automated CI bounding, continuous control card stacking, and peak reset controls.</p>
+</li>
+<li>
+<p><strong><a href="redesign.html">App Redesign &amp; Reactivity</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/redesign.md">source</a>)<br />
+Dynamic view mode lifecycle (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>), discrete filter ergonomics, coordinate auto-scaling, and total state reset.</p>
+</li>
+<li>
+<p><strong><a href="publishapp.html">Publishing &amp; Deployment</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/publishapp.md">source</a>)<br />
+Shinylive (webR) static WebAssembly deployment architecture, performance benchmarks, and automated GitHub Actions CI configuration.</p>
+</li>
+<li>
+<p><strong><a href="shinyapp.html">Legacy Prototypes</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/shinyapp.md">source</a>)<br />
+Technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>) standalone prototype scripts.</p>
+</li>
+</ul>
+<hr />
+<h3>Repository Links</h3>
+<ul>
+<li><strong>GitHub Repository:</strong> <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a></li>
+<li><strong>Application Source:</strong> <a href="https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a></li>
+<li><strong>Guides Index:</strong> <a href="https://github.com/byandell/MafADiscovery/blob/main/guides/README.md"><code>guides/README.md</code></a></li>
 </ul>
 
     </article>

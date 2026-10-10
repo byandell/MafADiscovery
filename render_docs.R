@@ -7,13 +7,17 @@ docs_dir <- "docs"
 if (!dir.exists(docs_dir)) dir.create(docs_dir, recursive = TRUE)
 
 files_to_render <- list(
-  list(src = "SHINY_APP/developer_guide.md", dest = "index.html", title = "Documentation Hub — MafA Discovery"),
-  list(src = "SHINY_APP/about.md",           dest = "about.html", title = "About MafA Discovery — Context & Collaborators"),
-  list(src = "DEVELOPER.md",                 dest = "DEVELOPER.html", title = "Developer Guide — MafA Discovery"),
-  list(src = "shinyapp.md",                  dest = "shinyapp.html", title = "Legacy Standalone Prototypes — MafA Discovery"),
-  list(src = "publishapp.md",                dest = "publishapp.html", title = "Publishing & Deployment Guide — MafA Discovery"),
-  list(src = "redesign.md",                  dest = "redesign.html", title = "UI Redesign & Reactivity — MafA Discovery"),
-  list(src = "qtlanalysis.md",               dest = "qtlanalysis.html", title = "F2 Glycemic QTL Integration — MafA Discovery")
+  list(src = "guides/developer_guide.md", dest = "index.html", title = "Documentation Hub — MafA Discovery"),
+  list(src = "guides/developer_guide.md", dest = "developer_guide.html", title = "Documentation Hub — MafA Discovery"),
+  list(src = "guides/user_guide.md",      dest = "user_guide.html", title = "User Guide — MafA Discovery"),
+  list(src = "guides/user_guide.md",      dest = "interpretation_guide.html", title = "User Guide — MafA Discovery"),
+  list(src = "guides/about.md",           dest = "about.html", title = "About MafA Discovery — Context & Collaborators"),
+  list(src = "DEVELOPER.md",              dest = "DEVELOPER.html", title = "Developer Guide — MafA Discovery"),
+  list(src = "guides/README.md",          dest = "guides.html", title = "Guides Directory — MafA Discovery"),
+  list(src = "guides/qtlanalysis.md",     dest = "qtlanalysis.html", title = "F2 Glycemic QTL Integration — MafA Discovery"),
+  list(src = "guides/redesign.md",        dest = "redesign.html", title = "UI Redesign & Reactivity — MafA Discovery"),
+  list(src = "guides/publishapp.md",      dest = "publishapp.html", title = "Publishing & Deployment Guide — MafA Discovery"),
+  list(src = "guides/shinyapp.md",        dest = "shinyapp.html", title = "Legacy Standalone Prototypes — MafA Discovery")
 )
 
 # Convert Markdown to HTML fragment
@@ -31,28 +35,59 @@ md_to_html <- function(md_content) {
 }
 
 html_template <- function(title, body_html, current_file) {
-  nav_links <- c(
-    "./"               = "Documentation Hub",
-    "about.html"       = "About",
-    "DEVELOPER.html"   = "Developer Guide",
-    "shinyapp.html"    = "Legacy Prototypes",
-    "publishapp.html"  = "Publishing & WASM",
-    "redesign.html"    = "UI Redesign",
-    "qtlanalysis.html" = "QTL Analysis"
+  dev_subpages <- list(
+    list(href = "DEVELOPER.html",   label = "Master Developer Guide"),
+    list(href = "guides.html",      label = "Guides Directory Index"),
+    list(divider = TRUE),
+    list(href = "qtlanalysis.html", label = "F2 QTL Analysis"),
+    list(href = "redesign.html",    label = "UI Redesign & Reactivity"),
+    list(href = "publishapp.html",  label = "Publishing & WASM"),
+    list(href = "shinyapp.html",    label = "Legacy Prototypes")
+  )
+  dev_hrefs <- c("DEVELOPER.html", "guides.html", "qtlanalysis.html", "redesign.html", "publishapp.html", "shinyapp.html")
+  is_dev_active <- current_file %in% dev_hrefs
+  
+  dev_menu_items <- vapply(dev_subpages, function(item) {
+    if (isTRUE(item$divider)) {
+      return('<li class="dropdown-divider"></li>')
+    }
+    active_cls <- if (item$href == current_file) ' class="active"' else ''
+    sprintf('<li><a href="%s"%s>%s</a></li>', item$href, active_cls, item$label)
+  }, character(1))
+  dev_menu_html <- paste(dev_menu_items, collapse = "\n              ")
+  
+  dev_dropdown_html <- sprintf(
+    '<li class="nav-dropdown">
+       <details class="dropdown-details" id="dev-dropdown">
+         <summary class="dropdown-toggle%s">Developer Guide <span class="arrow">▾</span></summary>
+         <ul class="dropdown-menu">
+           %s
+         </ul>
+       </details>
+     </li>',
+    if (is_dev_active) ' active' else '',
+    dev_menu_html
   )
   
-  nav_items <- vapply(names(nav_links), function(f) {
-    active_cls <- if (f == current_file || (current_file == "index.html" && f == "./")) ' class="active"' else ''
-    sprintf('<li><a href="%s"%s>%s</a></li>', f, active_cls, nav_links[[f]])
-  }, character(1))
-  nav_html <- paste(nav_items, collapse = "\n          ")
+  main_nav_links <- c(
+    "./"              = "Documentation Hub",
+    "user_guide.html" = "User Guide",
+    "about.html"      = "About"
+  )
   
-  sprintf('<!DOCTYPE html>
+  main_items <- vapply(names(main_nav_links), function(f) {
+    active_cls <- if (f == current_file || (current_file == "index.html" && f == "./")) ' class="active"' else ''
+    sprintf('<li><a href="%s"%s>%s</a></li>', f, active_cls, main_nav_links[[f]])
+  }, character(1))
+  
+  nav_html <- paste(c(main_items, dev_dropdown_html), collapse = "\n          ")
+  
+  tmpl <- '<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>%s</title>
+  <title>{{TITLE}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -131,6 +166,93 @@ html_template <- function(title, body_html, current_file) {
       color: var(--primary);
       font-weight: 600;
     }
+    .nav-dropdown {
+      position: relative;
+    }
+    .dropdown-details {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-toggle {
+      color: var(--text-muted);
+      font-size: 0.88em;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      list-style: none;
+      transition: all 0.15s ease;
+    }
+    .dropdown-toggle::-webkit-details-marker {
+      display: none;
+    }
+    .dropdown-toggle::marker {
+      display: none;
+    }
+    .dropdown-toggle:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-toggle.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-details .arrow {
+      font-size: 0.75em;
+      margin-left: 2px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    .dropdown-details[open] .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 220px;
+      padding: 6px 0;
+      margin: 4px 0 0 0;
+      list-style: none;
+      z-index: 1000;
+    }
+    .dropdown-menu li {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text);
+      font-size: 0.88em;
+      text-decoration: none;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-menu a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 4px 0;
+    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -202,7 +324,7 @@ html_template <- function(title, body_html, current_file) {
       border: none;
     }
     table {
-      width: 100%%;
+      width: 100%;
       border-collapse: collapse;
       margin: 20px 0;
       font-size: 0.94em;
@@ -252,6 +374,12 @@ html_template <- function(title, body_html, current_file) {
       }
       return true;
     }
+    document.addEventListener("click", function(e) {
+      var dropdown = document.getElementById("dev-dropdown");
+      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
+        dropdown.removeAttribute("open");
+      }
+    });
   </script>
 </head>
 <body>
@@ -261,7 +389,7 @@ html_template <- function(title, body_html, current_file) {
       <nav class="doc-nav">
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
-          %s
+          {{NAV}}
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -270,7 +398,7 @@ html_template <- function(title, body_html, current_file) {
   
   <main class="doc-container">
     <article class="markdown-body">
-%s
+{{BODY}}
     </article>
   </main>
 
@@ -278,7 +406,12 @@ html_template <- function(title, body_html, current_file) {
     <p>MafA Discovery Integrated Genomic Explorer &bull; Vanderbilt University / University of Wisconsin-Madison</p>
   </footer>
 </body>
-</html>', title, nav_html, body_html)
+</html>'
+
+  out <- sub("{{TITLE}}", title, tmpl, fixed = TRUE)
+  out <- sub("{{NAV}}", nav_html, out, fixed = TRUE)
+  out <- sub("{{BODY}}", paste(body_html, collapse = "\n"), out, fixed = TRUE)
+  return(out)
 }
 
 cat("Rendering markdown documentation to HTML...\n")
@@ -300,12 +433,16 @@ for (item in files_to_render) {
   md_content <- paste(readLines(md_file, encoding = "UTF-8", warn = FALSE), collapse = "\n")
   
   # Adjust internal relative links for HTML output:
-  md_content <- gsub("\\]\\(DEVELOPER\\.md\\)", "](DEVELOPER.html)", md_content)
-  md_content <- gsub("\\]\\(shinyapp\\.md\\)", "](shinyapp.html)", md_content)
-  md_content <- gsub("\\]\\(publishapp\\.md\\)", "](publishapp.html)", md_content)
-  md_content <- gsub("\\]\\(redesign\\.md\\)", "](redesign.html)", md_content)
-  md_content <- gsub("\\]\\(qtlanalysis\\.md\\)", "](qtlanalysis.html)", md_content)
-  md_content <- gsub("\\]\\(about\\.md\\)", "](about.html)", md_content)
+  md_content <- gsub("\\]\\((?:\\.\\./)?DEVELOPER\\.md\\)", "](DEVELOPER.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?README\\.md\\)", "](guides.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?shinyapp\\.md\\)", "](shinyapp.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?publishapp\\.md\\)", "](publishapp.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?redesign\\.md\\)", "](redesign.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?qtlanalysis\\.md\\)", "](qtlanalysis.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?about\\.md\\)", "](about.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?developer_guide\\.md\\)", "](index.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?user_guide\\.md\\)", "](user_guide.html)", md_content)
+  md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?interpretation_guide\\.md\\)", "](user_guide.html)", md_content)
   md_content <- gsub("https://byandell\\.github\\.io/MafADiscovery/docs/", "", md_content)
   
   body_html <- md_to_html(md_content)

@@ -23,8 +23,6 @@ MafADiscovery/
 ├── app.R                          # Top-level launcher: shiny::runApp("SHINY_APP")
 ├── SHINY_APP/                     # Self-contained Shiny application source
 │   ├── app.R                      # Main application UI and Server logic
-│   ├── interpretation_guide.md    # In-app interpretation modal content
-│   ├── developer_guide.md         # In-app developer guide modal content with links
 │   ├── MafA_Peaks_with_SNPs_v3.csv              # MafA ChIP/CUT&RUN peaks and scores
 │   ├── Master_DEG_Strain_Comparison_v3.csv      # Differential gene expression dataset
 │   ├── mouse_genes_mm39_v3.csv                  # Ensembl GRCm39 gene backbone
@@ -33,11 +31,24 @@ MafADiscovery/
 │   │   ├── Top_glycemic_QTL_for_sex_additive_analysis.csv # F2 glycemic QTL loci with 95% CIs
 │   │   └── scan_chr*.png          # Trait scan PNG plots (AUC and trajectory)
 │   └── README.md                  # Detailed collaborator documentation
+├── guides/                        # Technical guides & architectural modules
+│   ├── README.md                  # Guides catalog and directory overview
+│   ├── developer_guide.md         # In-app developer architecture modal & hub
+│   ├── user_guide.md              # In-app user guide modal (panel & navigation)
+│   ├── about.md                   # Biological context, consortium & data layers
+│   ├── qtlanalysis.md             # F2 glycemic QTL integration technical guide
+│   ├── redesign.md                # UI redesign, reactivity & layout documentation
+│   ├── publishapp.md              # Shinylive static web deployment guide
+│   └── shinyapp.md                # Legacy standalone prototype specifications
 ├── .github/
 │   └── workflows/
 │       └── deploy-shinylive.yaml  # GitHub Actions automated Shinylive export & deployment
 ├── docs/                          # Standalone HTML documentation pages for GitHub Pages
 │   ├── DEVELOPER.html             # Rendered master Developer Guide
+│   ├── index.html                 # Documentation Hub portal (from guides/developer_guide.md)
+│   ├── user_guide.html            # Rendered User Guide
+│   ├── guides.html                # Rendered Guides directory catalog
+│   ├── about.html                 # Rendered About page
 │   ├── shinyapp.html              # Rendered Legacy Prototypes guide
 │   ├── publishapp.html            # Rendered Publishing & WebAssembly guide
 │   ├── redesign.html              # Rendered UI Redesign guide
@@ -45,10 +56,6 @@ MafADiscovery/
 │   └── .nojekyll                  # Bypasses Jekyll on GitHub Pages
 ├── render_docs.R                  # Generator script rendering *.md to docs/*.html
 ├── MafADiscovery.Rproj            # RStudio project configuration
-├── shinyapp.md                    # Root architectural module: legacy prototypes
-├── publishapp.md                  # Root architectural module: publishing guide
-├── redesign.md                    # Root architectural module: UI redesign
-├── qtlanalysis.md                 # Root architectural module: QTL integration
 ├── DEVELOPER.md                   # Root master developer guide (this file)
 ├── AGENTS.md                      # AI assistant project guidelines
 ├── LICENSE                        # MIT License
@@ -137,8 +144,8 @@ State is managed via `reactiveValues` in `v`:
   - An explicit **"✕ Deselect Current Peak"** button appears in the **Manhattan Controls** side panel immediately below the **Hide Legend** checkbox when a peak is active, providing intuitive deselection where peak selection originates and conditionally hiding the locus schematic and its controls.
 - **Genome-Wide Auto-Reset**: Selecting `"Genome-Wide"` in `zoom_mode` or clicking `↺ Reset` invokes a centralized `reset_to_default_state()` routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings (preserving mobile legend defaults on mobile devices).
 - **Legend Visibility Controls & Mobile Optimization**: Discrete checkboxes (`hide_manhattan_legend`, `hide_schematic_legend`) dynamically suppress legends via Plotly `layout(showlegend = ...)` and ggplot `theme(legend.position = ...)`. On mobile devices (iPhone, touch/narrow viewports $\le 768$px), client-side detection automatically defaults both checkboxes to `TRUE` (hidden) upon launch to preserve full plot width on smaller screens.
-- **Interpretation Guide Modal**: Loaded dynamically from [`SHINY_APP/interpretation_guide.md`](SHINY_APP/interpretation_guide.md) via `render_markdown_file()`. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
-- **Documentation Hub**: The `📖 Dev Guide ↗` button connects directly to the rendered documentation portal at `https://byandell.github.io/MafADiscovery/docs` (backed by `docs/index.html` compiled from [`SHINY_APP/developer_guide.md`](SHINY_APP/developer_guide.md)), linking to all modules and [`SHINY_APP/about.md`](SHINY_APP/about.md).
+- **User Guide Modal**: Loaded dynamically from [`guides/user_guide.md`](guides/user_guide.md) via `render_markdown_file()` with `title = NULL` in `modalDialog`, allowing the single markdown H1 header to serve as the clean dialog title without duplication. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
+- **Documentation Hub**: The `📖 Dev Guide ↗` button connects directly to the rendered documentation portal at `docs/` (or `https://byandell.github.io/MafADiscovery/docs/` when hosted), backed by `docs/index.html` compiled from [`guides/developer_guide.md`](guides/developer_guide.md). The explicit trailing slash ensures all relative links (`user_guide.html`, `DEVELOPER.html`, etc.) correctly resolve within the `docs/` directory during local trials and live deployment. The site header includes a semantic `<details>` / `<summary>` **Developer Guide ▾** dropdown that remains initially closed on page load.
 
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 
@@ -172,20 +179,26 @@ Rendered below the Locus Schematic on the main canvas across the full 12-column 
 
 ## Modular Architectural Documentation
 
-The repository maintains four specialized architectural modules at root, automatically synchronized to GitHub Pages during CI deployment:
+The repository maintains specialized architectural and user guides in the [`guides/`](guides/README.md) directory, automatically synchronized to GitHub Pages during CI deployment:
 
-1. **[`shinyapp.md`](shinyapp.md) — Legacy Standalone Prototypes**:
-   - Comprehensive technical specifications and lineage for Version 1 (`MafA_Discovery_App.R`) and Version 2 (`MafA_Discovery_App_v2.R`).
-   - Documents the original Bioconductor `GenomicRanges` implementation and data requirements.
-2. **[`publishapp.md`](publishapp.md) — Publishing & Deployment**:
-   - Architecture for static WebAssembly distribution via Shinylive (webR).
-   - Automated GitHub Actions deployment (`deploy-shinylive.yaml`) and GitHub Pages hosting configuration.
-3. **[`redesign.md`](redesign.md) — UI Redesign & Reactive Lifecycle**:
-   - Dynamic view mode transitions (`Genome-Wide`, `Chromosome`, `QTL Region`, `Locus Zoom`).
-   - Conditional control rendering, coordinate auto-scaling, and state persistence rules.
-4. **[`qtlanalysis.md`](qtlanalysis.md) — F2 Glycemic QTL Integration & QTLresults**:
+1. **[`guides/developer_guide.md`](guides/developer_guide.md) — Documentation Hub**:
+   - Central portal and modal guide organizing links to all architectural modules and repository code.
+2. **[`guides/user_guide.md`](guides/user_guide.md) — User Guide (Panel & Navigation)**:
+   - In-app modal documentation explaining Manhattan plot interpretations, gene schematic models, and navigation modes.
+3. **[`guides/about.md`](guides/about.md) — About MafA Discovery**:
+   - Research consortium background, biological motivation, and catalog of integrated genomic data layers.
+4. **[`guides/qtlanalysis.md`](guides/qtlanalysis.md) — F2 Glycemic QTL Integration & QTLresults**:
    - Ingestion of F2 study glycemic loci (`QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv`).
    - In-panel interactive QTL overview table, dynamic top-nav toggle, additive trait scan plots (`scan_chr*.png`), CI auto-bounding, continuous control stacking, and peak reset mechanics.
+5. **[`guides/redesign.md`](guides/redesign.md) — UI Redesign & Reactive Lifecycle**:
+   - Dynamic view mode transitions (`Genome-Wide`, `Chromosome`, `QTL Region`, `Locus Zoom`).
+   - Conditional control rendering, coordinate auto-scaling, state persistence rules, and mobile responsiveness.
+6. **[`guides/publishapp.md`](guides/publishapp.md) — Publishing & Deployment**:
+   - Architecture for static WebAssembly distribution via Shinylive (webR).
+   - Automated GitHub Actions deployment (`deploy-shinylive.yaml`) and GitHub Pages hosting configuration.
+7. **[`guides/shinyapp.md`](guides/shinyapp.md) — Legacy Standalone Prototypes**:
+   - Comprehensive technical specifications and lineage for Version 1 (`MafA_Discovery_App.R`) and Version 2 (`MafA_Discovery_App_v2.R`).
+   - Documents the original Bioconductor `GenomicRanges` implementation and data requirements.
 
 ---
 
@@ -194,10 +207,11 @@ The repository maintains four specialized architectural modules at root, automat
 The app is deployed to GitHub Pages as a static WebAssembly bundle:
 
 1. **Workflow (`.github/workflows/deploy-shinylive.yaml`)**:
-   - Triggers on push to `main` / `master` when files in `SHINY_APP/**`, root markdown guides (`*.md`), or the workflow itself change.
-   - Sets up R on Ubuntu, installs `shiny`, `shinylive`, `data.table`, `ggplot2`, and `plotly`.
-   - Executes `shinylive::export(appdir = "SHINY_APP", destdir = "site")`.
-   - Copies root documentation assets (`DEVELOPER.md`, `shinyapp.md`, `publishapp.md`, `redesign.md`, `qtlanalysis.md`) into `site/` for public hosting.
+   - Triggers on push to `main` / `master` when files in `SHINY_APP/**`, `guides/**`, `*.md`, or the workflow itself change.
+   - Sets up R on Ubuntu, installs `shiny`, `shinylive`, `data.table`, `ggplot2`, `plotly`, and `commonmark`.
+   - Copies `guides/*.md` to `SHINY_APP/guides/` and executes `shinylive::export(appdir = "SHINY_APP", destdir = "site")`.
+   - Runs `render_docs.R` to compile all guides into `docs/*.html`.
+   - Copies documentation assets (`DEVELOPER.md`, `guides/*.md`) into `site/` for public hosting.
    - Uploads `site/` and deploys to GitHub Pages via `actions/deploy-pages@v4`.
 2. **Local Static Verification**:
    - If testing a static export locally with WebAssembly:

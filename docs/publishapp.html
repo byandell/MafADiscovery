@@ -82,6 +82,93 @@
       color: var(--primary);
       font-weight: 600;
     }
+    .nav-dropdown {
+      position: relative;
+    }
+    .dropdown-details {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-toggle {
+      color: var(--text-muted);
+      font-size: 0.88em;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      list-style: none;
+      transition: all 0.15s ease;
+    }
+    .dropdown-toggle::-webkit-details-marker {
+      display: none;
+    }
+    .dropdown-toggle::marker {
+      display: none;
+    }
+    .dropdown-toggle:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-toggle.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-details .arrow {
+      font-size: 0.75em;
+      margin-left: 2px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    .dropdown-details[open] .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 220px;
+      padding: 6px 0;
+      margin: 4px 0 0 0;
+      list-style: none;
+      z-index: 1000;
+    }
+    .dropdown-menu li {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text);
+      font-size: 0.88em;
+      text-decoration: none;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-menu a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 4px 0;
+    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -203,6 +290,12 @@
       }
       return true;
     }
+    document.addEventListener("click", function(e) {
+      var dropdown = document.getElementById("dev-dropdown");
+      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
+        dropdown.removeAttribute("open");
+      }
+    });
   </script>
 </head>
 <body>
@@ -213,12 +306,22 @@
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./">Documentation Hub</a></li>
+          <li><a href="user_guide.html">User Guide</a></li>
           <li><a href="about.html">About</a></li>
-          <li><a href="DEVELOPER.html">Developer Guide</a></li>
-          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-          <li><a href="publishapp.html" class="active">Publishing & WASM</a></li>
-          <li><a href="redesign.html">UI Redesign</a></li>
-          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li class="nav-dropdown">
+       <details class="dropdown-details" id="dev-dropdown">
+         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
+         <ul class="dropdown-menu">
+           <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
+              <li><a href="guides.html">Guides Directory Index</a></li>
+              <li class="dropdown-divider"></li>
+              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
+              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
+              <li><a href="publishapp.html" class="active">Publishing & WASM</a></li>
+              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+         </ul>
+       </details>
+     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -261,11 +364,12 @@
 <p>Rather than moving and overwriting the source files into <code>docs/</code>, the standard best practice is to <strong>maintain <code>SHINY_APP/</code> as the source</strong> and <strong>build/export the static assets into <code>docs/</code></strong>:</p>
 <pre><code>MafADiscovery/
 ├── SHINY_APP/                     # SOURCE: R scripts, raw CSVs, docs
-│   ├── app.R                      # Main application file (renamed or symlinked)
+│   ├── app.R                      # Main application file
 │   ├── MafA_Peaks_with_SNPs_v3.csv
 │   ├── Master_DEG_Strain_Comparison_v3.csv
 │   ├── mouse_genes_mm39_v3.csv
 │   └── README.md
+├── guides/                        # Architectural and developer guides
 ├── docs/                          # BUILD TARGET: Published via GitHub Pages
 │   ├── .nojekyll                  # Required: bypasses Jekyll processing
 │   ├── index.html                 # Shinylive entry point
@@ -274,23 +378,22 @@
 </code></pre>
 <hr />
 <h2>3. Dependency &amp; Performance Audit (webR Readiness)</h2>
-<p>The app (<code>MafA_Discovery_App.R</code>) relies on 5 libraries:</p>
+<p>The app (<code>app.R</code>) relies on 4 standard CRAN libraries:</p>
 <ol>
 <li><code>shiny</code>, <code>ggplot2</code>, <code>plotly</code>, <code>data.table</code>: All are available as pre-compiled WebAssembly binaries in the r-wasm CRAN repository (<code>repo.r-wasm.org</code>).</li>
 <li><code>GenomicRanges</code>: Bioconductor package with C dependencies.
 <ul>
-<li><em>Consideration</em>: While webR supports many Bioconductor packages, loading <code>GenomicRanges</code> + <code>S4Vectors</code> + <code>IRanges</code> adds ~25 MB of WASM binaries to download.</li>
-<li><em>Optimization Option</em>: The app uses <code>GenomicRanges</code> solely for <code>findOverlaps()</code> and <code>nearest()</code> (finding DEGs within <code>win_kb</code> of peak midpoint). This can optionally be replaced with a fast <code>data.table</code> interval join or base R calculation to cut app load time by &gt;60%.</li>
+<li><em>Optimization</em>: The app replaces Bioconductor <code>GenomicRanges</code> with optimized <code>data.table</code> interval joins (<code>roll = &quot;nearest&quot;</code> on query positions). This eliminates ~25 MB of WASM downloads and cuts app load time by &gt;60%.</li>
 </ul>
 </li>
-<li><strong>Data payload</strong>: The 3 CSVs total ~6.3 MB (<code>mouse_genes_mm39_v3.csv</code> is ~5.1 MB). This comfortably loads into browser memory in webR.</li>
+<li><strong>Data payload</strong>: The CSVs total ~15 MB with prioritized SNPs. This comfortably loads into browser memory in webR.</li>
 </ol>
 <hr />
 <h2>4. Proposed Step-by-Step Implementation Steps</h2>
 <h3>Phase 1: Prepare the App for Export</h3>
 <ol>
-<li>Standardize the script filename: Shinylive expects <code>app.R</code> (or a single R script). We can create an <code>app.R</code> in <code>SHINY_APP/</code> that cleanly wraps or links to <code>MafA_Discovery_App.R</code>.</li>
-<li>Verify package dependencies in webR format. If desired, benchmark whether to keep <code>GenomicRanges</code> or streamline the distance check via <code>data.table</code>.</li>
+<li>Standardize the script filename: Shinylive expects <code>app.R</code> in <code>SHINY_APP/</code>.</li>
+<li>Verify package dependencies in webR format with pure <code>data.table</code> distance checks.</li>
 </ol>
 <h3>Phase 2: Static Export via Shinylive</h3>
 <ol>
@@ -329,10 +432,10 @@ shinylive::export(
 <ol>
 <li><strong>Workflow Automation (<code>.github/workflows/deploy-shinylive.yaml</code>)</strong>:
 <ul>
-<li>Triggers on push to <code>main</code> (when <code>SHINY_APP/**</code>, <code>*.md</code>, or the workflow changes) or manual <code>workflow_dispatch</code>.</li>
+<li>Triggers on push to <code>main</code> (when <code>SHINY_APP/**</code>, <code>guides/**</code>, <code>*.md</code>, or the workflow changes) or manual <code>workflow_dispatch</code>.</li>
 <li>Sets up Ubuntu runner with R, installs standard CRAN dependencies (<code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, <code>plotly</code>).</li>
-<li>Runs <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code> in CI.</li>
-<li>Copies root developer guides (<code>DEVELOPER.md</code>, <code>shinyapp.md</code>, <code>publishapp.md</code>, <code>redesign.md</code>, <code>qtlanalysis.md</code>) into <code>site/</code> for public hosting alongside the app.</li>
+<li>Copies guide markdown files to <code>SHINY_APP/guides/</code> and runs <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code> in CI.</li>
+<li>Copies developer guides (<code>DEVELOPER.md</code>, <code>guides/*.md</code>) into <code>site/</code> for public hosting alongside the app.</li>
 <li>Deploys the static bundle as a Pages artifact via <code>actions/deploy-pages@v4</code>.</li>
 </ul>
 </li>
@@ -365,7 +468,7 @@ shinylive::export(
 <li>
 <p><strong>Source and Entry Point Standardized</strong>:</p>
 <ul>
-<li>Created <a href="SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a> as the primary Shiny application entry point for both local development and Shinylive packaging.</li>
+<li>Created <a href="../SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a> as the primary Shiny application entry point for both local development and Shinylive packaging.</li>
 <li>Maintained all source files in <code>SHINY_APP/</code>.</li>
 </ul>
 </li>

@@ -1,4 +1,4 @@
-# How to Interpret Panels & Navigate
+# User Guide: How to Interpret Panels & Navigate
 
 ### 1. Top Panel: Manhattan Macro View
 Displays MafA binding peaks, prioritized coding SNPs, and F2 glycemic QTL intervals:

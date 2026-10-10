@@ -82,6 +82,93 @@
       color: var(--primary);
       font-weight: 600;
     }
+    .nav-dropdown {
+      position: relative;
+    }
+    .dropdown-details {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-toggle {
+      color: var(--text-muted);
+      font-size: 0.88em;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      list-style: none;
+      transition: all 0.15s ease;
+    }
+    .dropdown-toggle::-webkit-details-marker {
+      display: none;
+    }
+    .dropdown-toggle::marker {
+      display: none;
+    }
+    .dropdown-toggle:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-toggle.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-details .arrow {
+      font-size: 0.75em;
+      margin-left: 2px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    .dropdown-details[open] .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 220px;
+      padding: 6px 0;
+      margin: 4px 0 0 0;
+      list-style: none;
+      z-index: 1000;
+    }
+    .dropdown-menu li {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text);
+      font-size: 0.88em;
+      text-decoration: none;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+      background-color: var(--bg-alt);
+      color: var(--primary);
+    }
+    .dropdown-menu a.active {
+      background-color: #e3f2fd;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 4px 0;
+    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -203,6 +290,12 @@
       }
       return true;
     }
+    document.addEventListener("click", function(e) {
+      var dropdown = document.getElementById("dev-dropdown");
+      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
+        dropdown.removeAttribute("open");
+      }
+    });
   </script>
 </head>
 <body>
@@ -213,12 +306,22 @@
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           <li><a href="./" class="active">Documentation Hub</a></li>
+          <li><a href="user_guide.html">User Guide</a></li>
           <li><a href="about.html">About</a></li>
-          <li><a href="DEVELOPER.html">Developer Guide</a></li>
-          <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-          <li><a href="publishapp.html">Publishing & WASM</a></li>
-          <li><a href="redesign.html">UI Redesign</a></li>
-          <li><a href="qtlanalysis.html">QTL Analysis</a></li>
+          <li class="nav-dropdown">
+       <details class="dropdown-details" id="dev-dropdown">
+         <summary class="dropdown-toggle">Developer Guide <span class="arrow">▾</span></summary>
+         <ul class="dropdown-menu">
+           <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
+              <li><a href="guides.html">Guides Directory Index</a></li>
+              <li class="dropdown-divider"></li>
+              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
+              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
+              <li><a href="publishapp.html">Publishing & WASM</a></li>
+              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
+         </ul>
+       </details>
+     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -227,32 +330,42 @@
   
   <main class="doc-container">
     <article class="markdown-body">
-<h1>MafA Discovery: Developer Guide &amp; Architecture</h1>
-<h3>Core Documentation</h3>
+<h1>MafA Discovery: Documentation Hub &amp; Developer Guide</h1>
+<p>Welcome to the documentation portal for the <strong>MafA Discovery Integrated Genomic Explorer</strong>.</p>
+<hr />
+<h3>User Documentation</h3>
 <ul>
 <li>
-<p><strong><a href="DEVELOPER.html">Developer Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/DEVELOPER.md">source</a>)<br />
+<p><strong><a href="user_guide.html">User Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/user_guide.md">source</a>)<br />
+Complete guide to interpreting the Manhattan macro view, Locus micro schematic, coding variant consequence scoring (<code>phastCons</code>), QTL confidence intervals, and navigation modes.</p>
+</li>
+<li>
+<p><strong><a href="about.html">About MafA Discovery</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/about.md">source</a>)<br />
+Biological background on MafA transcription factor dynamics in C57BL/6J and SJL/J mouse models, collaborative research consortium, and integrated data assets.</p>
+</li>
+</ul>
+<hr />
+<h3>Developer &amp; Technical Documentation</h3>
+<ul>
+<li>
+<p><strong><a href="DEVELOPER.html">Master Developer Guide</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/DEVELOPER.md">source</a>)<br />
 Overall technical guide covering repository architecture, mouse GRCm39 coordinate mapping, reactive lifecycle, coding standards, and deployment rules.</p>
 </li>
 <li>
-<p><strong><a href="shinyapp.html">Legacy Prototypes</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/shinyapp.md">source</a>)<br />
-Technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>) standalone prototype scripts.</p>
-</li>
-<li>
-<p><strong><a href="publishapp.html">Publishing &amp; Deployment</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/publishapp.md">source</a>)<br />
-Shinylive (webR) static WebAssembly deployment architecture, performance benchmarks, and automated GitHub Actions CI configuration.</p>
-</li>
-<li>
-<p><strong><a href="redesign.html">App Redesign &amp; Reactivity</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/redesign.md">source</a>)<br />
-Dynamic view mode lifecycle (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>), discrete filter ergonomics, coordinate auto-scaling, and total state reset.</p>
-</li>
-<li>
-<p><strong><a href="qtlanalysis.html">F2 Glycemic QTL Integration</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/qtlanalysis.md">source</a>)<br />
+<p><strong><a href="qtlanalysis.html">F2 Glycemic QTL Integration</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/qtlanalysis.md">source</a>)<br />
 F2 glycemic QTL integration, in-panel overview table, dynamic top-nav toggle, additive trait scan PNG plots (<code>QTLresults/</code>), automated CI bounding, continuous control card stacking, and peak reset controls.</p>
 </li>
 <li>
-<p><strong><a href="about.html">About MafA Discovery</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/about.md">source</a>)<br />
-Biological context, Vanderbilt &amp; UW-Madison collaborative consortium, integrated data assets, and software notes.</p>
+<p><strong><a href="redesign.html">App Redesign &amp; Reactivity</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/redesign.md">source</a>)<br />
+Dynamic view mode lifecycle (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>), discrete filter ergonomics, coordinate auto-scaling, and total state reset.</p>
+</li>
+<li>
+<p><strong><a href="publishapp.html">Publishing &amp; Deployment</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/publishapp.md">source</a>)<br />
+Shinylive (webR) static WebAssembly deployment architecture, performance benchmarks, and automated GitHub Actions CI configuration.</p>
+</li>
+<li>
+<p><strong><a href="shinyapp.html">Legacy Prototypes</a></strong> (<a href="https://github.com/byandell/MafADiscovery/blob/main/guides/shinyapp.md">source</a>)<br />
+Technical specifications and lineage for Version 1 (<code>MafA_Discovery_App.R</code>) and Version 2 (<code>MafA_Discovery_App_v2.R</code>) standalone prototype scripts.</p>
 </li>
 </ul>
 <hr />
@@ -260,6 +373,7 @@ Biological context, Vanderbilt &amp; UW-Madison collaborative consortium, integr
 <ul>
 <li><strong>GitHub Repository:</strong> <a href="https://github.com/byandell/MafADiscovery">byandell/MafADiscovery</a></li>
 <li><strong>Application Source:</strong> <a href="https://github.com/byandell/MafADiscovery/blob/main/SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a></li>
+<li><strong>Guides Index:</strong> <a href="https://github.com/byandell/MafADiscovery/blob/main/guides/README.md"><code>guides/README.md</code></a></li>
 </ul>
 
     </article>
