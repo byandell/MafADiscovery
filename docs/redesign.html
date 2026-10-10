@@ -1030,6 +1030,35 @@ p &lt;- p +
 <li>Added client-side <code>document.title = 'MafA Discovery: Integrated Genomic Explorer';</code> in <code>SHINY_APP/app.R</code> and a post-export <code>sed</code> replacement safeguard in CI.</li>
 </ul>
 </li>
+<li>
+<p><strong>Step 21: Mobile (iPhone) Responsiveness &amp; Peak Deselection Placement</strong> (Completed):</p>
+<ul>
+<li><strong>Mobile Device Responsiveness</strong>:
+<ul>
+<li>Added explicit <code>&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;</code> to guarantee proper mobile device rendering without artificial page downscaling.</li>
+<li>Constrained document root (<code>html, body { max-width: 100vw; overflow-x: hidden; -webkit-text-size-adjust: 100%; }</code>) and grid containers (<code>.container-fluid</code>) to completely prevent horizontal overflow blowouts.</li>
+<li>Configured Plotly with <code>responsive = TRUE</code> and capped CSS containers (<code>.plotly, .plot-container, .js-plotly-plot, .svg-container { max-width: 100% !important; }</code>).</li>
+<li>Added <code>@media (max-width: 768px)</code> media queries optimizing plot heights (Manhattan: 380px, Schematic: 280px), reducing padding on cards and navigation bars, and stacking navigation buttons (<code>.top-nav-buttons</code>).</li>
+<li>Wrapped QTL overview tables in <code>.table-responsive-container</code> (<code>overflow-x: auto; -webkit-overflow-scrolling: touch;</code>).</li>
+<li>Restructured <code>metadata_panel</code> using responsive classes (<code>.meta-header-row</code>, <code>.meta-stats-row</code>, <code>.meta-details-row</code>, <code>.meta-details-left</code>, <code>.meta-details-right</code>) with mobile column-stacking and <code>word-break: break-all;</code> on detailed coding SNP entries to eliminate viewport distortion.</li>
+</ul>
+</li>
+<li><strong>Default Legend Hiding on Mobile</strong>:
+<ul>
+<li>Implemented client-side detection (<code>isMobileClient()</code>) that checks viewport width ($\le 768$px) and touch/mobile user agents.</li>
+<li>On mobile device load, automatically sets <code>hide_manhattan_legend = TRUE</code> and <code>hide_schematic_legend = TRUE</code> by default, maximizing precious screen real estate for the genomic plots rather than squishing them with wide legend keys.</li>
+<li>Synchronized with server-side <code>observeEvent(input$client_is_mobile, ...)</code> and updated <code>reset_to_default_state()</code> so resetting the view on mobile preserves the mobile-friendly legend defaults.</li>
+</ul>
+</li>
+<li><strong>Peak Deselection &amp; Conditional Locus Plot Display</strong>:
+<ul>
+<li><strong>Placement in Manhattan Controls</strong>: Placed <code>uiOutput(&quot;manhattan_peak_reset_ui&quot;)</code> directly in the <strong>Manhattan Controls</strong> side panel below <strong>&quot;Hide Legend&quot;</strong>, aligning with where peak selection occurs and keeping the locus plot clean without unnecessary headers or redundant labels.</li>
+<li><strong>Conditional Locus Visibility</strong>: Enclosed both the Locus Micro-Architecture plot and the Locus Schematic Controls within <code>conditionalPanel(condition = &quot;output.has_active_peak&quot;)</code> (backed by server-side <code>outputOptions(output, &quot;has_active_peak&quot;, suspendWhenHidden = FALSE)</code>). When no peak is selected, the locus schematic and its controls do not appear, preserving a streamlined genome-wide or chromosome-level view.</li>
+<li><strong>Seamless Re-Selection of Deselected Peaks</strong>: Fixed a common Plotly/Shiny caching bug where re-clicking the same peak after deselecting resulted in no response. Attached a custom Plotly click handler (<code>setupManhattanClick</code>) that transmits each point click with a unique timestamp and <code>{priority: 'event'}</code> to <code>input$manhattan_click_custom</code>, guaranteeing that clicking the exact same peak immediately re-selects it and reopens the locus schematic without requiring a different point click first.</li>
+</ul>
+</li>
+</ul>
+</li>
 </ol>
 
     </article>

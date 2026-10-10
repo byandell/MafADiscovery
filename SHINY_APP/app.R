@@ -99,16 +99,31 @@ ui <- fluidPage(
   title = "MafA Discovery: Integrated Genomic Explorer",
   tags$head(
     tags$title("MafA Discovery: Integrated Genomic Explorer"),
+    tags$meta(name = "viewport", content = "width=device-width, initial-scale=1.0"),
     tags$link(rel = "icon", href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"),
     tags$style(HTML("
+      * { box-sizing: border-box; }
+      html, body {
+        max-width: 100vw;
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+      }
       body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .container-fluid { max-width: 100vw; overflow-x: hidden; }
       .well-nav { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 12px 18px; margin-top: 10px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
       .well-ctrl { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-size: 0.92em; }
-      .ctrl-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #edf0f2; padding-bottom: 8px; margin-bottom: 10px; }
+      .ctrl-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #edf0f2; padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
       .ctrl-header .checkbox { margin: 0; }
       .panel-container { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
       .well-meta { background: #fffdf5; border: 1.5px solid gold; padding: 16px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+      .meta-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #e0c868; padding-bottom: 10px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
       .meta-title { font-weight: bold; font-size: 1.18em; color: #856404; }
+      .meta-stats-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+      .meta-details-row { display: flex; gap: 25px; flex-direction: row; }
+      .meta-details-left { flex: 1; border-right: 1px solid #eee; padding-right: 20px; }
+      .meta-details-right { flex: 1; }
+      .top-nav-buttons { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 24px; }
+      .table-responsive-container { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; margin-bottom: 8px; }
       .btn-rezoom { background-color: #007bff; color: white; font-weight: bold; }
       .btn-rezoom:hover { background-color: #0056b3; color: white; }
       .btn-help { background-color: #17a2b8; color: white; font-weight: bold; }
@@ -118,7 +133,7 @@ ui <- fluidPage(
       .btn-devguide { background-color: #495057; color: white; font-weight: bold; }
       .btn-devguide:hover { background-color: #343a40; color: white; }
       .deg-item { margin-bottom: 4px; font-weight: bold; font-size: 0.92em; line-height: 1.25; }
-      .modal-markdown { line-height: 1.6; font-size: 0.96em; }
+      .modal-markdown { line-height: 1.6; font-size: 0.96em; word-break: break-word; }
       .modal-markdown h1 { font-size: 1.45em; font-weight: bold; margin-bottom: 14px; color: #222; }
       .modal-markdown h2 { font-size: 1.25em; font-weight: bold; margin-top: 18px; color: #333; }
       .modal-markdown h3 { font-size: 1.1em; font-weight: bold; margin-top: 14px; color: #444; }
@@ -154,8 +169,25 @@ ui <- fluidPage(
         border-radius: 6px;
         box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       }
+      .plotly, .plot-container, .js-plotly-plot, .svg-container {
+        max-width: 100% !important;
+      }
+      .shiny-plot-output {
+        max-width: 100% !important;
+      }
       .table-qtl th { background-color: #f1f4f9; font-weight: 600; font-size: 0.9em; }
       .table-qtl td { vertical-align: middle !important; font-size: 0.92em; }
+      @media (max-width: 768px) {
+        .container-fluid { padding-left: 8px; padding-right: 8px; }
+        .well-nav { padding: 10px 12px; margin-bottom: 12px; }
+        .well-ctrl { padding: 10px 12px; margin-bottom: 12px; }
+        .panel-container { padding: 8px; margin-bottom: 12px; }
+        .top-nav-buttons { justify-content: flex-start !important; margin-top: 8px !important; margin-bottom: 4px !important; }
+        #manhattan { height: 380px !important; }
+        #schematic { height: 280px !important; }
+        .meta-details-row { flex-direction: column !important; gap: 14px !important; }
+        .meta-details-left { border-right: none !important; padding-right: 0 !important; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+      }
     ")),
     tags$script(HTML("
       document.title = 'MafA Discovery: Integrated Genomic Explorer';
@@ -172,6 +204,45 @@ ui <- fluidPage(
       }
       $(document).on('click', '#btn-devguide-link', function(e) {
         $(this).attr('href', resolveDocsUrl());
+      });
+      function isMobileClient() {
+        return (window.innerWidth <= 768) || /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      }
+      $(document).ready(function() {
+        if (isMobileClient()) {
+          $('#hide_manhattan_legend').prop('checked', true);
+          $('#hide_schematic_legend').prop('checked', true);
+        }
+      });
+      $(document).on('shiny:connected', function() {
+        var mobile = isMobileClient();
+        Shiny.setInputValue('client_is_mobile', mobile);
+        if (mobile) {
+          $('#hide_manhattan_legend').prop('checked', true).trigger('change');
+          $('#hide_schematic_legend').prop('checked', true).trigger('change');
+        }
+      });
+      function setupManhattanClick() {
+        var el = document.getElementById('manhattan');
+        if (el && typeof el.on === 'function') {
+          el.removeAllListeners('plotly_click');
+          el.on('plotly_click', function(d) {
+            if (d && d.points && d.points.length > 0) {
+              Shiny.setInputValue('manhattan_click_custom', {
+                x: d.points[0].x,
+                y: d.points[0].y,
+                _ts: new Date().getTime()
+              }, {priority: 'event'});
+            }
+          });
+        }
+      }
+      $(document).on('plotly_afterplot', '#manhattan', setupManhattanClick);
+      $(document).on('click', '#clear_active_pk', function() {
+        if (window.Shiny) {
+          Shiny.setInputValue('.clientValue-default-plotly_click-manhattan', null);
+          Shiny.setInputValue('plotly_click-manhattan', null);
+        }
       });
     "))
   ),
@@ -202,7 +273,7 @@ ui <- fluidPage(
         uiOutput("context_selector_ui")
       ),
       column(width = 3,
-        div(style = "display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 24px;",
+        div(class = "top-nav-buttons",
           actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
           tags$a(id = "btn-devguide-link", href = "docs", target = "_blank", rel = "opener",
                  onclick = "this.href = resolveDocsUrl();",
@@ -243,7 +314,7 @@ ui <- fluidPage(
                 imageOutput("qtl_auc_loci_img", height = "auto")
               )
             ),
-            div(style = "overflow-x: auto;",
+            div(class = "table-responsive-container",
               uiOutput("qtl_auc_table")
             )
           ),
@@ -259,7 +330,7 @@ ui <- fluidPage(
                 imageOutput("qtl_traj_loci_img", height = "auto")
               )
             ),
-            div(style = "overflow-x: auto;",
+            div(class = "table-responsive-container",
               uiOutput("qtl_traj_table")
             )
           )
@@ -294,8 +365,11 @@ ui <- fluidPage(
         div(class = "panel-container",
           plotlyOutput("manhattan", height = "480px")
         ),
-        div(class = "panel-container",
-          plotOutput("schematic", height = "340px")
+        conditionalPanel(
+          condition = "output.has_active_peak",
+          div(class = "panel-container",
+            plotOutput("schematic", height = "340px")
+          )
         )
       ),
       column(width = 3,
@@ -306,6 +380,7 @@ ui <- fluidPage(
               checkboxInput("hide_manhattan_legend", "Hide Legend", value = FALSE)
             )
           ),
+          uiOutput("manhattan_peak_reset_ui"),
           conditionalPanel(
             condition = "input.zoom_mode == 'QTL Region' && input.sel_qtl != ''",
             checkboxInput("hide_scan", "Hide QTL Scan Plot", value = FALSE),
@@ -329,25 +404,27 @@ ui <- fluidPage(
             sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)
           )
         ),
-        wellPanel(class = "well-ctrl",
-          div(class = "ctrl-header",
-            span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),
-            div(style = "margin: 0;",
-              checkboxInput("hide_schematic_legend", "Hide Legend", value = FALSE)
+        conditionalPanel(
+          condition = "output.has_active_peak",
+          wellPanel(class = "well-ctrl",
+            div(class = "ctrl-header",
+              span(strong("Locus Schematic Controls"), style = "color: #856404; font-size: 1.05em;"),
+              div(style = "margin: 0;",
+                checkboxInput("hide_schematic_legend", "Hide Legend", value = FALSE)
+              )
+            ),
+            selectInput("win_kb", "Locus Window Size:", 
+                        choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
+                                    "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
+                                    "2,000 kb (2 Mb)" = 2000), 
+                        selected = 500),
+            div(style = "font-size: 0.85em; color: #555; margin-top: 12px; line-height: 1.45; background: #fffdf5; padding: 10px; border-radius: 4px; border: 1px solid #fae8a4;",
+              p(style = "margin-bottom: 5px;", strong("Micro-Architecture Guide:")),
+              p(style = "margin-bottom: 4px;", "• ", strong("TSS arrows:"), " Transcription start site & direction."),
+              p(style = "margin-bottom: 4px;", "• ", strong("Gold line:"), " Active peak center."),
+              p(style = "margin-bottom: 4px;", "• ", strong("Diamonds:"), " High/moderate coding SNPs."),
+              p(style = "margin-bottom: 0;", "• Click any point in the Manhattan plot to reposition.")
             )
-          ),
-          selectInput("win_kb", "Locus Window Size:", 
-                      choices = c("20 kb" = 20, "50 kb" = 50, "100 kb" = 100, 
-                                  "200 kb" = 200, "500 kb" = 500, "1,000 kb (1 Mb)" = 1000, 
-                                  "2,000 kb (2 Mb)" = 2000), 
-                      selected = 500),
-          uiOutput("schematic_peak_reset_ui"),
-          div(style = "font-size: 0.85em; color: #555; margin-top: 12px; line-height: 1.45; background: #fffdf5; padding: 10px; border-radius: 4px; border: 1px solid #fae8a4;",
-            p(style = "margin-bottom: 5px;", strong("Micro-Architecture Guide:")),
-            p(style = "margin-bottom: 4px;", "• ", strong("TSS arrows:"), " Transcription start site & direction."),
-            p(style = "margin-bottom: 4px;", "• ", strong("Gold line:"), " Active peak center."),
-            p(style = "margin-bottom: 4px;", "• ", strong("Diamonds:"), " High/moderate coding SNPs."),
-            p(style = "margin-bottom: 0;", "• Click any point in the Manhattan plot to reposition.")
           )
         )
       )
@@ -392,10 +469,7 @@ server <- function(input, output, session) {
     if (input$zoom_mode == "Chromosome") {
       selectInput("sel_chr", "Select Chromosome:", choices = d$chr_map$Chr, selected = v$current_chr, width = "100%")
     } else if (input$zoom_mode == "QTL Region") {
-      if (!is.null(v$active_pk)) {
-        actionButton("clear_active_pk", "✕ Deselect Peak", class = "btn btn-sm btn-outline-warning", 
-                     style = "margin-top: 25px; font-weight: 600;", title = "Clear selected MafA peak")
-      } else if (!is.null(v$active_qtl)) {
+      if (!is.null(v$active_qtl)) {
         div(style = "padding-top: 25px;",
           span(class = "badge", style = "background-color: #6f42c1; font-size: 0.85em; padding: 6px 10px;",
                paste("QTL:", v$active_qtl$Chr))
@@ -415,26 +489,42 @@ server <- function(input, output, session) {
     }
   })
 
-  # Dynamic schematic reset button in sidebar (hidden in Locus Zoom mode)
-  output$schematic_peak_reset_ui <- renderUI({
-    if (!is.null(v$active_pk) && input$zoom_mode != "Locus Zoom") {
-      actionButton("clear_active_pk_schem", "✕ Deselect Current Peak", 
-                   class = "btn btn-sm btn-outline-warning", 
-                   style = "width: 100%; margin-top: 10px; font-weight: 600;")
+  # Reactive boolean determining if an active peak is selected (for conditional panel display)
+  output$has_active_peak <- reactive({
+    !is.null(v$active_pk)
+  })
+  outputOptions(output, "has_active_peak", suspendWhenHidden = FALSE)
+
+  # Dynamic peak reset button in Manhattan Controls (below Hide Legend)
+  output$manhattan_peak_reset_ui <- renderUI({
+    if (!is.null(v$active_pk)) {
+      div(style = "margin-bottom: 12px;",
+        actionButton("clear_active_pk", "✕ Deselect Current Peak", 
+                     class = "btn btn-sm btn-outline-warning", 
+                     style = "width: 100%; font-weight: 600; border-radius: 4px;",
+                     title = "Deselect active peak")
+      )
     } else {
       NULL
     }
   })
 
-  # Observers for peak deselect actions
+  # Observer for peak deselect action
   observeEvent(input$clear_active_pk, {
+    if (input$zoom_mode == "Locus Zoom") {
+      updateSelectInput(session, "zoom_mode", selected = if (!is.null(v$active_qtl)) "QTL Region" else "Chromosome")
+    }
     v$active_pk  <- NULL
     v$active_snp <- NULL
   })
-  observeEvent(input$clear_active_pk_schem, {
-    v$active_pk  <- NULL
-    v$active_snp <- NULL
-  })
+
+  # Mobile detection: default to hiding legends on narrow screens / iPhone
+  observeEvent(input$client_is_mobile, {
+    if (isTRUE(input$client_is_mobile)) {
+      updateCheckboxInput(session, "hide_manhattan_legend", value = TRUE)
+      updateCheckboxInput(session, "hide_schematic_legend", value = TRUE)
+    }
+  }, once = TRUE)
 
   # Observers for returning to QTL table
   observeEvent(input$back_to_qtl_table, {
@@ -486,13 +576,10 @@ server <- function(input, output, session) {
       updateSelectInput(session, "win_kb", selected = "500")
     }
     
-    # Reset legend and scan toggles
-    if (isTRUE(input$hide_manhattan_legend)) {
-      updateCheckboxInput(session, "hide_manhattan_legend", value = FALSE)
-    }
-    if (isTRUE(input$hide_schematic_legend)) {
-      updateCheckboxInput(session, "hide_schematic_legend", value = FALSE)
-    }
+    # Reset legend and scan toggles respecting mobile defaults
+    mobile_default <- isTRUE(input$client_is_mobile)
+    updateCheckboxInput(session, "hide_manhattan_legend", value = mobile_default)
+    updateCheckboxInput(session, "hide_schematic_legend", value = mobile_default)
     if (!is.null(input$hide_scan) && isTRUE(input$hide_scan)) {
       updateCheckboxInput(session, "hide_scan", value = FALSE)
     }
@@ -838,48 +925,60 @@ server <- function(input, output, session) {
   })
 
   # Reactive Click Selection (Using Plotly events - for both peaks and coding SNPs)
-  observe({
-    event <- event_data("plotly_click", source = "manhattan")
-    if(!is.null(event)) {
-      df <- filtered_peaks()
-      snps_df <- filtered_snps()
-      
-      # Check peak hits first
-      hit_pk <- NULL
-      if (!is.null(df) && nrow(df) > 0) {
-        pk_cand <- df[abs(GlobalPos_Mbp - event$x) < 0.15]
-        if (nrow(pk_cand) > 0) {
-          idx <- which.min(abs(pk_cand$GlobalPos_Mbp - event$x))
-          hit_pk <- pk_cand[idx]
-        }
+  handle_manhattan_click <- function(click_x) {
+    req(click_x)
+    df <- filtered_peaks()
+    snps_df <- filtered_snps()
+    
+    # Check peak hits first
+    hit_pk <- NULL
+    if (!is.null(df) && nrow(df) > 0) {
+      pk_cand <- df[abs(GlobalPos_Mbp - click_x) < 0.15]
+      if (nrow(pk_cand) > 0) {
+        idx <- which.min(abs(pk_cand$GlobalPos_Mbp - click_x))
+        hit_pk <- pk_cand[idx]
       }
-      
-      if (!is.null(hit_pk)) {
-        v$active_pk   <- hit_pk
-        v$active_snp  <- NULL
-        v$current_chr <- hit_pk$Chr
+    }
+    
+    if (!is.null(hit_pk)) {
+      v$active_pk   <- hit_pk
+      v$active_snp  <- NULL
+      v$current_chr <- hit_pk$Chr
+      updateSelectInput(session, "zoom_mode", 
+                        choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"),
+                        selected = input$zoom_mode)
+    } else if (!is.null(snps_df) && nrow(snps_df) > 0) {
+      # Check SNP hits
+      snp_cand <- snps_df[abs(GlobalPos_Mbp - click_x) < 0.15]
+      if (nrow(snp_cand) > 0) {
+        idx <- which.min(abs(snp_cand$GlobalPos_Mbp - click_x))
+        clicked_snp <- snp_cand[idx]
+        v$active_snp  <- clicked_snp
+        v$current_chr <- clicked_snp$Chr
+        # Select nearest peak on the same chromosome
+        pks_chr <- d$mafa[Chr == clicked_snp$Chr]
+        if (nrow(pks_chr) > 0) {
+          nearest_idx <- which.min(abs(pks_chr$Mid - clicked_snp$pos))
+          v$active_pk <- pks_chr[nearest_idx]
+        }
         updateSelectInput(session, "zoom_mode", 
                           choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"),
                           selected = input$zoom_mode)
-      } else if (!is.null(snps_df) && nrow(snps_df) > 0) {
-        # Check SNP hits
-        snp_cand <- snps_df[abs(GlobalPos_Mbp - event$x) < 0.15]
-        if (nrow(snp_cand) > 0) {
-          idx <- which.min(abs(snp_cand$GlobalPos_Mbp - event$x))
-          clicked_snp <- snp_cand[idx]
-          v$active_snp  <- clicked_snp
-          v$current_chr <- clicked_snp$Chr
-          # Select nearest peak on the same chromosome
-          pks_chr <- d$mafa[Chr == clicked_snp$Chr]
-          if (nrow(pks_chr) > 0) {
-            nearest_idx <- which.min(abs(pks_chr$Mid - clicked_snp$pos))
-            v$active_pk <- pks_chr[nearest_idx]
-          }
-          updateSelectInput(session, "zoom_mode", 
-                            choices = c("Genome-Wide", "Chromosome", "QTL Region", "Locus Zoom"),
-                            selected = input$zoom_mode)
-        }
       }
+    }
+  }
+
+  # Custom Plotly Click Observer (fires with priority: 'event' and timestamp so repeated clicks always trigger)
+  observeEvent(input$manhattan_click_custom, {
+    req(input$manhattan_click_custom, !is.null(input$manhattan_click_custom$x))
+    handle_manhattan_click(input$manhattan_click_custom$x)
+  })
+
+  # Standard plotly_click event observer
+  observe({
+    event <- event_data("plotly_click", source = "manhattan")
+    if(!is.null(event) && !is.null(event$x)) {
+      handle_manhattan_click(event$x)
     }
   })
 
@@ -1047,23 +1146,14 @@ server <- function(input, output, session) {
     ggplotly(p, tooltip="text", source="manhattan") %>% 
       layout(uirevision = v$reset_trigger, 
              showlegend = !isTRUE(input$hide_manhattan_legend),
-             margin = list(t = 50),
+             margin = list(t = if (isTRUE(input$hide_manhattan_legend)) 30 else 50, b = 40, l = 50, r = 30),
              xaxis = list(ticks = "outside", ticklen = 5, tickcolor = "black"),
              yaxis = list(ticks = "outside", ticklen = 5, tickcolor = "black")) %>% 
-      config(displayModeBar = FALSE)
+      config(displayModeBar = FALSE, responsive = TRUE)
   })
 
   output$schematic <- renderPlot({
-    if (is.null(v$active_pk)) {
-      return(
-        ggplot() + 
-          annotate("text", x = 0.5, y = 0.5, 
-                   label = "Click any peak or coding SNP on the Manhattan plot above\nor search a gene in the top bar to inspect locus architecture", 
-                   size = 5.2, color = "#6c757d", fontface = "italic") + 
-          theme_void() + 
-          theme(panel.background = element_rect(fill = "#fdfdfe", color = "#e9ecef", linewidth = 1))
-      )
-    }
+    req(v$active_pk)
     pk <- v$active_pk
     win <- get_win_kb() * 1000
     
@@ -1176,10 +1266,10 @@ server <- function(input, output, session) {
                            impact_simple %in% selected_impacts & phastCons_score >= min_pc]
     
     wellPanel(class = "well-meta",
-      div(style = "display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #e0c868; padding-bottom: 10px; margin-bottom: 14px;",
+      div(class = "meta-header-row",
         div(class = "meta-title", style = "margin-bottom: 0;",
             paste("Detailed Peak Information:", sub(".*peak_", "", pk$PeakID))),
-        div(style = "display: flex; gap: 18px; align-items: center;",
+        div(class = "meta-stats-row",
           span(strong("Location: "), sprintf("%.3f Mbp (%s)", pk$Mid/1e6, pk$Chr)),
           span(strong("Strain Divergent SNPs: "), pk$variant_count),
           if (!is.null(v$active_qtl) && v$active_qtl$Chr == pk$Chr && 
@@ -1189,8 +1279,8 @@ server <- function(input, output, session) {
           }
         )
       ),
-      div(style = "display: flex; gap: 25px;",
-        div(style = "flex: 1; border-right: 1px solid #eee; padding-right: 20px;",
+      div(class = "meta-details-row",
+        div(class = "meta-details-left",
           p(strong("Locus Differentially Expressed Genes (DEGs & log2FC):"), style = "margin-bottom: 8px; color: #333;"),
           if(nrow(local_degs) > 0) {
             tagList(lapply(1:nrow(local_degs), function(i) {
@@ -1207,7 +1297,7 @@ server <- function(input, output, session) {
             }))
           } else { p("No DEGs in window.", style="font-style:italic; color: #777;") }
         ),
-        div(style = "flex: 1;",
+        div(class = "meta-details-right",
           p(strong("Coding SNPs in Locus:"), style = "margin-bottom: 8px; color: #333;"),
           if (nrow(local_snps) > 0) {
             genes_with_snps <- unique(local_snps$gene_symbol_1[local_snps$gene_symbol_1 != ""])
@@ -1233,7 +1323,7 @@ server <- function(input, output, session) {
                     s <- hi_snps[j]
                     csq_clean <- sub(";.*", "", s$csq)
                     aa_clean  <- sub(";.*", "", s$aa_change)
-                    div(style = "font-size: 0.82em; font-family: monospace; color: #444; margin-left: 10px;",
+                    div(style = "font-size: 0.82em; font-family: monospace; color: #444; margin-left: 10px; word-break: break-all; overflow-wrap: anywhere;",
                         paste0("★ pos:", s$pos, " | ", csq_clean, " | aa:", aa_clean, " | pCons:", sprintf("%.2f", s$phastCons_score))
                     )
                   }))

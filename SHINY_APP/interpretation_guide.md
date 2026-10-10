@@ -22,6 +22,7 @@ Renders a high-resolution window (± Locus Window) centered on the active MafA b
 * **MafA Peak:** Marked with a gold dashed line and highlighted region.
 * **Gene Models:** Horizontal bars depict gene bodies. Arrows denote transcription start site (TSS) and orientation.
 * **Coding SNPs:** Diamonds show exact positions of coding SNPs within exons. Outlined diamonds indicate `phastCons` ≥ 0.7.
+* **Peak Deselection:** Click **"✕ Deselect Current Peak"** (located in the Manhattan Controls side panel immediately below the Hide Legend checkbox) to clear the active peak and close the locus view.
 
 ---
 

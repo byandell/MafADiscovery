@@ -574,3 +574,21 @@ flowchart TD
     * Updated `.github/workflows/deploy-shinylive.yaml` to pass `template_params = list(title = "MafA Discovery: Integrated Genomic Explorer", include_in_head = ...)` to `shinylive::export()`, ensuring the generated outer HTML shell embeds the project title and SVG DNA favicon directly in the page header.
     * Added client-side `document.title = 'MafA Discovery: Integrated Genomic Explorer';` in `SHINY_APP/app.R` and a post-export `sed` replacement safeguard in CI.
 
+11. **Step 21: Mobile (iPhone) Responsiveness & Peak Deselection Placement** (Completed):
+    * **Mobile Device Responsiveness**:
+      * Added explicit `<meta name="viewport" content="width=device-width, initial-scale=1.0">` to guarantee proper mobile device rendering without artificial page downscaling.
+      * Constrained document root (`html, body { max-width: 100vw; overflow-x: hidden; -webkit-text-size-adjust: 100%; }`) and grid containers (`.container-fluid`) to completely prevent horizontal overflow blowouts.
+      * Configured Plotly with `responsive = TRUE` and capped CSS containers (`.plotly, .plot-container, .js-plotly-plot, .svg-container { max-width: 100% !important; }`).
+      * Added `@media (max-width: 768px)` media queries optimizing plot heights (Manhattan: 380px, Schematic: 280px), reducing padding on cards and navigation bars, and stacking navigation buttons (`.top-nav-buttons`).
+      * Wrapped QTL overview tables in `.table-responsive-container` (`overflow-x: auto; -webkit-overflow-scrolling: touch;`).
+      * Restructured `metadata_panel` using responsive classes (`.meta-header-row`, `.meta-stats-row`, `.meta-details-row`, `.meta-details-left`, `.meta-details-right`) with mobile column-stacking and `word-break: break-all;` on detailed coding SNP entries to eliminate viewport distortion.
+    * **Default Legend Hiding on Mobile**:
+      * Implemented client-side detection (`isMobileClient()`) that checks viewport width ($\le 768$px) and touch/mobile user agents.
+      * On mobile device load, automatically sets `hide_manhattan_legend = TRUE` and `hide_schematic_legend = TRUE` by default, maximizing precious screen real estate for the genomic plots rather than squishing them with wide legend keys.
+      * Synchronized with server-side `observeEvent(input$client_is_mobile, ...)` and updated `reset_to_default_state()` so resetting the view on mobile preserves the mobile-friendly legend defaults.
+    * **Peak Deselection & Conditional Locus Plot Display**:
+      * **Placement in Manhattan Controls**: Placed `uiOutput("manhattan_peak_reset_ui")` directly in the **Manhattan Controls** side panel below **"Hide Legend"**, aligning with where peak selection occurs and keeping the locus plot clean without unnecessary headers or redundant labels.
+      * **Conditional Locus Visibility**: Enclosed both the Locus Micro-Architecture plot and the Locus Schematic Controls within `conditionalPanel(condition = "output.has_active_peak")` (backed by server-side `outputOptions(output, "has_active_peak", suspendWhenHidden = FALSE)`). When no peak is selected, the locus schematic and its controls do not appear, preserving a streamlined genome-wide or chromosome-level view.
+      * **Seamless Re-Selection of Deselected Peaks**: Fixed a common Plotly/Shiny caching bug where re-clicking the same peak after deselecting resulted in no response. Attached a custom Plotly click handler (`setupManhattanClick`) that transmits each point click with a unique timestamp and `{priority: 'event'}` to `input$manhattan_click_custom`, guaranteeing that clicking the exact same peak immediately re-selects it and reopens the locus schematic without requiring a different point click first.
+
+
