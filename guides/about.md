@@ -26,7 +26,7 @@ The **MafA Discovery Integrated Genomic Explorer** was developed to bridge molec
 
 Genetic analysis was performed using quantitative trait loci (QTL) methods implmented in R/qtl (Broman et al., 2003, 2019). This involved genome scans of GTT measurements,
 including summary traits based on AUC (area under the curve) and further
-meta-trates over the multiple weeks of assays. Peaks and 95% approximate
+metatraits over the multiple weeks of assays. Peaks and 95% approximate
 confidence intervals were reported.
 
 The peak scores were developed ...
