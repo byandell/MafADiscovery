@@ -82,93 +82,6 @@
       color: var(--primary);
       font-weight: 600;
     }
-    .nav-dropdown {
-      position: relative;
-    }
-    .dropdown-details {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle {
-      color: var(--text-muted);
-      font-size: 0.88em;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      list-style: none;
-      transition: all 0.15s ease;
-    }
-    .dropdown-toggle::-webkit-details-marker {
-      display: none;
-    }
-    .dropdown-toggle::marker {
-      display: none;
-    }
-    .dropdown-toggle:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-toggle.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-details .arrow {
-      font-size: 0.75em;
-      margin-left: 2px;
-      display: inline-block;
-      transition: transform 0.15s ease;
-    }
-    .dropdown-details[open] .arrow {
-      transform: rotate(180deg);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 220px;
-      padding: 6px 0;
-      margin: 4px 0 0 0;
-      list-style: none;
-      z-index: 1000;
-    }
-    .dropdown-menu li {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu a {
-      display: block;
-      padding: 8px 16px;
-      color: var(--text);
-      font-size: 0.88em;
-      text-decoration: none;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .dropdown-menu a:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-menu a.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--border);
-      margin: 4px 0;
-    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -290,12 +203,6 @@
       }
       return true;
     }
-    document.addEventListener("click", function(e) {
-      var dropdown = document.getElementById("dev-dropdown");
-      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
-        dropdown.removeAttribute("open");
-      }
-    });
   </script>
 </head>
 <body>
@@ -305,23 +212,9 @@
       <nav class="doc-nav">
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
+          <li><a href="user_guide.html" class="active">User Guide</a></li>
           <li><a href="./">Documentation Hub</a></li>
-          <li><a href="user_guide.html">User Guide</a></li>
           <li><a href="about.html">About</a></li>
-          <li class="nav-dropdown">
-       <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle">Developer Guide <span class="arrow">▾</span></summary>
-         <ul class="dropdown-menu">
-           <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
-              <li><a href="guides.html">Guides Directory Index</a></li>
-              <li class="dropdown-divider"></li>
-              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
-              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
-              <li><a href="publishapp.html">Publishing & WASM</a></li>
-              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-         </ul>
-       </details>
-     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>

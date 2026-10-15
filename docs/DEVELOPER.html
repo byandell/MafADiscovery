@@ -82,93 +82,6 @@
       color: var(--primary);
       font-weight: 600;
     }
-    .nav-dropdown {
-      position: relative;
-    }
-    .dropdown-details {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle {
-      color: var(--text-muted);
-      font-size: 0.88em;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      list-style: none;
-      transition: all 0.15s ease;
-    }
-    .dropdown-toggle::-webkit-details-marker {
-      display: none;
-    }
-    .dropdown-toggle::marker {
-      display: none;
-    }
-    .dropdown-toggle:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-toggle.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-details .arrow {
-      font-size: 0.75em;
-      margin-left: 2px;
-      display: inline-block;
-      transition: transform 0.15s ease;
-    }
-    .dropdown-details[open] .arrow {
-      transform: rotate(180deg);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 220px;
-      padding: 6px 0;
-      margin: 4px 0 0 0;
-      list-style: none;
-      z-index: 1000;
-    }
-    .dropdown-menu li {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu a {
-      display: block;
-      padding: 8px 16px;
-      color: var(--text);
-      font-size: 0.88em;
-      text-decoration: none;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .dropdown-menu a:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-menu a.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--border);
-      margin: 4px 0;
-    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -290,12 +203,6 @@
       }
       return true;
     }
-    document.addEventListener("click", function(e) {
-      var dropdown = document.getElementById("dev-dropdown");
-      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
-        dropdown.removeAttribute("open");
-      }
-    });
   </script>
 </head>
 <body>
@@ -305,23 +212,9 @@
       <nav class="doc-nav">
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
-          <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
+          <li><a href="./">Documentation Hub</a></li>
           <li><a href="about.html">About</a></li>
-          <li class="nav-dropdown">
-       <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
-         <ul class="dropdown-menu">
-           <li><a href="DEVELOPER.html" class="active">Master Developer Guide</a></li>
-              <li><a href="guides.html">Guides Directory Index</a></li>
-              <li class="dropdown-divider"></li>
-              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
-              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
-              <li><a href="publishapp.html">Publishing & WASM</a></li>
-              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-         </ul>
-       </details>
-     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -466,7 +359,7 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 <li>Dynamic Primary Selector: Toggles between <code>selectizeInput(&quot;search_gene&quot;, ...)</code> (in <em>Genome-Wide</em>, <em>Chromosome</em>, and <em>Locus Zoom</em> modes) and <code>selectInput(&quot;sel_qtl&quot;, ...)</code> (in <em>QTL Region</em> mode).</li>
 <li>View mode dropdown (<code>selectInput(&quot;zoom_mode&quot;, ...)</code>).</li>
 <li>Contextual selector container (<code>uiOutput(&quot;context_selector_ui&quot;)</code>): dynamically renders chromosome selector (<code>sel_chr</code>) in <em>Chromosome</em> mode, locus badge in <em>Locus Zoom</em>, or a quick <code>✕ Deselect Peak</code> button / QTL badge in <em>QTL Region</em> mode.</li>
-<li>Quick action buttons: <code>ℹ️ Guide</code> interpretation modal, direct <code>📖 Dev Guide ↗</code> external link, and <code>↺ Reset</code>. (The former header <code>📊 QTLs</code> modal button has been replaced by the direct in-panel overview table).</li>
+<li>Quick action buttons: <code>📖 Guide ↗</code> direct link to User Guide and <code>↺ Reset</code>. (The former header <code>📊 QTLs</code> modal button has been replaced by the direct in-panel overview table).</li>
 </ul>
 </li>
 <li><strong>Unified Canvas &amp; Continuous Control Stacking</strong>:
@@ -508,8 +401,8 @@ This reduces WebAssembly bundle sizes and dramatically speeds up browser startup
 </li>
 <li><strong>Genome-Wide Auto-Reset</strong>: Selecting <code>&quot;Genome-Wide&quot;</code> in <code>zoom_mode</code> or clicking <code>↺ Reset</code> invokes a centralized <code>reset_to_default_state()</code> routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings (preserving mobile legend defaults on mobile devices).</li>
 <li><strong>Legend Visibility Controls &amp; Mobile Optimization</strong>: Discrete checkboxes (<code>hide_manhattan_legend</code>, <code>hide_schematic_legend</code>) dynamically suppress legends via Plotly <code>layout(showlegend = ...)</code> and ggplot <code>theme(legend.position = ...)</code>. On mobile devices (iPhone, touch/narrow viewports $\le 768$px), client-side detection automatically defaults both checkboxes to <code>TRUE</code> (hidden) upon launch to preserve full plot width on smaller screens.</li>
-<li><strong>User Guide Modal</strong>: Loaded dynamically from <a href="user_guide.html"><code>guides/user_guide.md</code></a> via <code>render_markdown_file()</code> with <code>title = NULL</code> in <code>modalDialog</code>, allowing the single markdown H1 header to serve as the clean dialog title without duplication. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.</li>
-<li><strong>Documentation Hub</strong>: The <code>📖 Dev Guide ↗</code> button connects directly to the rendered documentation portal at <code>docs/</code> (or `` when hosted), backed by <code>docs/index.html</code> compiled from <a href="index.html">`guides/developer_guide.md`</a>. The explicit trailing slash ensures all relative links (`user_guide.html`, `DEVELOPER.html`, etc.) correctly resolve within the `docs/` directory during local trials and live deployment. The site header includes a semantic `<details>` / `<summary>` <strong>Developer Guide ▾</strong> dropdown that remains initially closed on page load.</li>
+<li><strong>User Guide Navigation</strong>: The <code>📖 Guide ↗</code> button connects directly to <code>user_guide.html</code> (or <code>docs/user_guide.html</code> in local context), without in-app modal popups.</li>
+<li><strong>Documentation Hub</strong>: Backed by <code>docs/index.html</code> compiled from <a href="index.html"><code>guides/developer_guide.md</code></a>. The documentation site header provides streamlined navigation buttons: <strong>User Guide</strong>, <strong>Documentation Hub</strong>, <strong>About</strong>, and <strong>GitHub</strong>.</li>
 </ul>
 <h3>Plotly Manhattan Plot &amp; Dual-Axis Scaling</h3>
 <ul>
@@ -609,6 +502,27 @@ httpuv::runStaticServer(&quot;site&quot;, port = 8888)
 </li>
 </ul>
 </li>
+</ol>
+<hr />
+<h2>Repository Ownership &amp; Configuration (<code>config.R</code>)</h2>
+<p>The repository ownership, GitHub repository name, and deployment URLs are centralized in <a href="config.R"><code>config.R</code></a>:</p>
+<pre><code class="language-r">GITHUB_CONFIG &lt;- list(
+  owner  = &quot;byandell&quot;,          # GitHub user or organization
+  repo   = &quot;MafADiscovery&quot;,     # Repository name
+  branch = &quot;main&quot;               # Default production branch
+)
+</code></pre>
+<h3>Transferring Repository to a New Owner</h3>
+<p>When transferring this repository to a new user or organization:</p>
+<ol>
+<li>Open <a href="config.R"><code>config.R</code></a> and change <code>owner = &quot;byandell&quot;</code> to the new GitHub user or organization name.</li>
+<li>Run <code>Rscript render_docs.R</code>:
+<ul>
+<li>Automatically invokes <code>sync_markdown_links()</code> to scan <code>README.md</code>, <code>DEVELOPER.md</code>, and all guides in <code>guides/</code>, updating absolute GitHub (<code>https://github.com/&lt;owner&gt;/...</code>) and GitHub Pages (<code>https://&lt;owner&gt;.github.io/...</code>) links so that links remain viable for users reading raw Markdown source files on GitHub.</li>
+<li>Compiles and outputs fresh HTML pages in <code>docs/</code> with updated navbar links.</li>
+</ul>
+</li>
+<li>The Shiny app in <code>SHINY_APP/app.R</code> reads <code>config.R</code> and dynamically computes URLs via client-side JavaScript (<code>resolveDocsUrl()</code>) at runtime, adapting to the live hosting environment without requiring hardcoded updates.</li>
 </ol>
 <hr />
 <h2>Coding Guidelines &amp; Safety Rules</h2>

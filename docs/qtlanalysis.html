@@ -82,93 +82,6 @@
       color: var(--primary);
       font-weight: 600;
     }
-    .nav-dropdown {
-      position: relative;
-    }
-    .dropdown-details {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle {
-      color: var(--text-muted);
-      font-size: 0.88em;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      list-style: none;
-      transition: all 0.15s ease;
-    }
-    .dropdown-toggle::-webkit-details-marker {
-      display: none;
-    }
-    .dropdown-toggle::marker {
-      display: none;
-    }
-    .dropdown-toggle:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-toggle.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-details .arrow {
-      font-size: 0.75em;
-      margin-left: 2px;
-      display: inline-block;
-      transition: transform 0.15s ease;
-    }
-    .dropdown-details[open] .arrow {
-      transform: rotate(180deg);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 220px;
-      padding: 6px 0;
-      margin: 4px 0 0 0;
-      list-style: none;
-      z-index: 1000;
-    }
-    .dropdown-menu li {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu a {
-      display: block;
-      padding: 8px 16px;
-      color: var(--text);
-      font-size: 0.88em;
-      text-decoration: none;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .dropdown-menu a:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-menu a.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--border);
-      margin: 4px 0;
-    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -290,12 +203,6 @@
       }
       return true;
     }
-    document.addEventListener("click", function(e) {
-      var dropdown = document.getElementById("dev-dropdown");
-      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
-        dropdown.removeAttribute("open");
-      }
-    });
   </script>
 </head>
 <body>
@@ -305,23 +212,9 @@
       <nav class="doc-nav">
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
-          <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
+          <li><a href="./">Documentation Hub</a></li>
           <li><a href="about.html">About</a></li>
-          <li class="nav-dropdown">
-       <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
-         <ul class="dropdown-menu">
-           <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
-              <li><a href="guides.html">Guides Directory Index</a></li>
-              <li class="dropdown-divider"></li>
-              <li><a href="qtlanalysis.html" class="active">F2 QTL Analysis</a></li>
-              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
-              <li><a href="publishapp.html">Publishing & WASM</a></li>
-              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-         </ul>
-       </details>
-     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -355,8 +248,7 @@ For example, to zoom into the QTL on Chr16, I select view mode=chromosome, selec
 <p>Since this type of query will be the focus on the app when integrating the QTL from the F2s, what would it take to include the QTL as another option for view mode? We could offer Chr and the corresponding CI for low and high as boundaries that will be displayed.</p>
 <p>Finally, deselect “Shared” from the visible categories as the default.</p>
 <hr />
-<h2>Implementation Plan: F2 Glycemic QTL Integration &amp; Navigation Enhancement</h2>
-<p>This plan outlines the architecture, data structures, reactive flow, and visual enhancements required to integrate the F2 glycemic QTL data into the <strong>MafA Discovery</strong> Shiny application.</p>
+<h2>Technical Architecture &amp; Implementation</h2>
 <pre><code class="language-mermaid">flowchart TD
     A[Data Layer: prepare_data] --&gt;|Load &amp; Map QTLs| B[Reactive State: v$active_qtl]
     B --&gt; C[View Mode: QTL Region]
@@ -364,243 +256,33 @@ For example, to zoom into the QTL on Chr16, I select view mode=chromosome, selec
     C --&gt;|Select QTL Row / Dropdown| E[Sync Chr &amp; CI Boundaries]
     D --&gt;|Click Peak / SNP| F[Locus Zoom &amp; Schematic]
     G[Category Filter] --&gt;|Default: Deselect Shared| D
-    H[Interactive QTL Table] --&gt;|Click to Inspect| B
+    H[In-Panel QTL Overview Table] --&gt;|Inspect QTL →| B
+    B --&gt;|Dynamic Trait PNG| I[Additive Scan Plot]
 </code></pre>
 <hr />
-<h3>1. Architectural Summary &amp; Requirements</h3>
-<table>
-<thead>
-<tr>
-<th align="left">Requirement</th>
-<th align="left">Current State</th>
-<th align="left">Proposed Solution</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><strong>QTL Dataset Integration</strong></td>
-<td align="left"><code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> exists in <code>SHINY_APP/QTLresults/</code> but is not loaded.</td>
-<td align="left">Load and standardize QTL dataset in <code>prepare_data()</code>, computing global genome-wide offsets and human-readable identifiers.</td>
-</tr>
-<tr>
-<td align="left"><strong>&quot;QTL Region&quot; View Mode</strong></td>
-<td align="left">View modes only include <em>Genome-Wide</em>, <em>Chromosome</em>, and dynamic <em>Locus Zoom</em>.</td>
-<td align="left">Add <code>&quot;QTL Region&quot;</code> to <code>View Mode</code> options (<code>Genome-Wide</code>, <code>Chromosome</code>, <code>QTL Region</code>, <code>Locus Zoom</code>).</td>
-</tr>
-<tr>
-<td align="left"><strong>QTL Navigation &amp; Auto-Bounding</strong></td>
-<td align="left">User must manually select chromosome and use Plotly box-zoom tool to find coordinates (e.g. 50–100 Mb on Chr16 or 0–50 Mb on Chr13).</td>
-<td align="left">In <code>&quot;QTL Region&quot;</code> mode, selecting a QTL automatically bounds the Manhattan x-axis to <code>[ci.low, ci.high]</code> (in Mbp) with 3% margin.</td>
-</tr>
-<tr>
-<td align="left"><strong>Interactive QTL Table</strong></td>
-<td align="left">No visual table of QTLs.</td>
-<td align="left">Add a collapsible panel or dedicated tab/modal displaying the complete F2 QTL table with interactive row selection.</td>
-</tr>
-<tr>
-<td align="left"><strong>Visual QTL Cue on Manhattan Plot</strong></td>
-<td align="left">Manhattan plot only displays ChIP peaks and coding SNPs.</td>
-<td align="left">Render a shaded region or top highlight banner for the active QTL confidence interval (<code>ci.low</code> to <code>ci.high</code>) and a vertical dashed marker for peak position (<code>pos</code>).</td>
-</tr>
-<tr>
-<td align="left"><strong>Default Category Filtering</strong></td>
-<td align="left">All categories (<code>Shared</code>, <code>C57_Specific</code>, <code>SJL_Specific</code>, <code>Discordant</code>) displayed, overwhelming strain differences.</td>
-<td align="left">Provide category filter with <code>&quot;Shared&quot;</code> <strong>deselected by default</strong>, highlighting strain-divergent peaks (<code>C57_Specific</code>, <code>SJL_Specific</code>, <code>Discordant</code>) immediately upon load.</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3>2. Data Layer Specifications (<code>prepare_data()</code>)</h3>
-<p>In <a href="../SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a>:</p>
-<ol>
-<li>
-<p><strong>Load CSV</strong>:</p>
-<pre><code class="language-r">qtls &lt;- fread(&quot;QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv&quot;)
-</code></pre>
-</li>
-<li>
-<p><strong>Standardize Coordinates &amp; Identifiers</strong>:</p>
-<ul>
-<li>
-<p>Standardize chromosome naming: <code>qtls[, Chr := paste0(&quot;Chr&quot;, Chr)]</code>.</p>
-</li>
-<li>
-<p>Ensure numeric conversions: <code>pos</code>, <code>ci.low</code>, <code>ci.high</code>, <code>lod</code>, <code>BB_effect</code>, <code>BS_effect</code>, <code>SS_effect</code>.</p>
-</li>
-<li>
-<p>Create display label for selector:</p>
-<pre><code class="language-r">qtls[, qtl_id := paste0(trait, &quot; @ &quot;, Chr, &quot;:&quot;, round(pos, 1), &quot; Mb (LOD &quot;, round(lod, 1), &quot;)&quot;)]
-</code></pre>
-</li>
-<li>
-<p>Calculate global Manhattan positions using <code>chr_map</code>:</p>
-<pre><code class="language-r">qtls[chr_map, on = &quot;Chr&quot;, `:=`(
-  GlobalPos_Mbp     = pos + i.Offset_Mbp,
-  GlobalCI_Low_Mbp  = ci.low + i.Offset_Mbp,
-  GlobalCI_High_Mbp = ci.high + i.Offset_Mbp
-)]
-</code></pre>
-</li>
-</ul>
-</li>
-<li>
-<p>Return <code>qtls</code> in the data bundle list alongside <code>degs</code>, <code>mafa</code>, <code>genes</code>, <code>chr_map</code>, <code>snps</code>.</p>
-</li>
-</ol>
-<hr />
-<h3>3. UI Modifications</h3>
-<h4>3.1 Dynamic Sidebar Controls</h4>
-<ul>
-<li>
-<p><strong>View Mode Selector</strong>:</p>
-<pre><code class="language-r">selectInput(&quot;zoom_mode&quot;, &quot;View Mode:&quot;, choices = c(&quot;Genome-Wide&quot;, &quot;Chromosome&quot;, &quot;QTL Region&quot;))
-</code></pre>
-</li>
-<li>
-<p><strong>Conditional QTL Selector (<code>output$qtl_selector_ui</code>)</strong>:
-Renders when <code>input$zoom_mode == &quot;QTL Region&quot;</code>:</p>
-<pre><code class="language-r">selectInput(&quot;sel_qtl&quot;, &quot;Select F2 Glycemic QTL:&quot;, 
-            choices = d$qtls$qtl_id, 
-            selected = v$active_qtl$qtl_id)
-</code></pre>
-</li>
-<li>
-<p><strong>Visible Categories Control</strong>:
-Re-introduce <code>checkboxGroupInput(&quot;show_cat&quot;, &quot;Visible Categories:&quot;, ...)</code> with <code>&quot;Shared&quot;</code> deselected by default:</p>
-<pre><code class="language-r">checkboxGroupInput(&quot;show_cat&quot;, &quot;Visible Categories:&quot;, 
-                   choices = c(&quot;Shared&quot;, &quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;),
-                   selected = c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;))
-</code></pre>
-<p><em>(Users can re-enable &quot;Shared&quot; anytime with a single click).</em></p>
-</li>
-</ul>
-<h4>3.2 Interactive QTL Explorer Table</h4>
-<ul>
-<li>In <code>&quot;QTL Region&quot;</code> mode, displaying table with columns:
-<code>Trait</code>, <code>Chr</code>, <code>Peak (Mbp)</code>, <code>95% CI (Mbp)</code>, <code>LOD</code>, <code>Additive Effects (BB, BS, SS)</code>.</li>
-<li>Selecting any row in this table sets the active QTL and switches view to the confidence interval.</li>
-</ul>
-<hr />
-<h3>4. Reactive State &amp; Server Architecture</h3>
-<ol>
-<li>
-<p><strong>Reactive State in <code>v</code></strong>:</p>
-<ul>
-<li><code>v$active_qtl</code>: Holds current QTL record (defaults to the top QTL, e.g., Chr16 AUC_of_AUCs LOD 5.07 or first entry).</li>
-<li><code>v$current_chr</code>: Synced to <code>v$active_qtl$Chr</code> whenever a QTL is selected.</li>
-<li><code>v$active_pk</code>: Holds selected MafA peak. If in <code>&quot;QTL Region&quot;</code> mode and no peak is selected, auto-select the highest peak within the QTL interval for seamless schematic preview.</li>
-</ul>
-</li>
-<li>
-<p><strong>QTL Selection Observer (<code>input$sel_qtl</code>)</strong>:</p>
-<pre><code class="language-r">observeEvent(input$sel_qtl, {
-  req(input$sel_qtl)
-  q_row &lt;- d$qtls[qtl_id == input$sel_qtl]
-  if (nrow(q_row) &gt; 0) {
-    v$active_qtl   &lt;- q_row[1]
-    v$current_chr  &lt;- q_row$Chr[1]
-    v$user_zoom    &lt;- NULL
-    
-    local_pks &lt;- d$mafa[Chr == q_row$Chr[1] &amp; Mid &gt;= q_row$ci.low * 1e6 &amp; Mid &lt;= q_row$ci.high * 1e6]
-    if (nrow(local_pks) &gt; 0) {
-      v$active_pk &lt;- local_pks[which.max(`Peak Score`)]
-    }
-  }
-})
-</code></pre>
-</li>
-<li>
-<p><strong>Coordinate Window Calculation in <code>output$manhattan</code></strong>:
-When <code>input$zoom_mode == &quot;QTL Region&quot;</code>:</p>
-<pre><code class="language-r">req(v$active_qtl)
-q &lt;- v$active_qtl
-chr_offset &lt;- d$chr_map[Chr == q$Chr, Offset_Mbp]
-
-ci_span &lt;- q$ci.high - q$ci.low
-pad &lt;- ci_span * 0.03
-x_range &lt;- if (!is.null(v$user_zoom)) {
-  v$user_zoom
-} else {
-  c(chr_offset + q$ci.low - pad, chr_offset + q$ci.high + pad)
-}
-</code></pre>
-</li>
-<li>
-<p><strong>Visual QTL Annotations on Manhattan Plot</strong>:</p>
-<ul>
-<li>In <code>&quot;QTL Region&quot;</code> and <code>&quot;Chromosome&quot;</code> modes, draw:
-<ul>
-<li>Shaded rectangular background across <code>[q$GlobalCI_Low_Mbp, q$GlobalCI_High_Mbp]</code>.</li>
-<li>Vertical dashed marker at the QTL peak position.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<hr />
-<h3>5. Detailed Step-by-Step Implementation Sequence</h3>
-<ol>
-<li><strong>Step 1: Load and Process QTL Data</strong> (Completed):
-<ul>
-<li>Updated <code>prepare_data()</code> to ingest <code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> and calculate linear global coordinates (<code>GlobalPos_Mbp</code>, <code>GlobalCI_Low_Mbp</code>, <code>GlobalCI_High_Mbp</code>).</li>
-</ul>
-</li>
-<li><strong>Step 2: Add Category Filter with Default Deselect &quot;Shared&quot;</strong> (Completed):
-<ul>
-<li>Re-introduced <code>checkboxGroupInput(&quot;show_cat&quot;, ...)</code> in the sidebar with <code>selected = c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;)</code> (Shared deselected by default).</li>
-<li>Wired <code>filtered_peaks</code>, <code>schematic</code>, and <code>metadata_panel</code> to respect <code>input$show_cat</code>.</li>
-</ul>
-</li>
-<li><strong>Step 3: Implement &quot;QTL Region&quot; View Mode</strong> (Completed):
-<ul>
-<li>Expanded <code>selectInput(&quot;zoom_mode&quot;, ...)</code> options to include <code>&quot;QTL Region&quot;</code>.</li>
-<li>Added dynamic <code>output$qtl_selector_ui</code> for QTL dropdown selection.</li>
-<li>Wired x-axis boundaries to <code>[ci.low, ci.high]</code> of the active QTL with local Mbp coordinate ticks.</li>
-</ul>
-</li>
-<li><strong>Step 4: Annotate Manhattan Plot with QTL Interval</strong> (Completed):
-<ul>
-<li>Rendered interval highlight (translucent blue rectangle) and peak position marker (dashed line) for the active QTL.</li>
-<li>Formatted local Mbp tick marks within the QTL confidence interval.</li>
-</ul>
-</li>
-<li><strong>Step 5: Add F2 QTL Table Modal / Viewer</strong> (Completed):
-<ul>
-<li>Added quick-reference table modal (<code>input$show_qtl_table</code>) displaying all 11 QTL loci with quick-zoom action.</li>
-</ul>
-</li>
-<li><strong>Step 6: Update Documentation &amp; Verification</strong> (Completed):
-<ul>
-<li>Updated <a href="DEVELOPER.html"><code>DEVELOPER.md</code></a> architecture and reactive lifecycle.</li>
-</ul>
-</li>
-</ol>
-<hr />
-<h2>6. Results of Implementation</h2>
-<p>All features requested in Mark's notes have been implemented in <a href="../SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a> and documented in <a href="DEVELOPER.html"><code>DEVELOPER.md</code></a>.</p>
-<h3>6.1 Implemented Features Summary</h3>
+<h3>1. Architectural Summary &amp; Features</h3>
 <table>
 <thead>
 <tr>
 <th align="left">Feature</th>
-<th align="left">Implementation Details</th>
+<th align="left">Technical Implementation</th>
 <th align="left">User Impact</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="left"><strong>F2 QTL Data Ingestion</strong></td>
-<td align="left">In <code>prepare_data()</code>, loads <code>QTLresults/Top_glycemic_QTL_for_sex_additive_analysis.csv</code>. Pre-calculates <code>GlobalPos_Mbp</code>, <code>GlobalCI_Low_Mbp</code>, <code>GlobalCI_High_Mbp</code> using Ensembl GRCm39 <code>chr_map</code>.</td>
-<td align="left">All 11 glycemic QTL loci across chromosomes 2, 3, 7, 11, 13, 16 are available at session start with zero Bioconductor runtime dependencies.</td>
+<td align="left"><strong>QTL Data Ingestion</strong></td>
+<td align="left">Ingests <code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> from <code>QTLresults/</code>. Pre-calculates global Manhattan positions (<code>GlobalPos_Mbp</code>, <code>GlobalCI_Low_Mbp</code>, <code>GlobalCI_High_Mbp</code>) using Ensembl GRCm39 <code>chr_map</code>.</td>
+<td align="left">All 11 glycemic QTL loci across chromosomes 2, 3, 7, 11, 13, and 16 load at session start with zero Bioconductor runtime dependencies.</td>
 </tr>
 <tr>
 <td align="left"><strong>&quot;QTL Region&quot; View Mode</strong></td>
-<td align="left">Added <code>&quot;QTL Region&quot;</code> to <code>selectInput(&quot;zoom_mode&quot;, ...)</code> alongside <code>Genome-Wide</code>, <code>Chromosome</code>, and dynamic <code>Locus Zoom</code>.</td>
+<td align="left">Added <code>&quot;QTL Region&quot;</code> to <code>selectInput(&quot;zoom_mode&quot;, ...)</code> alongside <em>Genome-Wide</em>, <em>Chromosome</em>, and dynamic <em>Locus Zoom</em>.</td>
 <td align="left">Provides dedicated, one-click access to QTL intervals without requiring manual box-zooming.</td>
 </tr>
 <tr>
 <td align="left"><strong>Automated CI Bounding</strong></td>
-<td align="left">Automatically sets Manhattan x-axis boundaries to <code>[ci.low, ci.high]</code> (in Mbp) + 3% margin. Local coordinate ticks and labels dynamically compute round Mbp breaks.</td>
+<td align="left">Automatically sets Manhattan x-axis boundaries to <code>[ci.low, ci.high]</code> (in Mbp) + 3% margin with dynamic local Mbp tick marks.</td>
 <td align="left">Eliminates manual navigation: selecting a Chr16 QTL immediately frames 50.87–96.88 Mb; selecting a Chr13 QTL frames 3.61–47.86 Mb.</td>
 </tr>
 <tr>
@@ -609,75 +291,64 @@ x_range &lt;- if (!is.null(v$user_zoom)) {
 <td align="left">Active QTL interval is instantly recognizable on both <em>QTL Region</em> and <em>Chromosome</em> views.</td>
 </tr>
 <tr>
-<td align="left"><strong>Interactive QTL Reference Table</strong></td>
-<td align="left">Interactive table displaying all 11 QTLs with markers, LOD scores, CIs, and additive effect estimates (<code>BB</code>, <code>BS</code>, <code>SS</code>).</td>
-<td align="left">Quick inspection directly in panel.</td>
+<td align="left"><strong>Dynamic Top-Nav Slot</strong></td>
+<td align="left">Primary input slot displays <strong>&quot;Select F2 Glycemic QTL&quot;</strong> in <em>QTL Region</em> mode and <strong>&quot;Search Gene Symbol&quot;</strong> in other modes.</td>
+<td align="left">Streamlines navigation by eliminating unnecessary dropdowns.</td>
 </tr>
 <tr>
-<td align="left"><strong>Default Category Filter (&quot;Shared&quot; Deselected)</strong></td>
-<td align="left">Re-introduced <code>checkboxGroupInput(&quot;show_cat&quot;, &quot;Visible Categories:&quot;, ...)</code> with default <code>selected = c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;)</code>.</td>
+<td align="left"><strong>Default Category Filter</strong></td>
+<td align="left">Defaults <code>input$show_cat</code> to <code>c(&quot;C57_Specific&quot;, &quot;SJL_Specific&quot;, &quot;Discordant&quot;)</code> with <code>&quot;Shared&quot;</code> deselected.</td>
 <td align="left">Strain-divergent peaks and variants stand out immediately on launch without being drowned out by thousands of shared non-divergent points. &quot;Shared&quot; can be re-enabled with one click.</td>
 </tr>
 <tr>
-<td align="left"><strong>Peak-to-QTL Metadata Badge</strong></td>
-<td align="left">When a MafA peak resides within the active QTL confidence interval, the metadata panel renders a prominent highlight card (<code>Within F2 QTL: [trait] (LOD [lod])</code>).</td>
+<td align="left"><strong>Peak-to-QTL Badge</strong></td>
+<td align="left">When a MafA peak resides within the active QTL CI, the metadata panel renders a prominent highlight card (<code>Within F2 QTL: [trait] (LOD [lod])</code>).</td>
 <td align="left">Directly connects molecular binding peaks to organismal glycemic traits.</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2>7. Full <code>QTLresults</code> Integration &amp; In-Panel Exploration</h2>
-<p>The application incorporates <code>SHINY_APP/QTLresults</code> as a first-class feature of the explorer.</p>
-<h3>7.1 Key Enhancements</h3>
+<h3>2. In-Panel Interactive Overview &amp; Scan Integration</h3>
 <ol>
-<li><strong>Data Organization in <code>QTLresults/</code></strong>:
+<li>
+<p><strong>In-Panel Overview Table</strong>:</p>
 <ul>
-<li><code>Top_glycemic_QTL_for_sex_additive_analysis.csv</code> is resolved from <code>QTLresults/</code> with fallbacks for local and Shiny server deployments.</li>
-<li>Resource path <code>QTLresults</code> is registered to cleanly serve static scan PNGs.</li>
-</ul>
-</li>
-<li><strong>Dynamic Top Navigation Toggle</strong>:
-<ul>
-<li>When <strong>View Mode</strong> is <code>&quot;QTL Region&quot;</code>, the primary input slot displays <strong>&quot;Select F2 Glycemic QTL&quot;</strong>.</li>
-<li>In <code>&quot;Genome-Wide&quot;</code> or <code>&quot;Chromosome&quot;</code> view, the slot displays <strong>&quot;Search Gene Symbol&quot;</strong>.</li>
-</ul>
-</li>
-<li><strong>In-Panel Interactive QTL Overview Table &amp; Key Loci Scans</strong>:
-<ul>
-<li>In <code>&quot;QTL Region&quot;</code> mode, the default selection is blank (<code>&quot;&quot;</code>).</li>
-<li>While blank, the overview panel is organized into two distinct sections:
+<li>In <code>&quot;QTL Region&quot;</code> mode, the QTL selection defaults to blank (<code>&quot;&quot;</code>), displaying a two-section overview in the main panel:
 <ul>
 <li><strong>AUC Glycemic Traits</strong>: Renders <code>QTLresults/scan_auc_sex_additive_key_loci.png</code> followed by the interactive table of <code>AUC_gluc_*</code> trait peaks (<code>AUC_gluc_4wk</code>, <code>AUC_gluc_5wk</code>, <code>AUC_gluc_6wk</code>, <code>AUC_gluc_8wk</code>).</li>
-<li><strong>Trajectory &amp; Rate Glycemic Traits</strong>: Renders <code>QTLresults/scan_traj_sex_additive_key_loci.png</code> followed by the trajectory and rate trait table (<code>Slope_AUCs</code>, <code>AUC_8wk_minus_AUC_4wk</code>, and <code>AUC_of_AUCs</code>).</li>
+<li><strong>Trajectory &amp; Rate Traits</strong>: Renders <code>QTLresults/scan_traj_sex_additive_key_loci.png</code> followed by the trajectory and rate trait table (<code>Slope_AUCs</code>, <code>AUC_8wk_minus_AUC_4wk</code>, and <code>AUC_of_AUCs</code>).</li>
 </ul>
 </li>
-<li><strong>Key Loci Plot Toggles</strong>: Two independent checkboxes at the top right of the panel (<strong>&quot;Hide AUC Key Loci Scan&quot;</strong> and <strong>&quot;Hide Trajectory Key Loci Scan&quot;</strong>) let users selectively suppress either or both summary plots to reduce vertical scrolling.</li>
-<li>Both tables provide trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button.</li>
-<li>Clicking <strong>&quot;Inspect QTL →&quot;</strong> (or selecting a QTL from the top dropdown) hides the overview panel, frames the QTL confidence interval on the Manhattan plot, and activates the chromosome-specific trait scan.</li>
+<li>Two independent checkboxes (<strong>&quot;Hide AUC Key Loci Scan&quot;</strong> and <strong>&quot;Hide Trajectory Key Loci Scan&quot;</strong>) let users suppress either or both summary plots to minimize vertical scrolling.</li>
+<li>Each row provides trait names, markers, chromosomes, peak positions, 95% CIs, LOD scores, additive effects ($BB$, $BS$, $SS$), and an <strong>&quot;Inspect QTL →&quot;</strong> button.</li>
+<li>Clicking <strong>&quot;Inspect QTL →&quot;</strong> (or selecting a QTL from the top dropdown) hides the overview panel, frames the QTL confidence interval on the Manhattan plot, and activates the chromosome-specific trait scan plot.</li>
 <li>A <strong>&quot;← Back to QTL Overview Table&quot;</strong> action link returns to the overview anytime.</li>
 </ul>
 </li>
-<li><strong>Peak Selection &amp; Reset Mechanics</strong>:
-<ul>
-<li>Entering <code>&quot;QTL Region&quot;</code> or changing QTL selection resets the active peak (<code>v$active_pk &lt;- NULL</code>).</li>
-<li>An explicit <strong>&quot;✕ Deselect Peak&quot;</strong> button appears in the navbar and schematic sidebar whenever a peak is active in view modes other than <em>Locus Zoom</em>, allowing quick return to an unselected state.</li>
-</ul>
-</li>
-<li><strong>Additive QTL Trait Scan PNGs</strong>:
+<li>
+<p><strong>Additive Trait Scan Plots (<code>QTLresults/</code>)</strong>:</p>
 <ul>
 <li>Active QTLs display their corresponding additive scan plot from <code>QTLresults/</code> directly above the Manhattan plot:
 <ul>
-<li>Traits starting with <code>&quot;AUC_gluc&quot;</code> map to <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>.</li>
+<li>Traits starting with <code>&quot;AUC_gluc&quot;</code> map dynamically to <code>scan_chr&lt;Chr&gt;_auc_sex_additive.png</code>.</li>
 <li>Trajectory and compound traits (<code>Slope_AUCs</code>, <code>AUC_8wk_minus_AUC_4wk</code>, <code>AUC_of_AUCs</code>) map to <code>scan_chr&lt;Chr&gt;_traj_sex_additive.png</code>.</li>
 </ul>
 </li>
 <li>A <strong>&quot;Hide QTL Scan Plot&quot;</strong> checkbox in the Manhattan controls allows toggling scan visibility.</li>
 </ul>
 </li>
-<li><strong>Continuous Right-Hand Control Card Stacking</strong>:
+<li>
+<p><strong>Peak Selection &amp; Deselection Mechanics</strong>:</p>
+<ul>
+<li>Entering <code>&quot;QTL Region&quot;</code> or changing QTL selection automatically resets the active peak (<code>v$active_pk &lt;- NULL</code>).</li>
+<li>An explicit <strong>&quot;✕ Deselect Current Peak&quot;</strong> button appears in the Manhattan Controls side panel immediately below the Hide Legend checkbox when a peak is active, providing intuitive deselection where peak selection originates and conditionally hiding the locus schematic and its controls.</li>
+</ul>
+</li>
+<li>
+<p><strong>Continuous Control Card Stacking</strong>:</p>
 <ul>
 <li>Plots (Scan plot, Manhattan plot, and Locus Schematic) are housed in a 9-column left canvas.</li>
-<li>Both control panels (<strong>Manhattan Controls</strong> and <strong>Locus Schematic Controls</strong>) are organized in a single continuous 3-column right sidebar. This ensures the schematic controls always follow immediately below the Manhattan controls, eliminating artificial vertical whitespace regardless of whether the QTL scan plot is visible.</li>
+<li>Both control panels (<strong>Manhattan Controls</strong> followed immediately below by <strong>Locus Schematic Controls</strong>) are organized in a single continuous 3-column right sidebar. This ensures the schematic controls always follow immediately below the Manhattan controls, eliminating artificial vertical whitespace regardless of whether the QTL scan plot is visible.</li>
 </ul>
 </li>
 </ol>

@@ -82,93 +82,6 @@
       color: var(--primary);
       font-weight: 600;
     }
-    .nav-dropdown {
-      position: relative;
-    }
-    .dropdown-details {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle {
-      color: var(--text-muted);
-      font-size: 0.88em;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      list-style: none;
-      transition: all 0.15s ease;
-    }
-    .dropdown-toggle::-webkit-details-marker {
-      display: none;
-    }
-    .dropdown-toggle::marker {
-      display: none;
-    }
-    .dropdown-toggle:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-toggle.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-details .arrow {
-      font-size: 0.75em;
-      margin-left: 2px;
-      display: inline-block;
-      transition: transform 0.15s ease;
-    }
-    .dropdown-details[open] .arrow {
-      transform: rotate(180deg);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 220px;
-      padding: 6px 0;
-      margin: 4px 0 0 0;
-      list-style: none;
-      z-index: 1000;
-    }
-    .dropdown-menu li {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu a {
-      display: block;
-      padding: 8px 16px;
-      color: var(--text);
-      font-size: 0.88em;
-      text-decoration: none;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .dropdown-menu a:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-menu a.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--border);
-      margin: 4px 0;
-    }
     .app-link {
       background-color: #2da44e !important;
       color: #ffffff !important;
@@ -290,12 +203,6 @@
       }
       return true;
     }
-    document.addEventListener("click", function(e) {
-      var dropdown = document.getElementById("dev-dropdown");
-      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
-        dropdown.removeAttribute("open");
-      }
-    });
   </script>
 </head>
 <body>
@@ -305,23 +212,9 @@
       <nav class="doc-nav">
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
-          <li><a href="./">Documentation Hub</a></li>
           <li><a href="user_guide.html">User Guide</a></li>
+          <li><a href="./">Documentation Hub</a></li>
           <li><a href="about.html">About</a></li>
-          <li class="nav-dropdown">
-       <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle active">Developer Guide <span class="arrow">▾</span></summary>
-         <ul class="dropdown-menu">
-           <li><a href="DEVELOPER.html">Master Developer Guide</a></li>
-              <li><a href="guides.html">Guides Directory Index</a></li>
-              <li class="dropdown-divider"></li>
-              <li><a href="qtlanalysis.html">F2 QTL Analysis</a></li>
-              <li><a href="redesign.html">UI Redesign & Reactivity</a></li>
-              <li><a href="publishapp.html" class="active">Publishing & WASM</a></li>
-              <li><a href="shinyapp.html">Legacy Prototypes</a></li>
-         </ul>
-       </details>
-     </li>
           <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
@@ -331,162 +224,111 @@
   <main class="doc-container">
     <article class="markdown-body">
 <h1>Publish Shiny App to GitHub Pages</h1>
-<p>Here is a comprehensive plan to publish the Shiny app in <code>SHINY_APP/</code> using <strong>GitHub Pages</strong>.</p>
-<h2>1. Technical Context: GitHub Pages &amp; Shiny</h2>
-<p>GitHub Pages is a <strong>static web host</strong> (HTML, CSS, JS, and WebAssembly). It does <strong>not</strong> run an active backend R server (such as <code>Rscript</code> or standard <code>shiny::runApp()</code>).</p>
-<p>To host an interactive R Shiny application on GitHub Pages, there are two primary options:</p>
-<table>
-<thead>
-<tr>
-<th align="left">Strategy</th>
-<th align="left">How it Works</th>
-<th align="left">Pros</th>
-<th align="left">Considerations</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><strong>Option 1: Shinylive for R (webR)</strong> <em>(Recommended)</em></td>
-<td align="left">Runs R and Shiny entirely inside the visitor's browser using <strong>WebAssembly (WASM)</strong>.</td>
-<td align="left">• 100% serverless<br>• Directly hosted on GitHub Pages<br>• Zero recurring server maintenance</td>
-<td align="left">• First-time page load downloads R-wasm runtime (~15–20 MB cached afterwards)<br>• Requires dependencies supported in webR</td>
-</tr>
-<tr>
-<td align="left"><strong>Option 2: shinyapps.io + GitHub Pages landing/iframe</strong></td>
-<td align="left">App runs on Posit's free/paid shinyapps.io server; <code>docs/</code> hosts a GitHub Pages landing page embedding it.</td>
-<td align="left">• Standard R server environment<br>• No WASM compatibility checks</td>
-<td align="left">• Free tier sleeps after inactivity and has 25 active hours/month limit</td>
-</tr>
-</tbody>
-</table>
+<h2>Prompts</h2>
+<h3>Objective</h3>
+<p>Publish the interactive Shiny application in <code>SHINY_APP/</code> to <strong>GitHub Pages</strong> as a static, serverless WebAssembly application using <strong>Shinylive for R (webR)</strong>.</p>
+<h3>Requirements</h3>
+<ol>
+<li><strong>Serverless Static Hosting</strong>:
+<ul>
+<li>Deliver the full interactive Shiny experience directly from GitHub Pages without requiring an active backend R server or paid hosting tiers.</li>
+</ul>
+</li>
+<li><strong>WebAssembly Performance Optimization</strong>:
+<ul>
+<li>Audit and eliminate heavy Bioconductor dependencies with C-extensions (specifically <code>GenomicRanges</code>, <code>IRanges</code>, <code>S4Vectors</code>) to ensure fast browser load times and minimal WASM memory footprint.</li>
+<li>Replace interval searches with pure <code>data.table</code> nearest joins while preserving 100% exact parity with original peak-to-gene mapping.</li>
+</ul>
+</li>
+<li><strong>Automated CI/CD Deployment</strong>:
+<ul>
+<li>Build and export the Shinylive bundle entirely within GitHub Actions runners.</li>
+<li>Prevent committing heavy precompiled binary assets (~60 MB) into Git history.</li>
+<li>Co-deploy the application bundle and documentation portal (<code>docs/*.html</code>) in a single workflow.</li>
+</ul>
+</li>
+</ol>
 <hr />
-<h2>2. Directory Structure: Source vs. Build (<code>docs/</code>)</h2>
-<p>Rather than moving and overwriting the source files into <code>docs/</code>, the standard best practice is to <strong>maintain <code>SHINY_APP/</code> as the source</strong> and <strong>build/export the static assets into <code>docs/</code></strong>:</p>
-<pre><code>MafADiscovery/
-├── SHINY_APP/                     # SOURCE: R scripts, raw CSVs, docs
-│   ├── app.R                      # Main application file
-│   ├── MafA_Peaks_with_SNPs_v3.csv
-│   ├── Master_DEG_Strain_Comparison_v3.csv
-│   ├── mouse_genes_mm39_v3.csv
-│   └── README.md
-├── guides/                        # Architectural and developer guides
-├── docs/                          # BUILD TARGET: Published via GitHub Pages
-│   ├── .nojekyll                  # Required: bypasses Jekyll processing
-│   ├── index.html                 # Shinylive entry point
-│   ├── edit/                      # Shinylive editor / runtime assets
-│   └── shivlive/ (or _webr/)      # WebAssembly runtime files
+<h2>Technical Architecture &amp; Implementation</h2>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Repository
+        SRC[SHINY_APP/ Source]
+        DOCS[guides/ &amp; render_docs.R]
+        CFG[config.R]
+    end
+    subgraph GitHub Actions Runner
+        GHA[deploy-shinylive.yaml]
+        WEBR[shinylive::export]
+        RENDER[Rscript render_docs.R]
+    end
+    subgraph GitHub Pages
+        SITE[site/ Root: App &amp; Docs Portal]
+    end
+    SRC --&gt; GHA
+    DOCS --&gt; GHA
+    CFG --&gt; GHA
+    GHA --&gt; WEBR
+    GHA --&gt; RENDER
+    WEBR --&gt; SITE
+    RENDER --&gt; SITE
 </code></pre>
 <hr />
-<h2>3. Dependency &amp; Performance Audit (webR Readiness)</h2>
-<p>The app (<code>app.R</code>) relies on 4 standard CRAN libraries:</p>
-<ol>
-<li><code>shiny</code>, <code>ggplot2</code>, <code>plotly</code>, <code>data.table</code>: All are available as pre-compiled WebAssembly binaries in the r-wasm CRAN repository (<code>repo.r-wasm.org</code>).</li>
-<li><code>GenomicRanges</code>: Bioconductor package with C dependencies.
+<h3>1. WebAssembly (webR) &amp; Dependency Optimization</h3>
+<p>GitHub Pages serves static web assets (HTML, JS, WASM). The app runs entirely in the visitor's browser using <strong>Shinylive (webR)</strong>:</p>
 <ul>
-<li><em>Optimization</em>: The app replaces Bioconductor <code>GenomicRanges</code> with optimized <code>data.table</code> interval joins (<code>roll = &quot;nearest&quot;</code> on query positions). This eliminates ~25 MB of WASM downloads and cuts app load time by &gt;60%.</li>
+<li><strong>Elimination of Bioconductor <code>GenomicRanges</code></strong>:
+<ul>
+<li>Original prototypes relied on Bioconductor packages with compiled C-dependencies (<code>GenomicRanges</code>, <code>IRanges</code>, <code>S4Vectors</code>, <code>Seqinfo</code>), which added &gt;25 MB of WASM downloads.</li>
+<li>Replaced with a fast <code>data.table</code> rolling join:
+<pre><code class="language-r">res &lt;- deg_cols[pks_q, on = .(Chr, deg_start = query_pos), roll = &quot;nearest&quot;]
+res &lt;- res[abs(Mid - actual_deg_start) &lt;= (win_kb * 1000)]
+</code></pre>
+</li>
+<li>Verified 100% exact parity across all 6,790 binding peaks while reducing required WASM packages from 43 to 38 and cutting startup time by &gt;60%.</li>
 </ul>
 </li>
-<li><strong>Data payload</strong>: The CSVs total ~15 MB with prioritized SNPs. This comfortably loads into browser memory in webR.</li>
-</ol>
+<li><strong>Ingested Data Footprint</strong>:
+<ul>
+<li>Ingests 5 CSV datasets (peaks, DEGs, mm39 gene models, prioritized coding SNPs, and F2 QTL loci) totaling ~15 MB, comfortably cached in browser memory after initial load.</li>
+</ul>
+</li>
+</ul>
 <hr />
-<h2>4. Proposed Step-by-Step Implementation Steps</h2>
-<h3>Phase 1: Prepare the App for Export</h3>
+<h3>2. CI/CD Deployment Pipeline (<code>deploy-shinylive.yaml</code>)</h3>
+<p>Automated deployment executes on every push to <code>main</code> via <a href="../.github/workflows/deploy-shinylive.yaml"><code>.github/workflows/deploy-shinylive.yaml</code></a>:</p>
 <ol>
-<li>Standardize the script filename: Shinylive expects <code>app.R</code> in <code>SHINY_APP/</code>.</li>
-<li>Verify package dependencies in webR format with pure <code>data.table</code> distance checks.</li>
-</ol>
-<h3>Phase 2: Static Export via Shinylive</h3>
-<ol>
-<li>
-<p>Use the R package <code>shinylive</code> to export the application into <code>docs/</code>:</p>
-<pre><code class="language-r">if (!requireNamespace(&quot;shinylive&quot;, quietly = TRUE)) install.packages(&quot;shinylive&quot;)
-shinylive::export(
-  appdir = &quot;SHINY_APP&quot;,
-  destdir = &quot;docs&quot;,
-  subdir = &quot;&quot;
-)
-</code></pre>
-</li>
-<li>
-<p>Create <code>docs/.nojekyll</code> to ensure GitHub Pages does not ignore underscore-prefixed directories (e.g., <code>_webr/</code>).</p>
-</li>
-</ol>
-<h3>Phase 3: Local Empirical Verification</h3>
-<ol>
-<li>
-<p>Test the static build locally using a local web server (a static server is required because browser security policies block WASM from <code>file://</code> URLs):</p>
-<pre><code class="language-r">httpuv::runStaticServer(&quot;docs&quot;, port = 8888)
-</code></pre>
-</li>
-<li>
-<p>Verify that:</p>
+<li><strong>Environment Setup</strong>: Spawns an Ubuntu runner, configures R, and installs CRAN dependencies (<code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, <code>plotly</code>, <code>commonmark</code>).</li>
+<li><strong>Static Shinylive Export</strong>:
 <ul>
-<li>The webR engine initializes in the browser.</li>
-<li>Data files load into the virtual filesystem.</li>
-<li>The Manhattan plot, gene symbol autocomplete, zoom modes, and locus schematic render interactively.</li>
+<li>Bundles Markdown guides and <a href="../config.R"><code>config.R</code></a> into <code>SHINY_APP/</code>.</li>
+<li>Executes <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code> with customized browser tab title and favicon metadata.</li>
 </ul>
 </li>
-</ol>
-<h3>Phase 4: GitHub Actions Automated Build &amp; Pages Activation</h3>
-<p>Rather than committing and uploading heavy precompiled Shinylive/webR assets (<code>docs/shinylive/</code> ~60MB) directly into Git history, the build and deployment is handled on the GitHub Pages end via GitHub Actions:</p>
-<ol>
-<li><strong>Workflow Automation (<code>.github/workflows/deploy-shinylive.yaml</code>)</strong>:
+<li><strong>Documentation Compilation</strong>:
 <ul>
-<li>Triggers on push to <code>main</code> (when <code>SHINY_APP/**</code>, <code>guides/**</code>, <code>*.md</code>, or the workflow changes) or manual <code>workflow_dispatch</code>.</li>
-<li>Sets up Ubuntu runner with R, installs standard CRAN dependencies (<code>shiny</code>, <code>shinylive</code>, <code>data.table</code>, <code>ggplot2</code>, <code>plotly</code>).</li>
-<li>Copies guide markdown files to <code>SHINY_APP/guides/</code> and runs <code>shinylive::export(appdir = &quot;SHINY_APP&quot;, destdir = &quot;site&quot;)</code> in CI.</li>
-<li>Copies developer guides (<code>DEVELOPER.md</code>, <code>guides/*.md</code>) into <code>site/</code> for public hosting alongside the app.</li>
-<li>Deploys the static bundle as a Pages artifact via <code>actions/deploy-pages@v4</code>.</li>
+<li>Runs <code>Rscript render_docs.R</code> to synchronize Markdown links and compile guides into <code>docs/*.html</code>.</li>
+<li>Copies documentation assets into <code>site/docs/</code> and <code>site/</code>.</li>
 </ul>
 </li>
-<li><strong>Repository Cleanliness</strong>:
+<li><strong>Pages Deployment</strong>:
 <ul>
-<li><code>/docs/</code> and <code>/site/</code> are added to <code>.gitignore</code>.</li>
-<li>The git repository contains only clean source files and CSV data in <code>SHINY_APP/</code>.</li>
-</ul>
-</li>
-<li><strong>GitHub Repository Settings</strong>:
-<ul>
-<li>Navigate to <strong>Settings</strong> $\to$ <strong>Pages</strong>.</li>
-<li>Under <strong>Build and deployment</strong> &gt; <strong>Source</strong>, select <strong>GitHub Actions</strong> (instead of &quot;Deploy from a branch&quot;).</li>
-<li>Pushing changes to <code>main</code> triggers automated build and deployment to <code>https://&lt;organization-or-user&gt;.github.io/MafADiscovery/</code>.</li>
+<li>Drops <code>site/.nojekyll</code> to bypass Jekyll processing.</li>
+<li>Uploads <code>site/</code> artifact and deploys directly to GitHub Pages via <code>actions/deploy-pages@v4</code>.</li>
 </ul>
 </li>
 </ol>
 <hr />
-<h2>Implementation Summary &amp; Status</h2>
-<p>All implementation steps for <strong>Option 1 (Shinylive / webR)</strong> with <code>data.table</code> and serverless GitHub Actions deployment have been executed:</p>
+<h3>3. Repository Cleanliness &amp; GitHub Settings</h3>
+<ul>
+<li><strong>Clean Version Control</strong>: Both <code>site/</code> and precompiled Shinylive binaries are ignored in <code>.gitignore</code>, keeping the Git commit history lightweight and restricted to source code.</li>
+<li><strong>GitHub Pages Configuration</strong>:
 <ol>
-<li>
-<p><strong><code>GenomicRanges</code> Replaced by <code>data.table</code></strong>:</p>
-<ul>
-<li>Replaced <code>findOverlaps()</code> and <code>nearest()</code> with a fast <code>data.table</code> rolling join (<code>roll = &quot;nearest&quot;</code> on <code>.(Chr, deg_start = query_pos)</code> followed by <code>abs(Mid - actual_deg_start) &lt;= win_kb * 1000</code>).</li>
-<li>Verified 100% exact parity on the actual dataset (<code>6,790</code> peaks matching identically in symbols, categories, and peak IDs).</li>
-<li>Eliminated Bioconductor dependencies (<code>GenomicRanges</code>, <code>IRanges</code>, <code>S4Vectors</code>, <code>Seqinfo</code>), reducing required WASM packages from 43 to 38 and speeding up browser load times.</li>
-</ul>
-</li>
-<li>
-<p><strong>Source and Entry Point Standardized</strong>:</p>
-<ul>
-<li>Created <a href="../SHINY_APP/app.R"><code>SHINY_APP/app.R</code></a> as the primary Shiny application entry point for both local development and Shinylive packaging.</li>
-<li>Maintained all source files in <code>SHINY_APP/</code>.</li>
-</ul>
-</li>
-<li>
-<p><strong>Serverless CI/CD Pipeline (<code>.github/workflows/deploy-shinylive.yaml</code>)</strong>:</p>
-<ul>
-<li>Automated <code>shinylive::export()</code> directly within GitHub Actions runners.</li>
-<li>Kept Git repository free of heavy binary WASM web assets (<code>/docs/</code> and <code>/site/</code> ignored in <code>.gitignore</code>).</li>
-</ul>
-</li>
-<li>
-<p><strong>Next Step (GitHub Settings)</strong>:</p>
-<ul>
-<li>In GitHub repository settings: <strong>Settings</strong> $\to$ <strong>Pages</strong> $\to$ <strong>Source: GitHub Actions</strong>.</li>
-<li>Pushes to <code>main</code> automatically publish the live app at <code>https://&lt;organization-or-user&gt;.github.io/MafADiscovery/</code>.</li>
-</ul>
-</li>
+<li>Open repository <strong>Settings</strong> $\to$ <strong>Pages</strong>.</li>
+<li>Under <strong>Build and deployment</strong> $\to$ <strong>Source</strong>, choose <strong>GitHub Actions</strong>.</li>
+<li>Subsequent pushes to <code>main</code> publish automatically to <code>https://&lt;owner&gt;.github.io/&lt;repo&gt;/</code>.</li>
 </ol>
+</li>
+</ul>
 
     </article>
   </main>
