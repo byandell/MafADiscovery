@@ -293,7 +293,7 @@ ui <- fluidPage(
           tags$a(id = "btn-guide-link", 
                  href = sprintf("%s/user_guide.html", GITHUB_CONFIG$docs_url), 
                  target = "_blank", 
-                 rel = "noopener noreferrer",
+                 rel = "opener",
                  onclick = "this.href = resolveDocsUrl('user_guide.html');",
                  class = "btn btn-sm btn-help", 
                  style = "text-decoration: none; display: inline-flex; align-items: center;", 

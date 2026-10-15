@@ -188,6 +188,16 @@
       border-top: 1px solid var(--border);
       background: #ffffff;
     }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0;
+      background: #fafbfc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+    }
   </style>
   <script>
     function handleOpenApp(e) {
@@ -201,8 +211,38 @@
         } catch (err) {}
         return false;
       }
+      try {
+        var appWin = window.open("", "mafa_app");
+        if (appWin && !appWin.closed && appWin.location.href && appWin.location.href !== "about:blank") {
+          e.preventDefault();
+          appWin.focus();
+          window.close();
+          return false;
+        }
+      } catch (err) {}
       return true;
     }
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "neutral",
+      securityLevel: "loose"
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+      var mermaidBlocks = document.querySelectorAll("pre code.language-mermaid");
+      if (mermaidBlocks.length > 0) {
+        mermaidBlocks.forEach(function(codeEl) {
+          var preEl = codeEl.parentElement;
+          var container = document.createElement("div");
+          container.className = "mermaid";
+          container.textContent = codeEl.textContent;
+          preEl.parentNode.replaceChild(container, preEl);
+        });
+        mermaid.run({ querySelector: ".mermaid" });
+      }
+    });
   </script>
 </head>
 <body>

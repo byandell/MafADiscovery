@@ -28,7 +28,7 @@ Welcome to the documentation portal for the **MafA Discovery Integrated Genomic 
 * **[Publishing & Deployment](https://byandell.github.io/MafADiscovery/docs/publishapp.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/guides/publishapp.md))  
    Shinylive (webR) static WebAssembly deployment architecture, performance benchmarks, and automated GitHub Actions CI configuration.
 
-* **[Legacy Prototypes](https://byandell.github.io/MafADiscovery/docs/shinyapp.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/guides/shinyapp.md))  
+* **[Initial Prototypes](https://byandell.github.io/MafADiscovery/docs/shinyapp.html)** ([source](https://github.com/byandell/MafADiscovery/blob/main/guides/shinyapp.md))  
    Technical specifications and lineage for Version 1 (`MafA_Discovery_App.R`) and Version 2 (`MafA_Discovery_App_v2.R`) standalone prototype scripts.
 
 ---
