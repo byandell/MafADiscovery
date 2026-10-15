@@ -41,6 +41,7 @@ jobs:
         run: |
           mkdir -p SHINY_APP/guides
           cp guides/*.md SHINY_APP/guides/
+          cp config.R SHINY_APP/ 2>/dev/null || true
           Rscript -e '
             shinylive::export(
               appdir = "SHINY_APP", 
@@ -51,7 +52,7 @@ jobs:
               )
             )
           '
-          rm -rf SHINY_APP/guides
+          rm -rf SHINY_APP/guides SHINY_APP/config.R
         shell: bash
 
       - name: Render HTML documentation & copy to site

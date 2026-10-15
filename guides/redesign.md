@@ -434,6 +434,7 @@ This plan details the technical architecture, UI layout restructuring, reactive 
     ```
 
 #### 8.2.4 "Dev Guide" Redirection to `docs/` Landing Page
+*(Note: Refactored in Step 24 to a single `📖 Guide ↗` button pointing to `docs/user_guide.html` and reading from `config.R`)*
 * In `ui`: Anchor button linking to docs landing portal:
   ```r
   tags$a(
@@ -492,3 +493,14 @@ flowchart TD
     * Resolved local relative link breakages by appending a trailing slash (`docs/`) in `resolveDocsUrl()` and `#btn-devguide-link`, ensuring browser relative paths (e.g. `user_guide.html`) resolve within the `/docs/` directory rather than resolving against the app root (`/`).
     * Implemented semantic `<details>` and `<summary>` dropdown architecture for the **Developer Guide ▾** navigation menu in `render_docs.R`, guaranteeing it is initially closed on page load and dismissible upon outside clicks.
     * Added alias compilation targets (`developer_guide.html` and `interpretation_guide.html`) in `render_docs.R` to prevent 404 errors from legacy or alternate paths.
+14. **Step 24: Guide Reorganization & Documentation Header Simplification** (Completed):
+    * Replaced separate help modal popup (`show_help`) and `btn-devguide-link` button on the main deployed page with a single `📖 Guide ↗` button pointing directly to `docs/user_guide.html`, eliminating in-app modal popups.
+    * Removed the **Developer Guide ▾** dropdown menu from the documentation site header to eliminate navigation redundancy with the Documentation Hub.
+    * Reordered header navigation buttons across all documentation pages to: **User Guide**, **Documentation Hub**, **About**, and **GitHub ↗**.
+15. **Step 25: Centralized Repository Ownership & Migration Architecture (`config.R`)** (Completed):
+    * Created [`config.R`](../config.R) as the single source of truth defining `GITHUB_CONFIG$owner`, `GITHUB_CONFIG$repo`, and `GITHUB_CONFIG$branch`.
+    * Implemented `sync_markdown_links()` in `config.R` to automatically scan and synchronize absolute GitHub (`https://github.com/<owner>/...`) and Pages (`https://<owner>.github.io/...`) links across `README.md`, `DEVELOPER.md`, and all guides in `guides/`. This ensures users inspecting raw Markdown source on GitHub always have working, clickable absolute links.
+    * Integrated `config.R` into `render_docs.R` to automatically run `sync_markdown_links()`, dynamically inject `GITHUB_CONFIG$repo_url` into the site header's GitHub link, and dynamically relativize full documentation URLs for local and offline browsing.
+    * Integrated `config.R` into `SHINY_APP/app.R` for fallback URL generation while maintaining browser-level dynamic resolution (`resolveDocsUrl()`).
+    * Updated `.github/workflows/deploy-shinylive.yaml` to bundle `config.R` during static Shinylive exports.
+

@@ -3,6 +3,23 @@
 # Converts Markdown developer guides into standalone, beautifully styled HTML pages
 # for publication via GitHub Pages (docs/ directory).
 
+# Source central configuration
+config_paths <- c("config.R", "../config.R")
+config_file <- config_paths[file.exists(config_paths)][1]
+if (!is.na(config_file)) {
+  source(config_file)
+} else {
+  GITHUB_CONFIG <- list(
+    owner  = "byandell",
+    repo   = "MafADiscovery",
+    branch = "main",
+    pages_url = "https://byandell.github.io/MafADiscovery",
+    repo_url  = "https://github.com/byandell/MafADiscovery",
+    docs_url  = "https://byandell.github.io/MafADiscovery/docs",
+    blob_url  = "https://github.com/byandell/MafADiscovery/blob/main"
+  )
+}
+
 docs_dir <- "docs"
 if (!dir.exists(docs_dir)) dir.create(docs_dir, recursive = TRUE)
 
@@ -265,7 +282,7 @@ html_template <- function(title, body_html, current_file) {
         <ul>
           <li><a href="../" class="app-link" onclick="return handleOpenApp(event);">🚀 Open App</a></li>
           {{NAV}}
-          <li><a href="https://github.com/byandell/MafADiscovery" target="_blank" rel="noopener">GitHub ↗</a></li>
+          <li><a href="{{GITHUB_URL}}" target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>
     </div>
@@ -285,8 +302,15 @@ html_template <- function(title, body_html, current_file) {
 
   out <- sub("{{TITLE}}", title, tmpl, fixed = TRUE)
   out <- sub("{{NAV}}", nav_html, out, fixed = TRUE)
+  out <- sub("{{GITHUB_URL}}", GITHUB_CONFIG$repo_url, out, fixed = TRUE)
   out <- sub("{{BODY}}", paste(body_html, collapse = "\n"), out, fixed = TRUE)
   return(out)
+}
+
+# Synchronize Markdown files with configured repository owner
+if (exists("sync_markdown_links", mode = "function")) {
+  cat("Synchronizing markdown links with configured repository owner (", GITHUB_CONFIG$owner, ")...\n", sep = "")
+  sync_markdown_links(GITHUB_CONFIG)
 }
 
 cat("Rendering markdown documentation to HTML...\n")
@@ -318,7 +342,11 @@ for (item in files_to_render) {
   md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?developer_guide\\.md\\)", "](index.html)", md_content)
   md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?user_guide\\.md\\)", "](user_guide.html)", md_content)
   md_content <- gsub("\\]\\((?:guides/)?(?:\\.\\./)?interpretation_guide\\.md\\)", "](user_guide.html)", md_content)
-  md_content <- gsub("https://byandell\\.github\\.io/MafADiscovery/docs/", "", md_content)
+  
+  # Strip full docs URL so internal HTML links within docs/ resolve relatively
+  docs_pattern <- sprintf("https://%s\\.github\\.io/%s/docs/", GITHUB_CONFIG$owner, GITHUB_CONFIG$repo)
+  md_content <- gsub(docs_pattern, "", md_content)
+  md_content <- gsub("https://[a-zA-Z0-9_-]+\\.github\\.io/[a-zA-Z0-9_-]+/docs/", "", md_content)
   
   body_html <- md_to_html(md_content)
   full_html <- html_template(title, body_html, current_file)

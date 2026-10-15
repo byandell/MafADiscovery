@@ -25,6 +25,21 @@ library(data.table)
 library(ggplot2)
 library(plotly)
 
+# Central Repository Configuration
+config_paths <- c("config.R", "../config.R", file.path("..", "config.R"))
+config_file <- config_paths[file.exists(config_paths)][1]
+if (!is.na(config_file)) {
+  tryCatch(source(config_file, local = TRUE), error = function(e) NULL)
+}
+if (!exists("GITHUB_CONFIG", inherits = FALSE)) {
+  GITHUB_CONFIG <- list(
+    owner = "byandell",
+    repo  = "MafADiscovery",
+    pages_url = "https://byandell.github.io/MafADiscovery",
+    docs_url  = "https://byandell.github.io/MafADiscovery/docs"
+  )
+}
+
 # Serve docs directory for local documentation links if available
 docs_path <- if (dir.exists("docs")) "docs" else if (dir.exists("../docs")) "../docs" else NULL
 if (!is.null(docs_path)) {
@@ -276,7 +291,7 @@ ui <- fluidPage(
       column(width = 3,
         div(class = "top-nav-buttons",
           tags$a(id = "btn-guide-link", 
-                 href = "https://byandell.github.io/MafADiscovery/docs/user_guide.html", 
+                 href = sprintf("%s/user_guide.html", GITHUB_CONFIG$docs_url), 
                  target = "_blank", 
                  rel = "noopener noreferrer",
                  onclick = "this.href = resolveDocsUrl('user_guide.html');",

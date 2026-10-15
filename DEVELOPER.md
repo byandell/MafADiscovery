@@ -222,6 +222,29 @@ The app is deployed to GitHub Pages as a static WebAssembly bundle:
 
 ---
 
+## Repository Ownership & Configuration (`config.R`)
+
+The repository ownership, GitHub repository name, and deployment URLs are centralized in [`config.R`](config.R):
+
+```r
+GITHUB_CONFIG <- list(
+  owner  = "byandell",          # GitHub user or organization
+  repo   = "MafADiscovery",     # Repository name
+  branch = "main"               # Default production branch
+)
+```
+
+### Transferring Repository to a New Owner
+
+When transferring this repository to a new user or organization:
+1. Open [`config.R`](config.R) and change `owner = "byandell"` to the new GitHub user or organization name.
+2. Run `Rscript render_docs.R`:
+   * Automatically invokes `sync_markdown_links()` to scan `README.md`, `DEVELOPER.md`, and all guides in `guides/`, updating absolute GitHub (`https://github.com/<owner>/...`) and GitHub Pages (`https://<owner>.github.io/...`) links so that links remain viable for users reading raw Markdown source files on GitHub.
+   * Compiles and outputs fresh HTML pages in `docs/` with updated navbar links.
+3. The Shiny app in `SHINY_APP/app.R` reads `config.R` and dynamically computes URLs via client-side JavaScript (`resolveDocsUrl()`) at runtime, adapting to the live hosting environment without requiring hardcoded updates.
+
+---
+
 ## Coding Guidelines & Safety Rules
 
 - **Vector Subsetting Safety**: Always use `grepl("^\\s*#'", lines)` with `!grepl(...)` or `grep(..., invert = TRUE)`. Never use `!grep(...)` in R.
