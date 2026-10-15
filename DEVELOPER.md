@@ -122,7 +122,7 @@ State is managed via `reactiveValues` in `v`:
   - Dynamic Primary Selector: Toggles between `selectizeInput("search_gene", ...)` (in *Genome-Wide*, *Chromosome*, and *Locus Zoom* modes) and `selectInput("sel_qtl", ...)` (in *QTL Region* mode).
   - View mode dropdown (`selectInput("zoom_mode", ...)`).
   - Contextual selector container (`uiOutput("context_selector_ui")`): dynamically renders chromosome selector (`sel_chr`) in *Chromosome* mode, locus badge in *Locus Zoom*, or a quick `✕ Deselect Peak` button / QTL badge in *QTL Region* mode.
-  - Quick action buttons: `ℹ️ Guide` interpretation modal, direct `📖 Dev Guide ↗` external link, and `↺ Reset`. (The former header `📊 QTLs` modal button has been replaced by the direct in-panel overview table).
+  - Quick action buttons: `📖 Guide ↗` direct link to User Guide and `↺ Reset`. (The former header `📊 QTLs` modal button has been replaced by the direct in-panel overview table).
 - **Unified Canvas & Continuous Control Stacking**:
   - The plots and controls are organized within a single continuous 12-column row:
     - **Left Column (`width = 9`)**: Stacks the Additive Trait Scan Plot (when active in *QTL Region*), the Manhattan Macro Plot, and the Micro Locus Schematic.
@@ -144,8 +144,8 @@ State is managed via `reactiveValues` in `v`:
   - An explicit **"✕ Deselect Current Peak"** button appears in the **Manhattan Controls** side panel immediately below the **Hide Legend** checkbox when a peak is active, providing intuitive deselection where peak selection originates and conditionally hiding the locus schematic and its controls.
 - **Genome-Wide Auto-Reset**: Selecting `"Genome-Wide"` in `zoom_mode` or clicking `↺ Reset` invokes a centralized `reset_to_default_state()` routine, clearing active peaks, SNPs, searched genes, user zooms, and returning all filters and options to their pristine default settings (preserving mobile legend defaults on mobile devices).
 - **Legend Visibility Controls & Mobile Optimization**: Discrete checkboxes (`hide_manhattan_legend`, `hide_schematic_legend`) dynamically suppress legends via Plotly `layout(showlegend = ...)` and ggplot `theme(legend.position = ...)`. On mobile devices (iPhone, touch/narrow viewports $\le 768$px), client-side detection automatically defaults both checkboxes to `TRUE` (hidden) upon launch to preserve full plot width on smaller screens.
-- **User Guide Modal**: Loaded dynamically from [`guides/user_guide.md`](guides/user_guide.md) via `render_markdown_file()` with `title = NULL` in `modalDialog`, allowing the single markdown H1 header to serve as the clean dialog title without duplication. Explains biological background, macro/micro panel coordination, coding variant impact levels, and navigation modes, allowing text updates without modifying R code.
-- **Documentation Hub**: The `📖 Dev Guide ↗` button connects directly to the rendered documentation portal at `docs/` (or `https://byandell.github.io/MafADiscovery/docs/` when hosted), backed by `docs/index.html` compiled from [`guides/developer_guide.md`](guides/developer_guide.md). The explicit trailing slash ensures all relative links (`user_guide.html`, `DEVELOPER.html`, etc.) correctly resolve within the `docs/` directory during local trials and live deployment. The site header includes a semantic `<details>` / `<summary>` **Developer Guide ▾** dropdown that remains initially closed on page load.
+- **User Guide Navigation**: The `📖 Guide ↗` button connects directly to `https://byandell.github.io/MafADiscovery/docs/user_guide.html` (or `docs/user_guide.html` in local context), without in-app modal popups.
+- **Documentation Hub**: Backed by `docs/index.html` compiled from [`guides/developer_guide.md`](guides/developer_guide.md). The documentation site header provides streamlined navigation buttons: **User Guide**, **Documentation Hub**, **About**, and **GitHub**.
 
 ### Plotly Manhattan Plot & Dual-Axis Scaling
 

@@ -195,15 +195,16 @@ ui <- fluidPage(
       $(document).on('shown.bs.modal', function () {
         $('.modal-markdown a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
       });
-      function resolveDocsUrl() {
+      function resolveDocsUrl(subpath) {
+        subpath = subpath || 'user_guide.html';
         if (window.location.pathname.indexOf('/app_') !== -1 || window.location.hostname.includes('github.io')) {
           var base = window.location.pathname.replace(/\\/app_[^\\/]+.*$/, '').replace(/\\/index\\.html$/, '').replace(/\\/$/, '');
-          return window.location.origin + base + '/docs/';
+          return window.location.origin + base + '/docs/' + subpath;
         }
-        return 'docs/';
+        return 'docs/' + subpath;
       }
-      $(document).on('click', '#btn-devguide-link', function(e) {
-        $(this).attr('href', resolveDocsUrl());
+      $(document).on('click', '#btn-guide-link', function(e) {
+        $(this).attr('href', resolveDocsUrl('user_guide.html'));
       });
       function isMobileClient() {
         return (window.innerWidth <= 768) || /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -274,10 +275,14 @@ ui <- fluidPage(
       ),
       column(width = 3,
         div(class = "top-nav-buttons",
-          actionButton("show_help", "ℹ️ Guide", class = "btn btn-sm btn-help"),
-          tags$a(id = "btn-devguide-link", href = "docs/", target = "_blank", rel = "opener",
-                 onclick = "this.href = resolveDocsUrl();",
-                 class = "btn btn-sm btn-devguide", style = "text-decoration: none; display: inline-flex; align-items: center;", "📖 Dev Guide ↗"),
+          tags$a(id = "btn-guide-link", 
+                 href = "https://byandell.github.io/MafADiscovery/docs/user_guide.html", 
+                 target = "_blank", 
+                 rel = "noopener noreferrer",
+                 onclick = "this.href = resolveDocsUrl('user_guide.html');",
+                 class = "btn btn-sm btn-help", 
+                 style = "text-decoration: none; display: inline-flex; align-items: center;", 
+                 "📖 Guide ↗"),
           actionButton("reset_view", "↺ Reset", class = "btn btn-sm btn-rezoom")
         )
       )
@@ -877,27 +882,7 @@ server <- function(input, output, session) {
     }
   }
 
-  # User Guide Modal
-  observeEvent(input$show_help, {
-    showModal(modalDialog(
-      title = NULL,
-      render_markdown_file("user_guide.md"),
-      size = "l",
-      easyClose = TRUE,
-      footer = modalButton("Close")
-    ))
-  })
-
-  # Developer Guide Modal
-  observeEvent(input$show_dev_guide, {
-    showModal(modalDialog(
-      title = NULL,
-      render_markdown_file("developer_guide.md"),
-      size = "l",
-      easyClose = TRUE,
-      footer = modalButton("Close")
-    ))
-  })
+  # User Guide and Documentation links navigate directly to docs/user_guide.html and docs/
 
   filtered_peaks <- reactive({
     req(input$show_cat)

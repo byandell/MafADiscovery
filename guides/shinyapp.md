@@ -1,11 +1,13 @@
-# Legacy MafA Explorer Applications (v1 & v2)
+# Initial MafA Explorer Applications (v1 & v2)
 
 ## Prompts
 
 ### Objective
-Create, document, and preserve the standalone prototype applications in `SHINY_APP_LEGACY/MafA*.R`, providing a complete technical implementation plan and record for both **Version 1** (`MafA_Discovery_App.R`) and **Version 2** (`MafA_Discovery_App_v2.R`).
+
+Create, document, and preserve the initial, standalone prototype applications in `SHINY_APP_LEGACY/MafA*.R`, providing a complete technical implementation plan and record for both **Version 1** (`MafA_Discovery_App.R`) and **Version 2** (`MafA_Discovery_App_v2.R`).
 
 ### Prompt Requirements
+
 1. **Version 1 (`MafA_Discovery_App.R`)**:
    - Create a lightweight baseline prototype focused strictly on MafA transcription factor binding peaks and differential gene expression (DEGs).
    - Ingest 3 core datasets: peak intervals with variant counts, strain DEG comparisons, and mouse GRCm39 gene coordinates.
@@ -70,6 +72,7 @@ flowchart TD
 ### 2. Version 1 Technical Specification (`MafA_Discovery_App.R`)
 
 #### 2.1 Data Ingestion (`prepare_data()`)
+
 - Ingests 3 CSV datasets:
   - `MafA_Peaks_with_SNPs_v3.csv`
   - `Master_DEG_Strain_Comparison_v3.csv`
@@ -77,6 +80,7 @@ flowchart TD
 - Sets up standard GRCm39 chromosome lengths and linear Manhattan coordinates (`GlobalPos_Mbp`).
 
 #### 2.2 UI Structure
+
 - Sidebar (width = 3):
   - ↺ Reset to Genome-Wide button.
   - Gene Symbol autocomplete (`selectizeInput("search_gene", ...)`).
@@ -91,6 +95,7 @@ flowchart TD
   - Locus schematic (`plotOutput("schematic", height = "350px")`).
 
 #### 2.3 Server Logic
+
 - Reactive state: `active_pk`, `reset_trigger`, `user_zoom`.
 - Peak-to-DEG mapping: Converts peaks and DEGs to `GRanges` objects and uses `GenomicRanges::distanceToNearest()` or `findOverlaps()`.
 - Schematic: Computes multi-track gene body layout avoiding overlaps, renders TSS orientation arrows, and highlights peak interval.
@@ -100,18 +105,21 @@ flowchart TD
 ### 3. Version 2 Technical Specification (`MafA_Discovery_App_v2.R`)
 
 #### 3.1 Extended Data Ingestion
+
 - Ingests all 3 v1 CSV datasets plus:
   - `B6_SJL_prioritized_protein_coding_SNPs.csv`
 - Formats SNP coordinates (`Chr`, `pos`), ensures numeric `phastCons_score`, and classifies impacts (`HIGH` vs `MODERATE`).
 - Calculates linear Manhattan position for all SNPs: `snps[chr_map, on = "Chr", GlobalPos_Mbp := (pos / 1e6) + i.Offset_Mbp]`.
 
 #### 3.2 Enhanced UI Controls
+
 - Adds coding variant controls in the sidebar:
   - `checkboxInput("show_snps_main", "Show Coding SNPs on Main Plot", value = TRUE)`
   - `checkboxGroupInput("snp_impact", "Coding SNP Impact:", choices = c("HIGH", "MODERATE"), selected = c("HIGH", "MODERATE"))`
   - `sliderInput("min_phastcons", "Min phastCons Score:", min = 0, max = 1, value = 0.7, step = 0.05)`
 
 #### 3.3 Dual-Axis Manhattan Plot & Bidirectional Clicking
+
 - Secondary Y-axis scaling: Scales `phastCons_score` to `y_max` of peak scores using `ggplot2::sec_axis(~ . / y_max, name = "phastCons Conservation Score (0-1)")`.
 - Visual overlay: Coding SNPs rendered as diamonds (`shape = 23`), sized and colored by impact (`#CC00CC` for HIGH, `#DAA520` for MODERATE).
 - Plotly click handler:
@@ -119,12 +127,14 @@ flowchart TD
   - Checks if a coding SNP was clicked $\rightarrow$ sets `v$active_snp` and snaps `v$active_pk` to the nearest peak on that chromosome.
 
 #### 3.4 Variant-Aware Locus Schematic
+
 - Maps coding SNPs onto gene bodies within `± win_kb`.
 - Differentiates conservation:
   - `phastCons < 0.7`: Hollow diamonds (`shape = 5`, colored by impact).
   - `phastCons >= 0.7`: Solid filled diamonds (`shape = 23`, black stroke).
 
 #### 3.5 Extended Metadata Card
+
 - Groups local coding SNPs by gene.
 - Summarizes counts of HIGH and MODERATE impact variants.
 - Lists exact base position, consequence (`csq`), amino acid change (`aa_change`), and `phastCons` score.

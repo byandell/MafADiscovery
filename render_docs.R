@@ -35,52 +35,20 @@ md_to_html <- function(md_content) {
 }
 
 html_template <- function(title, body_html, current_file) {
-  dev_subpages <- list(
-    list(href = "DEVELOPER.html",   label = "Master Developer Guide"),
-    list(href = "guides.html",      label = "Guides Directory Index"),
-    list(divider = TRUE),
-    list(href = "qtlanalysis.html", label = "F2 QTL Analysis"),
-    list(href = "redesign.html",    label = "UI Redesign & Reactivity"),
-    list(href = "publishapp.html",  label = "Publishing & WASM"),
-    list(href = "shinyapp.html",    label = "Legacy Prototypes")
-  )
-  dev_hrefs <- c("DEVELOPER.html", "guides.html", "qtlanalysis.html", "redesign.html", "publishapp.html", "shinyapp.html")
-  is_dev_active <- current_file %in% dev_hrefs
-  
-  dev_menu_items <- vapply(dev_subpages, function(item) {
-    if (isTRUE(item$divider)) {
-      return('<li class="dropdown-divider"></li>')
-    }
-    active_cls <- if (item$href == current_file) ' class="active"' else ''
-    sprintf('<li><a href="%s"%s>%s</a></li>', item$href, active_cls, item$label)
-  }, character(1))
-  dev_menu_html <- paste(dev_menu_items, collapse = "\n              ")
-  
-  dev_dropdown_html <- sprintf(
-    '<li class="nav-dropdown">
-       <details class="dropdown-details" id="dev-dropdown">
-         <summary class="dropdown-toggle%s">Developer Guide <span class="arrow">▾</span></summary>
-         <ul class="dropdown-menu">
-           %s
-         </ul>
-       </details>
-     </li>',
-    if (is_dev_active) ' active' else '',
-    dev_menu_html
-  )
-  
   main_nav_links <- c(
-    "./"              = "Documentation Hub",
     "user_guide.html" = "User Guide",
+    "./"              = "Documentation Hub",
     "about.html"      = "About"
   )
   
   main_items <- vapply(names(main_nav_links), function(f) {
-    active_cls <- if (f == current_file || (current_file == "index.html" && f == "./")) ' class="active"' else ''
+    active_cls <- if (f == current_file || 
+                      (current_file %in% c("index.html", "developer_guide.html") && f == "./") ||
+                      (current_file %in% c("user_guide.html", "interpretation_guide.html") && f == "user_guide.html")) ' class="active"' else ''
     sprintf('<li><a href="%s"%s>%s</a></li>', f, active_cls, main_nav_links[[f]])
   }, character(1))
   
-  nav_html <- paste(c(main_items, dev_dropdown_html), collapse = "\n          ")
+  nav_html <- paste(main_items, collapse = "\n          ")
   
   tmpl <- '<!DOCTYPE html>
 <html lang="en">
@@ -165,93 +133,6 @@ html_template <- function(title, body_html, current_file) {
       background-color: #e3f2fd;
       color: var(--primary);
       font-weight: 600;
-    }
-    .nav-dropdown {
-      position: relative;
-    }
-    .dropdown-details {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle {
-      color: var(--text-muted);
-      font-size: 0.88em;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      list-style: none;
-      transition: all 0.15s ease;
-    }
-    .dropdown-toggle::-webkit-details-marker {
-      display: none;
-    }
-    .dropdown-toggle::marker {
-      display: none;
-    }
-    .dropdown-toggle:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-toggle.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-details .arrow {
-      font-size: 0.75em;
-      margin-left: 2px;
-      display: inline-block;
-      transition: transform 0.15s ease;
-    }
-    .dropdown-details[open] .arrow {
-      transform: rotate(180deg);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 220px;
-      padding: 6px 0;
-      margin: 4px 0 0 0;
-      list-style: none;
-      z-index: 1000;
-    }
-    .dropdown-menu li {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu a {
-      display: block;
-      padding: 8px 16px;
-      color: var(--text);
-      font-size: 0.88em;
-      text-decoration: none;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .dropdown-menu a:hover {
-      background-color: var(--bg-alt);
-      color: var(--primary);
-    }
-    .dropdown-menu a.active {
-      background-color: #e3f2fd;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--border);
-      margin: 4px 0;
     }
     .app-link {
       background-color: #2da44e !important;
@@ -374,12 +255,6 @@ html_template <- function(title, body_html, current_file) {
       }
       return true;
     }
-    document.addEventListener("click", function(e) {
-      var dropdown = document.getElementById("dev-dropdown");
-      if (dropdown && dropdown.hasAttribute("open") && !dropdown.contains(e.target)) {
-        dropdown.removeAttribute("open");
-      }
-    });
   </script>
 </head>
 <body>

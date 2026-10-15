@@ -29,12 +29,12 @@ Outside of this `guides/` directory, the following primary documentation files a
 
 ---
 
-## 3. In-App Modal Integration
-
-The application in [`../SHINY_APP/app.R`](../SHINY_APP/app.R) loads guides directly into interactive modal dialogs via `render_markdown_file()`:
-
-* **ℹ️ Help Modal (`input$show_help`)**: Reads [`user_guide.md`](user_guide.md) to orient researchers on plot axes, symbols, and navigation.
-* **📖 Dev Guide Modal (`input$show_dev_guide`)**: Reads [`developer_guide.md`](developer_guide.md) providing direct hyperlinks to web documentation and source code.
+## 3. In-App Navigation Integration
+ 
+ The application in [`../SHINY_APP/app.R`](../SHINY_APP/app.R) provides direct navigation to web documentation:
+ 
+ * **📖 Guide (`docs/user_guide.html`)**: Points directly to the User Guide explaining Manhattan macro view, Locus micro schematic, coding variant consequence scoring, and navigation modes without in-app modal popups.
+ * **Documentation Hub (`docs/index.html`)**: Provides direct access to technical and architecture documentation.
 
 Path resolution searches local and parent paths so documentation resolves cleanly during local R sessions, containerized deployments, and Shinylive WebAssembly builds.
 
