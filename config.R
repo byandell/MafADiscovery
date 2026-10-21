@@ -5,6 +5,8 @@
 # When transferring this repository to a new owner or organization:
 # 1. Update `owner` below (e.g., owner = "new-owner").
 # 2. Run `Rscript render_docs.R` to sync all Markdown links and recompile docs/*.html.
+#
+# Architectural guide & checklist: https://byandell.github.io/DocumentTools/prompts/move_repo.html
 
 GITHUB_CONFIG <- list(
   owner  = "byandell",          # GitHub user or organization

@@ -243,6 +243,8 @@ When transferring this repository to a new user or organization:
    * Compiles and outputs fresh HTML pages in `docs/` with updated navbar links.
 3. The Shiny app in `SHINY_APP/app.R` reads `config.R` and dynamically computes URLs via client-side JavaScript (`resolveDocsUrl()`) at runtime, adapting to the live hosting environment without requiring hardcoded updates.
 
+For the general architectural pattern, dual-link strategy, and migration checklist, see the [Repository Transfer Guide](https://byandell.github.io/DocumentTools/prompts/move_repo.html).
+
 ---
 
 ## Coding Guidelines & Safety Rules
