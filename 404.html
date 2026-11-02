@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting to new site...</title>
+  <script>
+    const newBase = "https://chalab2022.github.io/MafADiscovery";
+    const oldBase = "https://byandell.github.io/MafADiscovery";
+    let path = window.location.pathname;
+    if (path.startsWith(oldBase)) {
+      path = path.slice(oldBase.length);
+    }
+    window.location.replace(newBase + path + window.location.search + window.location.hash);
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="https://chalab2022.github.io/MafADiscovery/">chalab2022.github.io/MafADiscovery</a>...</p>
+</body>
+</html>
